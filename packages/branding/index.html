@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institutional Tech — Living Brand Canvas & Manual</title>
+    <meta name="description" content="The Living Brand Canvas and Technical Manual for Institutional Tech. A premium synthesis of Stripe and McKinsey brand aesthetics.">
+    
+    <!-- Brand fonts: Archivo (Neue Montreal / Helvetica Now web fallback) + Roboto Mono (Space/Data) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Archivo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for high-fidelity data viz -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+</head>
+<body class="light-theme">
+    <!-- Main Decorative Grid Background -->
+    <div class="technical-grid-bg"></div>
+
+    <!-- Header Navigation -->
+    <header class="main-header" id="brand-header">
+        <div class="logo-area">
+            <img class="brand-logo-img" src="logo.jpg" alt="GROW Logo">
+            <div class="brand-name-wrap">
+                <span class="brand-title">GROW</span>
+                <span class="brand-subtitle">INSTITUTIONAL TECH</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" id="navigation-tabs">
+            <button class="tab-btn active" data-tab="canvas-tab" id="tab-btn-canvas">Brand Canvas</button>
+            <button class="tab-btn" data-tab="book-tab" id="tab-btn-book">Brand Book</button>
+            <button class="tab-btn" data-tab="manual-tab" id="tab-btn-manual">Brand Manual</button>
+            <button class="tab-btn" data-tab="kit-tab" id="tab-btn-kit">Brand Kit</button>
+        </nav>
+
+        <!-- System Controls -->
+        <div class="header-controls">
+            <button class="control-btn theme-toggle-btn" id="theme-toggle" aria-label="Toggle visual theme">
+                <span class="sun-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </span>
+                <span class="moon-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </span>
+                <span class="theme-label" id="theme-status-text">Light Mode</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="content-container">
+        
+        <!-- SECTION 1: THE BRAND CANVAS -->
+        <section class="tab-panel active" id="canvas-tab">
+            <div class="bento-grid">
+                
+                <!-- Core Strategy Card -->
+                <div class="bento-card col-span-6 row-span-2 card-glowing" id="card-core-strategy">
+                    <div class="card-tag">CORE STRATEGY</div>
+                    <h2 class="strategy-heading">INTEGRATED CREATIVE & ENTERPRISE INFRASTRUCTURE OPERATING AS ONE.</h2>
+                    <p class="strategy-sub">Foundational Operating System for Modern Marketing. Engineered for unquestionable authority and clarity at absolute scale.</p>
+                    <div class="card-footer-visual">
+                        <div class="blueprint-line"></div>
+                        <div class="metrics-grid-indicator">
+                            <span class="indicator-dot pulse"></span>
+                            <span class="indicator-text">SYSTEM ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brand Personality Card -->
+                <div class="bento-card col-span-6 row-span-1" id="card-personality">
+                    <div class="card-tag">BRAND PERSONALITY & VOICE</div>
+                    <div class="personality-grid">
+                        <div>
+                            <h3 class="highlight-text">QUIETLY DOMINANT.</h3>
+                            <h3 class="highlight-text">HYPER-ORGANIZED.</h3>
+                            <h3 class="highlight-text font-italic">INTENSE & VISIONARY.</h3>
+                        </div>
+                        <div class="personality-details">
+                            <p>Speaks in absolute facts, structures, ecosystems, and predictive modeling algorithms. Zero fluff.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- High-End Data Viz Card -->
+                <div class="bento-card col-span-8 row-span-3 card-high-contrast" id="card-data-viz">
+                    <div class="card-header-flex">
+                        <div class="card-tag">PREDICTIVE DATA VISUALIZATION</div>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart-range="weekly" id="range-weekly">Weekly Growth</button>
+                            <button class="chart-btn" data-chart-range="monthly" id="range-monthly">Monthly Projection</button>
+                        </div>
+                    </div>
+                    <div class="chart-meta">
+                        <div class="meta-stat">
+                            <span class="stat-label">COMPUTATIONAL DEPTH</span>
+                            <span class="stat-value" id="comp-depth-val">1.2B</span>
+                        </div>
+                        <div class="meta-stat">
+                            <span class="stat-label">STABILITY COEFFICIENT</span>
+                            <span class="stat-value text-indigo">99.997%</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Color Palette Card -->
+                <div class="bento-card col-span-4 row-span-3" id="card-color-palette">
+                    <div class="card-tag">COLOR PALETTE</div>
+                    <p class="section-desc">Click any swatch to copy its hexadecimal configuration.</p>
+                    <div class="swatch-list">
+                        <!-- Swatch 1: Stark White -->
+                        <div class="color-swatch-item" data-hex="#FFFFFF">
+                            <div class="swatch-color" style="background-color: #FFFFFF; border: 1px solid var(--border-color);"></div>
+                            <div class="swatch-info">
+                                <span class="swatch-name">STARK WHITE</span>
+                                <span class="swatch-hex">#FFFFFF</span>
+                                <span class="swatch-desc">Background Depth / High-Contrast Highlights</span>
+                            </div>
+                            <button class="copy-swatch-btn" aria-label="Copy Hex code">Copy</button>
+                        </div>
+                        <!-- Swatch 2: Alabaster -->
+                        <div class="color-swatch-item" data-hex="#F8F9FA">
+                            <div class="swatch-color" style="background-color: #F8F9FA; border: 1px solid var(--border-color);"></div>
+                            <div class="swatch-info">
+                                <span class="swatch-name">ALABASTER</span>
+                                <span class="swatch-hex">#F8F9FA</span>
+                                <span class="swatch-desc">Subtle Containers / Secondary Typography</span>
+                            </div>
+                            <button class="copy-swatch-btn" aria-label="Copy Hex code">Copy</button>
+                        </div>
+                        <!-- Swatch 3: Charcoal Slate -->
+                        <div class="color-swatch-item" data-hex="#1A202C">
+                            <div class="swatch-color" style="background-color: #1A202C;"></div>
+                            <div class="swatch-info">
+                                <span class="swatch-name">CHARCOAL SLATE</span>
+                                <span class="swatch-hex">#1A202C</span>
+                                <span class="swatch-desc">Structure Backgrounds / High-Contrast Text</span>
+                            </div>
+                            <button class="copy-swatch-btn" aria-label="Copy Hex code">Copy</button>
+                        </div>
+                        <!-- Swatch 4: Deep Electric Indigo -->
+                        <div class="color-swatch-item" data-hex="#4F46E5">
+                            <div class="swatch-color" style="background-color: #4F46E5;"></div>
+                            <div class="swatch-info">
+                                <span class="swatch-name">ELECTRIC INDIGO</span>
+                                <span class="swatch-hex">#4F46E5</span>
+                                <span class="swatch-desc">Data Signals / Alerts / Interactive Glows</span>
+                            </div>
+                            <button class="copy-swatch-btn" aria-label="Copy Hex code">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brand Assets Card -->
+                <div class="bento-card col-span-4 row-span-2" id="card-visual-mood">
+                    <div class="card-tag">BRAND ASSETS</div>
+                    <div class="mood-container">
+                        <img class="mood-logo-showcase" src="logo.jpg" alt="GROW Logo">
+                        <div class="mood-label" style="margin-top: 1rem;">STRUCTURE. RIGIDITY. FACT.</div>
+                        <div class="asset-actions">
+                            <a class="asset-dl-btn" href="logo.jpg" download="grow-logo.jpg">↓ LOGO.JPG</a>
+                            <a class="asset-dl-btn" href="grow-mark.svg" download="grow-mark.svg">↓ MARK.SVG</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography Card -->
+                <div class="bento-card col-span-8 row-span-2" id="card-typography">
+                    <div class="card-tag">TYPOGRAPHY BLUEPRINT</div>
+                    <div class="typography-showcase">
+                        <div class="font-spec">
+                            <span class="font-label">HEADERS: Neue Montreal / Helvetica Now — web fallback: Archivo</span>
+                            <h3 class="font-preview-header">HEADERS: ESTABLISHED & INSTITUTIONAL</h3>
+                            <span class="font-details">Large scale, medium weight, tight tracking. Exudes high strategic stature.</span>
+                        </div>
+                        <div class="font-spec line-top">
+                            <span class="font-label">DATA & MONOSPACE: Roboto Mono / SF Pro</span>
+                            <p class="font-preview-mono">SPACE/DATA: TECHNICAL SAAS [127.420 // GRID_OK]</p>
+                            <span class="font-details">High contrast, clean spacing, absolute logical positioning for numerical parameters.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: BRAND BOOK (STRATEGY & VOICE) -->
+        <section class="tab-panel" id="book-tab">
+            <div class="bento-grid">
+                
+                <!-- Core Concept Card -->
+                <div class="bento-card col-span-7 row-span-2" id="book-concept">
+                    <div class="card-tag">BRAND NARRATIVE</div>
+                    <h2 class="narrative-title">CLARITY AT SCALE</h2>
+                    <p class="narrative-p">In a landscape saturated with generic tech jargon and overly simplified micro-interactions, the Institutional Tech identity speaks directly to decision-makers expecting structural depth. It is built to serve as the infrastructure that processes, coordinates, and explains enterprise capabilities.</p>
+                    <p class="narrative-p">We bridge the gap between creative visual narratives and developer-level execution, treating every pixel as a functional element in a coordinate grid.</p>
+                </div>
+
+                <!-- Architectural Rules -->
+                <div class="bento-card col-span-5 row-span-2" id="book-aesthetic-rules">
+                    <div class="card-tag">AESTHETIC PILLARS</div>
+                    <ul class="aesthetic-pillars-list">
+                        <li>
+                            <strong class="text-indigo">01. Bento-Box Isolation</strong>
+                            <p>Every piece of data must exist inside its own border grid. Overlaps are illegal. Clarity is achieved by partitioning elements.</p>
+                        </li>
+                        <li>
+                            <strong class="text-indigo">02. Restrained Chromatic Scale</strong>
+                            <p>Colors must never be decorative. Stark White and Alabaster create depth; Electric Indigo represents real-time data active flags.</p>
+                        </li>
+                        <li>
+                            <strong class="text-indigo">03. Monospace Readouts</strong>
+                            <p>System details, numeric metrics, and alerts must be formatted in monospace typeface to assert technical precision.</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Voice Translator Playground -->
+                <div class="bento-card col-span-12 row-span-2 card-glowing" id="book-translator">
+                    <div class="card-tag">INTERACTIVE PLAYGROUND: VOICE TRANSLATOR</div>
+                    <p class="section-desc">Write standard marketing copy below and see how the system translates it to our Quietly Dominant, Facts-First voice.</p>
+                    <div class="translator-ui">
+                        <div class="input-panel">
+                            <label for="input-copy-raw">Standard Marketing Copy</label>
+                            <textarea id="input-copy-raw" placeholder="e.g., We help companies connect their tools easily and grow super fast!"></textarea>
+                        </div>
+                        <div class="translate-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </div>
+                        <div class="output-panel">
+                            <div class="output-panel-head">
+                                <label>Institutional Tech Voice Translation</label>
+                                <button class="copy-css-btn" id="copy-translation">Copy</button>
+                            </div>
+                            <div class="output-box" id="translator-output">
+                                <span class="placeholder-text">Translation will appear here in absolute facts...</span>
+                            </div>
+                            <div class="xform-meta" id="xform-meta" hidden>
+                                <span class="xform-confidence" id="xform-confidence"></span>
+                                <label class="framing-toggle">
+                                    <input type="checkbox" id="framing-toggle-input">
+                                    <span>Technical framing</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xform-log" id="xform-log"></div>
+                    <div class="translator-presets">
+                        <span class="preset-label">Or choose a preset template:</span>
+                        <button class="preset-btn" data-preset="1">Vague Pitch</button>
+                        <button class="preset-btn" data-preset="2">Feature Explanation</button>
+                        <button class="preset-btn" data-preset="3">Hero Tagline</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 3: TECHNICAL MANUAL (SYSTEM SPECIFICATIONS) -->
+        <section class="tab-panel" id="manual-tab">
+            <div class="bento-grid">
+                
+                <!-- Spacing and Layout Rules -->
+                <div class="bento-card col-span-6 row-span-2" id="manual-grid-spec">
+                    <div class="card-tag">THE COORDINATE SYSTEM (GRID)</div>
+                    <p class="section-desc">All UI container dimensions, gaps, and padding rules are bound to our 8px mathematical increment scale.</p>
+                    <div class="grid-spec-table">
+                        <div class="spec-row">
+                            <span class="spec-prop">Card Gap</span>
+                            <span class="spec-val">16px // 1.0rem</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-prop">Card Inner Padding</span>
+                            <span class="spec-val">24px // 1.5rem</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-prop">Borders</span>
+                            <span class="spec-val">1px solid var(--border-color)</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-prop">Border Radius</span>
+                            <span class="spec-val">8px // 0.5rem</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-prop">Backdrop Filter</span>
+                            <span class="spec-val">blur(12px) [Glassmorphism]</span>
+                        </div>
+                    </div>
+                    <div class="grid-visualizer-container">
+                        <div class="grid-visualizer-control">
+                            <button class="toggle-grid-overlay-btn" id="toggle-grid-overlay">Toggle Grid Guide Overlay</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rebrander Engine -->
+                <div class="bento-card col-span-6 row-span-3 card-high-contrast" id="manual-rebrander">
+                    <div class="card-header-flex">
+                        <div class="card-tag">REBRANDER ENGINE</div>
+                        <div class="chart-controls">
+                            <button class="chart-btn" id="rb-load-sample">Load Sample</button>
+                            <button class="chart-btn" id="rb-upload-btn">Upload .html</button>
+                            <input type="file" id="rb-file-input" accept=".html,.htm" hidden>
+                        </div>
+                    </div>
+                    <p class="section-desc">Feed it any unbranded HTML — it returns the same page re-engineered under GROW brand law: palette remapped, typography enforced, actions set to Electric Indigo.</p>
+                    <textarea id="rb-input" class="rb-input" placeholder="Paste raw unbranded HTML here, or press Load Sample…" spellcheck="false"></textarea>
+                    <div class="rb-actions">
+                        <button class="rb-run-btn" id="rb-run">⟶ REBRAND</button>
+                        <button class="rb-dl-btn" id="rb-download" disabled>↓ Download branded.html</button>
+                    </div>
+                    <div class="rb-compare" id="rb-compare" hidden>
+                        <div class="rb-pane">
+                            <span class="rb-pane-label">BEFORE // UNBRANDED</span>
+                            <iframe id="rb-before" sandbox="allow-same-origin" title="Before"></iframe>
+                        </div>
+                        <div class="rb-pane">
+                            <span class="rb-pane-label rb-pane-label-after">AFTER // GROW SYSTEM</span>
+                            <iframe id="rb-after" sandbox="allow-same-origin" title="After"></iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contrast Compliance Matrix -->
+                <div class="bento-card col-span-6 row-span-1" id="manual-contrast">
+                    <div class="card-tag">CONTRAST COMPLIANCE MATRIX (WCAG 2.1)</div>
+                    <p class="section-desc">Live-computed contrast ratios for every sanctioned palette pairing.</p>
+                    <div class="contrast-table" id="contrast-table"></div>
+                </div>
+
+                <!-- Dynamic Typography Scale Tester -->
+                <div class="bento-card col-span-6 row-span-2" id="manual-typography-tester">
+                    <div class="card-tag">INTERACTIVE TYPOGRAPHY TESTER</div>
+                    <p class="section-desc">Slide to adjust font-size dynamic parameters and observe structural alignment integrity.</p>
+                    
+                    <div class="font-tester-controls">
+                        <div class="control-group">
+                            <label for="font-size-slider">Font Size Multiplier: <span id="font-size-val">1.0x</span></label>
+                            <input type="range" id="font-size-slider" min="0.8" max="1.5" step="0.05" value="1.0">
+                        </div>
+                        <div class="control-group">
+                            <label for="font-family-select">Header Typeface Stack</label>
+                            <select id="font-family-select">
+                                <option value="'Archivo', 'Helvetica Neue', sans-serif">Archivo — Neue Montreal fallback (Grotesque)</option>
+                                <option value="'Roboto Mono', monospace">Roboto Mono (Technical Monospace)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="font-tester-preview" id="font-preview-area">
+                        <h2 class="tester-h">GROWTH INTELLIGENCE MODULE ACTIVE.</h2>
+                        <p class="tester-p">Operational metrics demonstrate an increase in system availability parameters. Integrated creative networks process workflows with high performance alignment coefficients.</p>
+                        <span class="tester-mono">COORD: 47.92.118 // REGION: NORTH_AM // SYSTEM: STABLE</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: BRAND KIT (ASSET VAULT & DOCUMENT STUDIO) -->
+        <section class="tab-panel" id="kit-tab">
+            <div class="bento-grid">
+
+                <!-- 4.1 Core Asset Vault -->
+                <div class="bento-card col-span-12 card-glowing card-high-contrast" id="kit-vault">
+                    <div class="card-header-flex">
+                        <div class="card-tag">CORE ASSET VAULT</div>
+                        <span class="vault-meta" id="vault-meta">FORMAT: .ZIP // PACKAGED ON-DEVICE // INTEGRITY: CRC-32</span>
+                    </div>
+                    <div class="vault-body">
+                        <div class="vault-copy">
+                            <h2 class="vault-heading">THE COMPLETE BRAND SYSTEM. ONE ARCHIVE.</h2>
+                            <p class="vault-sub">Guidelines, logo suite, design tokens (CSS + Figma JSON), and the voice ruleset — assembled and checksummed in your browser at the moment of request. Nothing stale, nothing hosted.</p>
+                        </div>
+                        <button class="vault-dl-btn" id="vault-download">
+                            <span class="vault-btn-label" id="vault-btn-label">DOWNLOAD COMPLETE VAULT</span>
+                            <span class="vault-btn-meta" id="vault-btn-meta">[.ZIP // FULL ASSET LIBRARY]</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4.2 Dynamic Logo System -->
+                <div class="bento-card col-span-7 row-span-2" id="kit-logos">
+                    <div class="card-header-flex">
+                        <div class="card-tag">DYNAMIC LOGO SYSTEM</div>
+                        <label class="kit-switch" title="Preview environment">
+                            <input type="checkbox" id="logo-env-toggle">
+                            <span class="kit-switch-track"><span class="kit-switch-thumb"></span></span>
+                            <span class="kit-switch-label" id="logo-env-label">LIGHT ENV</span>
+                        </label>
+                    </div>
+                    <p class="section-desc">Three sanctioned configurations. Toggle the environment to verify adaptation; copy production SVG per variant.</p>
+                    <div class="logo-system" id="logo-system">
+                        <div class="logo-tile">
+                            <div class="logo-stage" data-logo="primary"></div>
+                            <div class="logo-tile-foot">
+                                <span class="logo-tile-name">PRIMARY MARK</span>
+                                <button class="copy-svg-btn" data-logo="primary">Copy SVG</button>
+                            </div>
+                        </div>
+                        <div class="logo-tile">
+                            <div class="logo-stage" data-logo="lockup"></div>
+                            <div class="logo-tile-foot">
+                                <span class="logo-tile-name">SECONDARY LOCKUP</span>
+                                <button class="copy-svg-btn" data-logo="lockup">Copy SVG</button>
+                            </div>
+                        </div>
+                        <div class="logo-tile">
+                            <div class="logo-stage" data-logo="mono"></div>
+                            <div class="logo-tile-foot">
+                                <span class="logo-tile-name">MONOTONE</span>
+                                <button class="copy-svg-btn" data-logo="mono">Copy SVG</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4.3 Typography Deployment Package -->
+                <div class="bento-card col-span-5 row-span-2" id="kit-typography">
+                    <div class="card-tag">TYPOGRAPHY DEPLOYMENT PACKAGE</div>
+                    <p class="section-desc">Type to render the live specimen in both institutional faces simultaneously.</p>
+                    <input type="text" class="type-input" id="type-specimen-input" placeholder="Type your specimen…" value="Clarity at Scale." maxlength="60">
+                    <div class="type-specimens">
+                        <div class="type-specimen">
+                            <span class="type-spec-label">HEADER // NEUE MONTREAL → ARCHIVO</span>
+                            <div class="type-spec-render type-spec-header" id="spec-header">Clarity at Scale.</div>
+                        </div>
+                        <div class="type-specimen line-top">
+                            <span class="type-spec-label">DATA // ROBOTO MONO</span>
+                            <div class="type-spec-render type-spec-mono" id="spec-mono">Clarity at Scale.</div>
+                        </div>
+                    </div>
+                    <div class="type-dl-row">
+                        <a class="asset-dl-btn" href="https://fonts.google.com/specimen/Archivo" target="_blank" rel="noopener">↓ ARCHIVO [.OTF/.WOFF2]</a>
+                        <a class="asset-dl-btn" href="https://fonts.google.com/specimen/Roboto+Mono" target="_blank" rel="noopener">↓ ROBOTO MONO [.OTF/.WOFF2]</a>
+                    </div>
+                </div>
+
+                <!-- 4.4 UI Components: Figma Tokens -->
+                <div class="bento-card tilt-card col-span-6" id="kit-figma">
+                    <div class="card-tag">UI COMPONENTS // FIGMA KIT</div>
+                    <div class="tilt-inner">
+                        <div class="kit-thumb kit-thumb-ui">
+                            <div class="thumb-ui-row"><span class="thumb-chip"></span><span class="thumb-chip wide"></span></div>
+                            <div class="thumb-ui-row"><span class="thumb-block"></span><span class="thumb-block accent"></span><span class="thumb-block"></span></div>
+                            <div class="thumb-ui-row"><span class="thumb-bar"></span></div>
+                        </div>
+                        <p class="kit-card-desc">Design tokens engineered for direct Figma import — palette, typography scale, radii, and spacing as structured JSON.</p>
+                        <button class="rb-dl-btn kit-dl" id="dl-figma-tokens">↓ BRAND-TOKENS.JSON</button>
+                    </div>
+                </div>
+
+                <!-- 4.5 Deck Templates -->
+                <div class="bento-card tilt-card col-span-6" id="kit-deck">
+                    <div class="card-tag">DECK TEMPLATES // KEYNOTE & PITCH</div>
+                    <div class="tilt-inner">
+                        <div class="kit-thumb kit-thumb-deck">
+                            <span class="thumb-deck-title">GROW</span>
+                            <span class="thumb-deck-sub">INTEGRATED INFRASTRUCTURE — Q3 REVIEW</span>
+                            <span class="thumb-deck-meta">CONFIDENTIAL // 01 / 18</span>
+                        </div>
+                        <p class="kit-card-desc">Institutional title-and-agenda deck scaffold. Charcoal surfaces, indigo data signals, monospace footers — print or present.</p>
+                        <button class="rb-dl-btn kit-dl" id="dl-deck-template">↓ DECK-TEMPLATE.HTML</button>
+                    </div>
+                </div>
+
+                <!-- 4.6 Document Studio -->
+                <div class="bento-card col-span-12" id="kit-docstudio">
+                    <div class="card-header-flex">
+                        <div class="card-tag">DOCUMENT STUDIO</div>
+                        <span class="vault-meta">FILL → GENERATE → PRINT-READY A4 // LETTERHEAD ENFORCED</span>
+                    </div>
+                    <p class="section-desc">Production documents under brand law. Select a document class, complete the form, and the studio assembles a print-ready, letterheaded artifact.</p>
+                    <div class="doc-type-row" id="doc-type-row">
+                        <button class="doc-type-btn active" data-doc="proposal">Proposal</button>
+                        <button class="doc-type-btn" data-doc="invoice">Invoice</button>
+                        <button class="doc-type-btn" data-doc="sow">Scope of Work</button>
+                        <button class="doc-type-btn" data-doc="audit">Growth Audit Report</button>
+                        <button class="doc-type-btn" data-doc="media">Media Plan</button>
+                        <button class="doc-type-btn" data-doc="report">Performance Report</button>
+                    </div>
+                    <div class="ds-form-grid" id="ds-form"></div>
+                    <div class="ds-items-wrap" id="ds-items-wrap" hidden>
+                        <div class="ds-items-head">
+                            <span class="ds-items-title" id="ds-items-title">LINE ITEMS</span>
+                            <button class="chart-btn" id="ds-add-row">+ Add Row</button>
+                        </div>
+                        <div class="ds-items" id="ds-items"></div>
+                        <div class="ds-items-total" id="ds-items-total"></div>
+                    </div>
+                    <div class="ds-actions">
+                        <button class="rb-run-btn" id="ds-generate">⟶ GENERATE DOCUMENT</button>
+                        <button class="rb-dl-btn" id="ds-download" disabled>↓ Download .html</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="main-footer">
+        <span class="footer-copy">GROW © 2026. Institutional Tech Brand Direction 2. All rights reserved.</span>
+        <span class="footer-ver">BUILD: v3.0.0-GROW_SYSTEM</span>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

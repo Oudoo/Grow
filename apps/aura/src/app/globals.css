@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/*
+  GROW — Institutional Tech Brand System
+  "Integrated Creative & Enterprise Infrastructure Operating as One."
+  Canonical spec: BRAND.md at the Grow Eco System root. Stripe meets McKinsey.
+
+  Palette (exact, from brand analysis)
+  ─ Stark White          #FFFFFF  light: background depth / cards · dark: high-contrast highlights
+  ─ Alabaster            #F8F9FA  light: page body background     · dark: muted text / outlines
+  ─ Charcoal Slate       #1A202C  light: headings & borders       · dark: page bg depth / dark cards
+  ─ Deep Electric Indigo #4F46E5  data viz / action items / gradients / accent glow
+
+  Typography
+  ─ Headers:    Neue Montreal / Helvetica Now (local) → Archivo (web fallback)
+  ─ Body:       SF Pro (system stack)
+  ─ Space/Data: Roboto Mono — metrics, labels, system output
+*/
+
+@theme inline {
+  /* Legacy token slots (kept so existing utility classes keep working) → GROW palette */
+  --color-obsidian: var(--obsidian);
+  --color-void: var(--void);
+  --color-cyan: var(--cyan);
+  --color-amethyst: var(--amethyst);
+  --color-platinum: var(--platinum);
+  --color-slate: var(--slate);
+  --color-fg: var(--fg);
+
+  /* Exact brand variable names from the brand analysis */
+  --color-stark-white: var(--stark-white);
+  --color-alabaster: var(--alabaster);
+  --color-charcoal-slate: var(--charcoal-slate);
+  --color-electric-indigo: var(--electric-indigo);
+
+  /* Short aliases for new code */
+  --color-stark: var(--stark-white);
+  --color-charcoal: var(--charcoal-slate);
+  --color-indigo: var(--electric-indigo);
+
+  --font-heading: var(--font-grow-heading);
+  --font-body: var(--font-grow-body);
+  --font-data: var(--font-roboto-mono);
+  --font-arabic: var(--font-cairo);
+}
+
+/* Override fonts when Arabic (RTL) is active */
+[dir="rtl"] {
+  --font-heading: var(--font-arabic);
+  --font-body: var(--font-arabic);
+}
+
+:root {
+  /* ── Light mode — Alabaster body, Stark White cards, Charcoal text ── */
+  --stark-white: #FFFFFF;
+  --alabaster: #F8F9FA;
+  --charcoal-slate: #1A202C;
+  --electric-indigo: #4F46E5;
+
+  /* Legacy slots remapped per brand roles */
+  --void: #F8F9FA;      /* page body background — Alabaster */
+  --obsidian: #FFFFFF;  /* cards / background depth — Stark White */
+  --cyan: #4F46E5;      /* primary accent — Deep Electric Indigo */
+  --amethyst: #4338CA;  /* gradient tail — deep indigo */
+  --platinum: #1A202C;  /* primary headings & borders — Charcoal Slate */
+  --slate: #4A5568;     /* secondary text — charcoal family */
+  --fg: #1A202C;
+
+  /* Typography stacks — local institutional faces first, web fallback after */
+  --font-grow-heading: "Neue Montreal", "Helvetica Now Display", "Helvetica Now Text", var(--font-archivo), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-grow-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", var(--font-archivo), Roboto, sans-serif;
+
+  --background: var(--void);
+  --foreground: var(--platinum);
+}
+
+.dark {
+  /* ── Dark mode — Charcoal Slate depth, Stark White highlights, indigo glow ── */
+  --stark-white: #FFFFFF;
+  --alabaster: #F8F9FA;
+  --charcoal-slate: #1A202C;
+  --electric-indigo: #6366F1;
+
+  --void: #12161F;      /* page background depth — charcoal slate, deepened */
+  --obsidian: #1A202C;  /* dark cards — Charcoal Slate */
+  --cyan: #6366F1;      /* accent glow — electric indigo, lifted for contrast */
+  --amethyst: #818CF8;  /* gradient tail */
+  --platinum: #FFFFFF;  /* high-contrast highlights — Stark White */
+  --slate: #A0AEC0;     /* muted text / technical outlines — alabaster family */
+  --fg: #F8F9FA;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Institutional panel — razor-thin border, quiet depth (bento container) */
+@utility glass {
+  background: color-mix(in srgb, var(--obsidian) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--platinum) 10%, transparent);
+}
+
+/* Quietly dominant: structure over glow. Kept as a near no-op for compatibility. */
+@utility text-glow {
+  text-shadow: none;
+}
+
+@utility heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.03em;
+}
+
+/* Bold editorial heading utility — ESTABLISHED & INSTITUTIONAL */
+@utility heading-editorial {
+  font-family: var(--font-heading);
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  font-weight: 800;
+}
+
+/* Gradient text — deep electric indigo technical gradient */
+@utility text-gradient {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--amethyst) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Surface cards — flat bento containers with razor-thin borders */
+@utility surface {
+  background: color-mix(in srgb, var(--obsidian) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  border-radius: 1rem;
+}
+
+/* Technical data voice — Roboto Mono for metrics, labels, system output */
+@utility font-data {
+  font-family: var(--font-data), ui-monospace, "Roboto Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Mesh grid — subtle blueprint coordinates behind data visualizations */
+@utility mesh-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--platinum) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--platinum) 6%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- GROW — geometric octagonal G mark, Deep Electric Indigo -->
+  <defs>
+    <mask id="g-cut">
+      <rect width="100" height="100" fill="white"/>
+      <rect x="52" y="42" width="48" height="24" fill="black"/>
+    </mask>
+  </defs>
+  <g stroke="#4F46E5" stroke-width="5.5" stroke-linecap="square" mask="url(#g-cut)">
+    <path d="M 31,5 H 69 L 95,31 V 69 L 69,95 H 31 L 5,69 V 31 Z"/>
+    <path d="M 35,15 H 65 L 85,35 V 65 L 65,85 H 35 L 15,65 V 35 Z"/>
+    <path d="M 39,25 H 61 L 75,39 V 61 L 61,75 H 39 L 25,61 V 39 Z"/>
+  </g>
+  <g stroke="#4F46E5" stroke-width="5.5" stroke-linecap="square">
+    <path d="M 97,46 H 50"/>
+    <path d="M 97,54 H 58"/>
+    <path d="M 97,62 H 66"/>
+  </g>
+</svg>
