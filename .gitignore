@@ -1,7 +1,29 @@
+# Dependencies
 node_modules
-.DS_Store
-.env
+
+# Build output
+.next
 dist
 build
-.next
+out
 coverage
+*.tsbuildinfo
+
+# Generated Prisma clients (regenerated on build via `prisma generate`)
+**/src/generated
+
+# Local databases (regenerated via db:push + seed)
+*.db
+*.db-journal
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Logs & OS
+*.log
+.DS_Store
+
+# Editor
+.idea

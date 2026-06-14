@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Plus, Trash2, CreditCard, DollarSign, Calendar, Clock } from "lucide-react";
 import { createInvoiceAction, deleteInvoiceAction, updateInvoiceStatusAction } from "./actions";
 import { InvoicePdfGenerator } from "@/components/InvoicePdfGenerator";
-import type { Invoice } from "@prisma/client";
+import type { Invoice } from "@/generated/prisma";
 
 export function ClientFinanceManager({ initialInvoices }: { initialInvoices: Invoice[] }) {
   const [invoices, setInvoices] = useState(initialInvoices);

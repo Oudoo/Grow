@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Plus, Briefcase, ChevronRight, Calendar, CheckCircle2 } from "lucide-react";
 import { createProjectAction } from "./actions";
 import { SeedProjectsButton } from "./SeedProjectsButton";
-import type { Project, Task } from "@prisma/client";
+import type { Project, Task } from "@/generated/prisma";
 
 export const dynamic = "force-dynamic";
 

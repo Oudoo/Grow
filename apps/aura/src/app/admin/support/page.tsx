@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ClientSupportManager } from "./ClientSupportManager";
-import type { Ticket } from "@prisma/client";
+import type { Ticket } from "@/generated/prisma";
 
 export const dynamic = "force-dynamic";
 

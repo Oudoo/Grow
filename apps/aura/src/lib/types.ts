@@ -25,9 +25,9 @@ export interface EcosystemSuite {
   suiteAr: string;
   slug: string;
   /** "creative" = marketing/agency solutions, "tech" = enterprise systems.
-   *  Optional so DB rows without the column still satisfy the type; the navbar
-   *  falls back to a known creative-slug set when absent. */
-  category?: "creative" | "tech";
+   *  Typed as string so the Prisma row (category: string) is assignable; the
+   *  navbar falls back to a known creative-slug set when absent/unknown. */
+  category?: string;
   products: EcosystemProduct[];
 }
 

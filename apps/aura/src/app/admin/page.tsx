@@ -4,7 +4,7 @@ import { Mail, Calendar, Trash2, StickyNote, TrendingUp, Flame, Users, DollarSig
 import { deleteSubmissionAction } from "./actions";
 import { PdfGeneratorButton } from "@/components/PdfGeneratorButton";
 import { StatusSelect, CalledSelect, NotesInput, PrioritySelect, SourceSelect, DealValueInput, NextFollowUpInput } from "./AdminFields";
-import type { Submission } from "@prisma/client";
+import type { Submission } from "@/generated/prisma";
 
 export const dynamic = "force-dynamic";
 

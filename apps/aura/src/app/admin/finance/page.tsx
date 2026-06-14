@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ClientFinanceManager } from "./ClientFinanceManager";
-import type { Invoice } from "@prisma/client";
+import type { Invoice } from "@/generated/prisma";
 
 export const dynamic = "force-dynamic";
 

@@ -16,7 +16,7 @@ import {
   updateTaskTitleAction,
   updateSubTaskTitleAction
 } from "../actions";
-import type { Project, Task, SubTask, Comment, Attachment } from "@prisma/client";
+import type { Project, Task, SubTask, Comment, Attachment } from "@/generated/prisma";
 
 const TEAM_MEMBERS = ["Mahmoud Hassan", "Ahmed El-Tamawy", "Mohamed Khaled", "Unassigned"];
 

@@ -81,6 +81,15 @@ export default function LoginPage() {
               {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
             </button>
           </form>
+
+          {/* Demo helper — one-click fill of the demo access code */}
+          <button
+            type="button"
+            onClick={() => setPassword("GrowDemo2026")}
+            className="mt-4 w-full text-center text-xs text-slate/70 hover:text-cyan transition-colors font-data"
+          >
+            Demo access code: <span className="text-cyan font-semibold">GrowDemo2026</span> — click to fill
+          </button>
         </Card>
       </motion.div>
     </div>

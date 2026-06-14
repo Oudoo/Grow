@@ -4,20 +4,8 @@
     {
       "name": "grow-hub",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "Aura"],
+      "runtimeArgs": ["start", "--prefix", "apps/aura"],
       "port": 3000
-    },
-    {
-      "name": "grow-engine",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "start:web", "--prefix", "The Grow Engine"],
-      "port": 3030
-    },
-    {
-      "name": "growees-producer",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "The Growees Producer"],
-      "port": 3040
     }
   ]
 }

@@ -53,15 +53,15 @@ function LoginForm() {
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <Label htmlFor="tenantSlug">Workspace</Label>
-            <Input id="tenantSlug" name="tenantSlug" placeholder="your-agency" required />
+            <Input id="tenantSlug" name="tenantSlug" placeholder="your-agency" defaultValue="demo-agency" required />
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" required />
+            <Input id="email" name="email" type="email" defaultValue="admin@demo.growengine.app" required />
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" required />
+            <Input id="password" name="password" type="password" defaultValue="DemoAdmin2026!" required />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>

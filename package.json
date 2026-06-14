@@ -1,25 +1,42 @@
 {
-  "name": "the-grow-engine",
+  "name": "grow-eco-system",
   "version": "1.0.0",
   "private": true,
-  "description": "The Grow Engine — Multi-tenant Growth Intelligence Platform",
+  "description": "GROW — Integrated Creative & Enterprise Infrastructure Operating as One. A unified monorepo: the GROW hub (marketing site + admin OS), Grow Engine (growth-intelligence platform), Growees Producer (recruitment engine), and shared brand + engine packages.",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
-    "dev": "npm-run-all --parallel dev:web dev:worker",
-    "dev:web": "npm run dev --workspace=@growengine/web",
+    "dev": "npm-run-all --parallel dev:hub dev:engine dev:worker dev:producer",
+    "dev:hub": "npm run dev --workspace=grow",
+    "dev:engine": "npm run dev --workspace=@growengine/web",
     "dev:worker": "npm run dev --workspace=@growengine/worker",
-    "build": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core && npm run build --workspace=@growengine/worker && npm run build --workspace=@growengine/web",
-    "start:web": "npm run start --workspace=@growengine/web",
+    "dev:producer": "npm run dev --workspace=the-growees-producer",
+
+    "build": "npm run build:packages && npm-run-all --parallel build:hub build:engine build:producer && npm run build:worker",
+    "build:packages": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core",
+    "build:hub": "npm run build --workspace=grow",
+    "build:engine": "npm run build --workspace=@growengine/web",
+    "build:worker": "npm run build --workspace=@growengine/worker",
+    "build:producer": "npm run build --workspace=the-growees-producer",
+
+    "start": "npm-run-all --parallel start:hub start:engine start:worker start:producer",
+    "start:hub": "npm run start --workspace=grow",
+    "start:engine": "npm run start --workspace=@growengine/web",
     "start:worker": "npm run start --workspace=@growengine/worker",
-    "db:generate": "npm run generate --workspace=@growengine/db",
-    "db:migrate": "npm run migrate --workspace=@growengine/db",
-    "db:push": "npm run push --workspace=@growengine/db",
-    "db:seed": "npm run seed --workspace=@growengine/db",
+    "start:producer": "npm run start --workspace=the-growees-producer",
+
+    "db:setup": "npm-run-all db:hub db:engine db:producer",
+    "db:hub": "npm run db:push --workspace=grow && npm run seed --workspace=grow",
+    "db:engine": "npm run migrate --workspace=@growengine/db && npm run seed --workspace=@growengine/db",
+    "db:producer": "npm run db:push --workspace=the-growees-producer && npm run db:seed:demo --workspace=the-growees-producer",
+
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspace=@growengine/web"
+    "lint": "npm-run-all --parallel lint:hub lint:engine lint:producer",
+    "lint:hub": "npm run lint --workspace=grow",
+    "lint:engine": "npm run lint --workspace=@growengine/web",
+    "lint:producer": "npm run lint --workspace=the-growees-producer"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
