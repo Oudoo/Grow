@@ -146,7 +146,7 @@ GROWEES_PRODUCER_URL = https://<producer>.hostingersite.com
 From the monorepo root, re-split and force-push the changed app:
 ```bash
 # Hub
-git subtree split --prefix=apps/aura -b deploy/hub
+git subtree split --prefix=apps/grow -b deploy/hub
 git push https://github.com/Oudoo/Grow-Hub.git deploy/hub:main --force
 
 # Producer

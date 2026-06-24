@@ -4,7 +4,7 @@
     {
       "name": "grow-hub",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "apps/aura"],
+      "runtimeArgs": ["start", "--prefix", "apps/grow"],
       "port": 3000
     }
   ]

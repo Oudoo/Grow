@@ -8,7 +8,7 @@ A single monorepo housing the entire GROW product family under one "Institutiona
 ```
 grow-eco-system/
 ├── apps/
-│   ├── aura            # @ "grow"      — the GROW Hub: marketing site + Admin OS         (:3000)
+│   ├── grow            # @ "grow"      — the GROW Hub: marketing site + Admin OS         (:3000)
 │   ├── engine-web      # @growengine/web    — Grow Engine web (portals, API, dashboards) (:3030)
 │   ├── engine-worker   # @growengine/worker — Grow Engine background worker (BullMQ)
 │   └── producer        # the-growees-producer — Growees Producer recruitment engine      (:3040)
@@ -25,14 +25,14 @@ grow-eco-system/
 
 | Module | Path | Port | Role |
 | :--- | :--- | :--- | :--- |
-| **GROW Hub** | `apps/aura` | `3000` | Marketing-agency site (Services, Business Solutions, Products) + Admin OS (CRM, Finance, Help Desk, Content, Projects, IAM, Branding, White-Label). Embeds the two systems below under **Grow Systems**. |
+| **GROW Hub** | `apps/grow` | `3000` | Marketing-agency site (Services, Business Solutions, Products) + Admin OS (CRM, Finance, Help Desk, Content, Projects, IAM, Branding, White-Label). Embeds the two systems below under **Grow Systems**. |
 | **Grow Engine** | `apps/engine-web` + `apps/engine-worker` | `3030` | Multi-tenant Growth Intelligence Platform — verified metrics, forecasting, AI analysis, client portal, public API. Worker runs heavy jobs via Redis/BullMQ. |
 | **Growees Producer** | `apps/producer` | `3040` | Deterministic recruitment engine — vacancy blueprints, CV parsing, multi-rater scorecards, offers. |
 | **Brand System** | `packages/branding` | — | The Living Brand Canvas served by the Hub at `/branding` and embedded in Admin → Branding. |
 
 The two systems are surfaced inside the Hub admin (`/admin/grow-engine`, `/admin/growees-producer`)
 with live health probes; their URLs are configured via `GROW_ENGINE_URL` / `GROWEES_PRODUCER_URL`
-in `apps/aura/.env`.
+in `apps/grow/.env`.
 
 ## Prerequisites (local services)
 
@@ -59,7 +59,7 @@ Per-module commands are also available: `npm run dev:hub`, `build:engine`, `star
 
 ## Environment
 
-- `apps/aura/.env` — Hub: `DATABASE_URL` (MariaDB), `ADMIN_PASSWORD_HASH`, `AUTH_SECRET`, `GROW_ENGINE_URL`, `GROWEES_PRODUCER_URL`.
+- `apps/grow/.env` — Hub: `DATABASE_URL` (MariaDB), `ADMIN_PASSWORD_HASH`, `AUTH_SECRET`, `GROW_ENGINE_URL`, `GROWEES_PRODUCER_URL`.
 - `.env` (root) — Grow Engine web + worker: `DATABASE_URL` (Postgres), `REDIS_URL`, `AUTH_SECRET`, `CREDENTIAL_ENCRYPTION_KEY`, AI keys. Loaded by `apps/engine-web/next.config.ts`.
 - `apps/producer/.env` — Growees Producer: `DATABASE_URL` (SQLite `production.db`).
 

@@ -27,3 +27,6 @@ coverage
 
 # Editor
 .idea
+
+# Local MCP config (contains API token — never commit)
+.mcp.json
