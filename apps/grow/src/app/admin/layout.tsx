@@ -34,11 +34,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "White-Label", href: "/admin/whitelabel", icon: Paintbrush },
   ];
 
-  // Integrated GROW ecosystem systems — each runs as its own service and is
-  // surfaced inside the admin via live status + embedded console.
+  // Integrated GROW modules — native sections of this app.
   const systems = [
     { name: "Grow Engine", href: "/admin/grow-engine", icon: Gauge },
-    { name: "Growees Producer", href: "/admin/growees-producer", icon: Users },
+    { name: "Growees Producer", href: "/producer", icon: Users },
   ];
 
   return (

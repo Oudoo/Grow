@@ -152,3 +152,87 @@ body {
     linear-gradient(90deg, color-mix(in srgb, var(--platinum) 6%, transparent) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Growees Producer module — scoped theme (.producer-scope)
+   All vars/base live under the scope so the recruiter module keeps
+   its dark technical look without affecting the rest of GROW.
+   Component classes are global but only resolve inside the scope.
+   ═══════════════════════════════════════════════════════════════ */
+.producer-scope {
+  --color-bg-primary: oklch(0.13 0.02 260);
+  --color-bg-secondary: oklch(0.16 0.02 260);
+  --color-bg-surface: oklch(0.19 0.015 260);
+  --color-bg-surface-hover: oklch(0.22 0.015 260);
+  --color-bg-elevated: oklch(0.24 0.02 260);
+  --color-border: oklch(0.28 0.02 260);
+  --color-border-subtle: oklch(0.22 0.015 260);
+  --color-text-primary: oklch(0.95 0.01 260);
+  --color-text-secondary: oklch(0.72 0.02 260);
+  --color-text-muted: oklch(0.55 0.02 260);
+  --color-accent: oklch(0.585 0.21 277);
+  --color-accent-hover: oklch(0.65 0.19 277);
+  --color-accent-dim: oklch(0.33 0.1 277);
+  --color-danger: oklch(0.65 0.22 25);
+  --color-danger-dim: oklch(0.3 0.1 25);
+  --color-warning: oklch(0.78 0.15 85);
+  --color-warning-dim: oklch(0.35 0.08 85);
+  --color-success: oklch(0.72 0.19 155);
+  --color-success-dim: oklch(0.3 0.1 155);
+  --color-info: oklch(0.7 0.16 250);
+  --color-info-dim: oklch(0.3 0.08 250);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "Roboto Mono", "JetBrains Mono", monospace;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  color-scheme: dark;
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.producer-scope .glass-card { background: oklch(0.19 0.015 260 / 0.6); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4); border: 1px solid oklch(0.3 0.02 260 / 0.4); border-radius: var(--radius-lg); transition: all 0.3s var(--ease-smooth); }
+.producer-scope .glass-card:hover { background: oklch(0.22 0.015 260 / 0.7); border-color: oklch(0.35 0.03 260 / 0.5); box-shadow: 0 8px 32px oklch(0 0 0 / 0.3); transform: translateY(-2px); }
+.producer-scope .btn-primary { background: linear-gradient(135deg, var(--color-accent), oklch(0.68 0.2 200)); color: #fff; font-weight: 600; border-radius: var(--radius-md); padding: 0.625rem 1.5rem; border: none; cursor: pointer; transition: all 0.25s var(--ease-spring); font-size: 0.875rem; }
+.producer-scope .btn-primary:hover { transform: scale(1.04); box-shadow: 0 4px 20px oklch(0.55 0.21 277 / 0.35); }
+.producer-scope .btn-primary:active { transform: scale(0.98); }
+.producer-scope .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.producer-scope .btn-secondary { background: var(--color-bg-surface); color: var(--color-text-primary); font-weight: 500; border-radius: var(--radius-md); padding: 0.625rem 1.5rem; border: 1px solid var(--color-border); cursor: pointer; transition: all 0.2s var(--ease-smooth); font-size: 0.875rem; }
+.producer-scope .btn-secondary:hover { background: var(--color-bg-surface-hover); border-color: var(--color-text-muted); }
+.producer-scope .btn-danger { background: var(--color-danger-dim); color: var(--color-danger); font-weight: 600; border-radius: var(--radius-md); padding: 0.625rem 1.5rem; border: 1px solid oklch(0.65 0.22 25 / 0.3); cursor: pointer; transition: all 0.2s var(--ease-smooth); font-size: 0.875rem; }
+.producer-scope .btn-danger:hover { background: oklch(0.35 0.14 25); }
+.producer-scope .input-field, .producer-scope .textarea-field { background: var(--color-bg-primary); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 0.625rem 1rem; color: var(--color-text-primary); font-size: 0.875rem; width: 100%; outline: none; transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth); }
+.producer-scope .textarea-field { resize: vertical; min-height: 5rem; }
+.producer-scope .input-field:focus, .producer-scope .textarea-field:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px oklch(0.585 0.21 277 / 0.15); }
+.producer-scope .input-field::placeholder, .producer-scope .textarea-field::placeholder { color: var(--color-text-muted); }
+.producer-scope .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.producer-scope .badge-hard, .producer-scope .badge-scoring { background: var(--color-info-dim); color: var(--color-info); }
+.producer-scope .badge-soft { background: oklch(0.3 0.08 310); color: oklch(0.75 0.16 310); }
+.producer-scope .badge-open, .producer-scope .badge-passed { background: var(--color-success-dim); color: var(--color-success); }
+.producer-scope .badge-closed, .producer-scope .badge-rejected { background: var(--color-danger-dim); color: var(--color-danger); }
+.producer-scope .badge-pending { background: var(--color-warning-dim); color: var(--color-warning); }
+.producer-scope .modal-overlay { position: fixed; inset: 0; background: oklch(0 0 0 / 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 50; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s var(--ease-smooth); }
+.producer-scope .modal-content { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: 2rem; max-width: 42rem; width: 90%; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s var(--ease-spring); }
+.producer-scope .dropzone { border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.25s var(--ease-smooth); }
+.producer-scope .dropzone:hover, .producer-scope .dropzone.active { border-color: var(--color-accent); background: oklch(0.585 0.21 277 / 0.05); }
+.producer-scope .score-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 3px; background: var(--color-bg-primary); outline: none; }
+.producer-scope .score-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--color-accent); cursor: pointer; border: 3px solid var(--color-bg-secondary); box-shadow: 0 2px 8px oklch(0 0 0 / 0.3); }
+.producer-scope .score-ring { display: inline-flex; align-items: center; justify-content: center; width: 4rem; height: 4rem; border-radius: 50%; font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; position: relative; }
+.producer-scope .score-ring::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--color-border); }
+.producer-scope .progress-bar { height: 8px; border-radius: 4px; background: var(--color-bg-primary); overflow: hidden; }
+.producer-scope .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s var(--ease-smooth); }
+.producer-scope .variance-alert { background: var(--color-danger-dim); border: 1px solid oklch(0.65 0.22 25 / 0.4); border-radius: var(--radius-lg); padding: 1.25rem; animation: shake 0.4s var(--ease-spring); }
+.producer-scope .salary-bar { height: 2rem; border-radius: var(--radius-sm); display: flex; align-items: center; padding: 0 0.75rem; font-size: 0.8rem; font-weight: 600; font-family: var(--font-mono); transition: width 0.5s var(--ease-smooth); }
+.producer-scope .pulse-glow { animation: pulse-glow 2s infinite; }
+.producer-scope ::-webkit-scrollbar { width: 6px; }
+.producer-scope ::-webkit-scrollbar-track { background: transparent; }
+.producer-scope ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 15% { transform: translateX(-4px); } 30% { transform: translateX(4px); } 45% { transform: translateX(-3px); } 60% { transform: translateX(3px); } 75% { transform: translateX(-1px); } }
+@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 oklch(0.585 0.21 277 / 0.3); } 50% { box-shadow: 0 0 0 8px oklch(0.585 0.21 277 / 0); } }
