@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 /**
- * Production start wrapper for Hostinger (and any host that runs `npm start`).
+ * Production start wrapper (Hostinger and any host that runs `npm start`).
  *
- * Hostinger auto-deploys on every push to `main` but has no separate
- * "run migrations" step. So on boot we best-effort sync the live database to
- * prisma/schema.prisma BEFORE starting Next.js. This makes new tables/columns
- * (e.g. AdminUser, TenantConfig) appear automatically after a deploy — no SSH,
- * no manual `prisma migrate` needed.
+ * On boot we, in order:
+ *   1. Load .env (so DATABASE_URL etc. are available to this pre-Next step).
+ *   2. `prisma db push` — additive, non-destructive: creates new tables/columns
+ *      (hub + producer modules) and refuses anything that would drop data.
+ *   3. Seed catalog + demo data ONCE, only when the database is empty, so a
+ *      fresh deploy comes up populated. Idempotent across redeploys.
+ *   4. Start Next.js (respects the host-assigned PORT).
  *
- * The sync is additive and non-destructive: `prisma db push` (without
- * --accept-data-loss) applies new tables/columns and refuses anything that
- * would drop data. If the DB is briefly unreachable at boot we log and start
- * Next.js anyway, so a transient hiccup never takes the whole site down.
+ * Any DB hiccup is logged and the app still starts, so a transient issue never
+ * takes the whole site down.
  */
+import "dotenv/config";
 import { spawnSync } from "node:child_process";
+import { createRequire } from "node:module";
 
 function run(cmd, args) {
   return spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
@@ -23,9 +25,26 @@ if (process.env.DATABASE_URL) {
   console.log("[start] Syncing database schema (prisma db push)…");
   const push = run("npx", ["prisma", "db", "push", "--skip-generate"]);
   if (push.status !== 0) {
-    console.warn("[start] Schema sync did not complete cleanly. Starting the app anyway.");
-  } else {
-    console.log("[start] Database schema is up to date.");
+    console.warn("[start] Schema sync did not complete cleanly. Starting anyway.");
+  }
+
+  // Seed once, only if the catalog is empty.
+  try {
+    const require = createRequire(import.meta.url);
+    const { PrismaClient } = require("../src/generated/prisma");
+    const prisma = new PrismaClient();
+    const suites = await prisma.suite.count().catch(() => -1);
+    await prisma.$disconnect();
+    if (suites === 0) {
+      console.log("[start] Empty database — seeding catalog + demo data…");
+      run("npx", ["prisma", "db", "seed"]);        // suites/products + launch project
+      run("node", ["scripts/demo-seed.mjs"]);      // CRM leads, invoices, tickets, tenant
+      run("node", ["scripts/seed-producer.mjs"]);  // recruiter demo (vacancies/candidates)
+    } else if (suites > 0) {
+      console.log(`[start] Database already has ${suites} suites — skipping seed.`);
+    }
+  } catch (e) {
+    console.warn("[start] Seed step skipped:", e.message);
   }
 } else {
   console.warn("[start] DATABASE_URL is not set — skipping schema sync.");
