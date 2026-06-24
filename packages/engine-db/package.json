@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.44.2",
-    "postgres": "^3.4.5",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "mysql2": "^3.11.5"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.1",

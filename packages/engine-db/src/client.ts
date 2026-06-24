@@ -1,32 +1,32 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
 import * as schema from "./schema/index.js";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __growengine_sql: ReturnType<typeof postgres> | undefined;
+  var __growengine_pool: mysql.Pool | undefined;
 }
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgres://growengine:growengine_dev@localhost:5432/growengine";
+  "mysql://growengine:growengine_dev@localhost:3306/growengine";
 
 /**
- * Single shared connection pool. Re-used across hot reloads in dev to avoid
- * exhausting Postgres connections.
+ * Single shared MySQL connection pool. Re-used across hot reloads in dev to
+ * avoid exhausting connections.
  */
-const sql =
-  globalThis.__growengine_sql ??
-  postgres(connectionString, {
-    max: Number(process.env.DATABASE_POOL_SIZE ?? 10),
-    idle_timeout: 30,
-    connect_timeout: 10,
+const pool =
+  globalThis.__growengine_pool ??
+  mysql.createPool({
+    uri: connectionString,
+    connectionLimit: Number(process.env.DATABASE_POOL_SIZE ?? 10),
+    enableKeepAlive: true,
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.__growengine_sql = sql;
+  globalThis.__growengine_pool = pool;
 }
 
-export const db = drizzle(sql, { schema });
-export { sql };
+export const db = drizzle(pool, { schema, mode: "default" });
+export { pool };
 export type Database = typeof db;

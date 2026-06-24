@@ -1,21 +1,22 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  numeric,
-  integer,
   boolean,
-  pgEnum,
   index,
   uniqueIndex,
   date,
-} from "drizzle-orm/pg-core";
+  varchar,
+  int,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants } from "./tenancy.js";
 import { clients } from "./clients.js";
 
-export const integrationProviderEnum = pgEnum("integration_provider", [
+export const integrationProviderEnum = [
   "meta",
   "ga4",
   "google_ads",
@@ -27,55 +28,55 @@ export const integrationProviderEnum = pgEnum("integration_provider", [
   "salesforce",
   "dynamics",
   "odoo",
-]);
+] as const;
 
-export const integrationStatusEnum = pgEnum("integration_status", [
+export const integrationStatusEnum = [
   "connected",
   "syncing",
   "error",
   "token_expired",
   "disconnected",
-]);
+] as const;
 
-export const syncLogStatusEnum = pgEnum("sync_log_status", [
+export const syncLogStatusEnum = [
   "started",
   "success",
   "partial",
   "failed",
-]);
+] as const;
 
 /**
  * A connected external data source for a client. Credentials are encrypted
  * at rest (AES-256-GCM via packages/core crypto) — never stored in plaintext.
  */
-export const integrations = pgTable(
+export const integrations = mysqlTable(
   "integrations",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    provider: integrationProviderEnum("provider").notNull(),
+    provider: varchar("provider", { length: 64 }).notNull(),
     /** Human label, e.g. "Acme — Meta Ads (Main Account)" */
-    name: text("name").notNull(),
+    name: varchar("name", { length: 191 }).notNull(),
     /** Provider-side account/property identifiers (ad account id, GA4 property id...) */
     externalAccountId: text("external_account_id"),
     /** AES-256-GCM encrypted JSON blob: tokens, refresh tokens, client secrets */
     encryptedCredentials: text("encrypted_credentials"),
-    status: integrationStatusEnum("status").notNull().default("disconnected"),
+    status: varchar("status", { length: 64 }).notNull().default("disconnected"),
     /** OAuth token expiry for the Integration Health Center */
-    tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
-    lastSyncAt: timestamp("last_sync_at", { withTimezone: true }),
-    lastSuccessfulSyncAt: timestamp("last_successful_sync_at", { withTimezone: true }),
+    tokenExpiresAt: timestamp("token_expires_at"),
+    lastSyncAt: timestamp("last_sync_at"),
+    lastSuccessfulSyncAt: timestamp("last_successful_sync_at"),
     lastError: text("last_error"),
-    consecutiveFailures: integer("consecutive_failures").notNull().default(0),
-    syncFrequencyMinutes: integer("sync_frequency_minutes").notNull().default(360),
-    config: jsonb("config").notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    consecutiveFailures: int("consecutive_failures").notNull().default(0),
+    syncFrequencyMinutes: int("sync_frequency_minutes").notNull().default(360),
+    config: json("config").notNull().default({}),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("integrations_tenant_idx").on(t.tenantId),
@@ -84,28 +85,28 @@ export const integrations = pgTable(
   ]
 );
 
-export const integrationLogs = pgTable(
+export const integrationLogs = mysqlTable(
   "integration_logs",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    integrationId: uuid("integration_id")
+    integrationId: varchar("integration_id", { length: 36 })
       .notNull()
       .references(() => integrations.id, { onDelete: "cascade" }),
-    status: syncLogStatusEnum("status").notNull(),
-    operation: text("operation").notNull(),
+    status: varchar("status", { length: 64 }).notNull(),
+    operation: varchar("operation", { length: 191 }).notNull(),
     /** Provider request IDs captured for the Verifiable Data Layer */
-    apiRequestIds: jsonb("api_request_ids").notNull().default([]),
-    recordsFetched: integer("records_fetched").notNull().default(0),
-    recordsStored: integer("records_stored").notNull().default(0),
+    apiRequestIds: json("api_request_ids").notNull().default([]),
+    recordsFetched: int("records_fetched").notNull().default(0),
+    recordsStored: int("records_stored").notNull().default(0),
     /** Sanity Check Engine findings for this sync run */
-    sanityFindings: jsonb("sanity_findings").notNull().default([]),
+    sanityFindings: json("sanity_findings").notNull().default([]),
     error: text("error"),
-    durationMs: integer("duration_ms"),
-    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
-    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    durationMs: int("duration_ms"),
+    startedAt: timestamp("started_at").notNull().defaultNow(),
+    finishedAt: timestamp("finished_at"),
   },
   (t) => [
     index("integration_logs_tenant_idx").on(t.tenantId),
@@ -118,35 +119,35 @@ export const integrationLogs = pgTable(
  * Verifiable Data Layer: every row carries its provider request id and a
  * reference link so any number on a dashboard can be traced to its source.
  */
-export const metricRecords = pgTable(
+export const metricRecords = mysqlTable(
   "metric_records",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    integrationId: uuid("integration_id")
+    integrationId: varchar("integration_id", { length: 36 })
       .notNull()
       .references(() => integrations.id, { onDelete: "cascade" }),
-    provider: integrationProviderEnum("provider").notNull(),
+    provider: varchar("provider", { length: 64 }).notNull(),
     /** Metric key: spend, impressions, clicks, conversions, revenue, sessions... */
-    metric: text("metric").notNull(),
+    metric: varchar("metric", { length: 191 }).notNull(),
     /** Dimension scope, e.g. {"campaign_id": "...", "channel": "paid_social"} */
-    dimensions: jsonb("dimensions").notNull().default({}),
+    dimensions: json("dimensions").notNull().default({}),
     date: date("date").notNull(),
-    value: numeric("value", { precision: 18, scale: 4 }).notNull(),
-    currency: text("currency"),
+    value: decimal("value", { precision: 18, scale: 4 }).notNull(),
+    currency: varchar("currency", { length: 191 }),
     /** Verifiable Data Layer: provider API request id (x-fb-trace-id etc.) */
     sourceRequestId: text("source_request_id"),
     /** Direct deep link back to the provider UI / API resource */
     sourceReferenceUrl: text("source_reference_url"),
     /** Sanity Check Engine verdict */
-    sanityStatus: text("sanity_status").notNull().default("passed"),
-    sanityNotes: jsonb("sanity_notes").notNull().default([]),
-    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+    sanityStatus: varchar("sanity_status", { length: 191 }).notNull().default("passed"),
+    sanityNotes: json("sanity_notes").notNull().default([]),
+    fetchedAt: timestamp("fetched_at").notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("metric_records_unique_fact_idx").on(
@@ -164,20 +165,20 @@ export const metricRecords = pgTable(
  * Redis-backed caching is the hot path; this table is the durable cache for
  * computed analytics aggregates (dashboards, digests, QBRs).
  */
-export const analyticsCache = pgTable(
+export const analyticsCache = mysqlTable(
   "analytics_cache",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
-    cacheKey: text("cache_key").notNull(),
-    payload: jsonb("payload").notNull(),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
+    cacheKey: varchar("cache_key", { length: 191 }).notNull(),
+    payload: json("payload").notNull(),
     /** Trace metadata: which metric_records / request ids fed this aggregate */
-    sourceTrace: jsonb("source_trace").notNull().default({}),
-    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
-    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    sourceTrace: json("source_trace").notNull().default({}),
+    computedAt: timestamp("computed_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at"),
   },
   (t) => [
     uniqueIndex("analytics_cache_key_idx").on(t.tenantId, t.cacheKey),
@@ -187,20 +188,20 @@ export const analyticsCache = pgTable(
 /**
  * API Rate Limit Manager bookkeeping — rolling quota usage per provider.
  */
-export const apiQuotaUsage = pgTable(
+export const apiQuotaUsage = mysqlTable(
   "api_quota_usage",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    provider: integrationProviderEnum("provider").notNull(),
-    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
-    requestCount: integer("request_count").notNull().default(0),
-    throttledCount: integer("throttled_count").notNull().default(0),
-    quotaLimit: integer("quota_limit"),
-    backoffUntil: timestamp("backoff_until", { withTimezone: true }),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    provider: varchar("provider", { length: 64 }).notNull(),
+    windowStart: timestamp("window_start").notNull(),
+    requestCount: int("request_count").notNull().default(0),
+    throttledCount: int("throttled_count").notNull().default(0),
+    quotaLimit: int("quota_limit"),
+    backoffUntil: timestamp("backoff_until"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("api_quota_window_idx").on(t.tenantId, t.provider, t.windowStart),
@@ -208,17 +209,17 @@ export const apiQuotaUsage = pgTable(
 );
 
 /** Whether each provider sync is enabled tenant-wide (kill-switch). */
-export const integrationKillSwitches = pgTable(
+export const integrationKillSwitches = mysqlTable(
   "integration_kill_switches",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    provider: integrationProviderEnum("provider").notNull(),
+    provider: varchar("provider", { length: 64 }).notNull(),
     enabled: boolean("enabled").notNull().default(true),
     reason: text("reason"),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("kill_switch_idx").on(t.tenantId, t.provider)]
 );

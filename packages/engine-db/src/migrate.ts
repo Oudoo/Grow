@@ -1,20 +1,18 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/mysql2";
+import { migrate } from "drizzle-orm/mysql2/migrator";
+import mysql from "mysql2/promise";
 import "dotenv/config";
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgres://growengine:growengine_dev@localhost:5432/growengine";
+  "mysql://growengine:growengine_dev@localhost:3306/growengine";
 
 async function main() {
-  const sql = postgres(connectionString, { max: 1 });
-  // pgvector must exist before any vector column migration runs
-  await sql`CREATE EXTENSION IF NOT EXISTS vector`;
-  const db = drizzle(sql);
+  const connection = await mysql.createConnection({ uri: connectionString, multipleStatements: true });
+  const db = drizzle(connection);
   await migrate(db, { migrationsFolder: "./drizzle" });
   console.log("Migrations applied successfully");
-  await sql.end();
+  await connection.end();
 }
 
 main().catch((err) => {

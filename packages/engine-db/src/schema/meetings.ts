@@ -1,18 +1,19 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  integer,
-  numeric,
-  pgEnum,
   index,
-} from "drizzle-orm/pg-core";
+  varchar,
+  int,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants, users } from "./tenancy.js";
 import { clients } from "./clients.js";
 
-export const meetingStatusEnum = pgEnum("meeting_status", [
+export const meetingStatusEnum = [
   "scheduled",
   "awaiting_prereqs",
   "recorded",
@@ -20,70 +21,70 @@ export const meetingStatusEnum = pgEnum("meeting_status", [
   "analyzing",
   "analyzed",
   "failed",
-]);
+] as const;
 
-export const transcriptionEngineEnum = pgEnum("transcription_engine", [
+export const transcriptionEngineEnum = [
   "whisper_local",
   "whisper_api",
-]);
+] as const;
 
 /**
  * Pre-meeting prerequisite forms — global templates or client-specific.
  */
-export const prerequisiteForms = pgTable(
+export const prerequisiteForms = mysqlTable(
   "prerequisite_forms",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     /** null = global template applied to all clients */
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 191 }).notNull(),
     /** Field definitions: [{key,label,type,required,options}] */
-    fields: jsonb("fields").notNull().default([]),
-    isActive: integer("is_active").notNull().default(1),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    fields: json("fields").notNull().default([]),
+    isActive: int("is_active").notNull().default(1),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("prereq_forms_tenant_idx").on(t.tenantId)]
 );
 
-export const meetings = pgTable(
+export const meetings = mysqlTable(
   "meetings",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     agenda: text("agenda"),
-    status: meetingStatusEnum("status").notNull().default("scheduled"),
-    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
-    durationMinutes: integer("duration_minutes"),
-    attendees: jsonb("attendees").notNull().default([]),
+    status: varchar("status", { length: 64 }).notNull().default("scheduled"),
+    scheduledAt: timestamp("scheduled_at"),
+    durationMinutes: int("duration_minutes"),
+    attendees: json("attendees").notNull().default([]),
     /** Prerequisite form responses captured before the meeting */
-    prerequisiteFormId: uuid("prerequisite_form_id").references(
+    prerequisiteFormId: varchar("prerequisite_form_id", { length: 36 }).references(
       () => prerequisiteForms.id,
       { onDelete: "set null" }
     ),
-    prerequisiteResponses: jsonb("prerequisite_responses").notNull().default({}),
+    prerequisiteResponses: json("prerequisite_responses").notNull().default({}),
     /** Object-storage key of the uploaded recording */
     recordingStorageKey: text("recording_storage_key"),
     recordingMimeType: text("recording_mime_type"),
-    organizerId: uuid("organizer_id").references(() => users.id, { onDelete: "set null" }),
+    organizerId: varchar("organizer_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
     /** AI-extracted output: requirements, challenges, action items */
-    extractedRequirements: jsonb("extracted_requirements").notNull().default([]),
-    extractedChallenges: jsonb("extracted_challenges").notNull().default([]),
-    actionItems: jsonb("action_items").notNull().default([]),
+    extractedRequirements: json("extracted_requirements").notNull().default([]),
+    extractedChallenges: json("extracted_challenges").notNull().default([]),
+    actionItems: json("action_items").notNull().default([]),
     /** Generated Expectation Baseline document (markdown) */
     expectationBaseline: text("expectation_baseline"),
-    analysisConfidence: numeric("analysis_confidence", { precision: 5, scale: 2 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    analysisConfidence: decimal("analysis_confidence", { precision: 5, scale: 2 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("meetings_tenant_idx").on(t.tenantId),
@@ -91,64 +92,64 @@ export const meetings = pgTable(
   ]
 );
 
-export const transcripts = pgTable(
+export const transcripts = mysqlTable(
   "transcripts",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    meetingId: uuid("meeting_id")
+    meetingId: varchar("meeting_id", { length: 36 })
       .notNull()
       .references(() => meetings.id, { onDelete: "cascade" }),
-    engine: transcriptionEngineEnum("engine").notNull(),
-    language: text("language"),
+    engine: varchar("engine", { length: 64 }).notNull(),
+    language: varchar("language", { length: 191 }),
     fullText: text("full_text").notNull(),
     /** Timestamped segments: [{start, end, speaker, text}] */
-    segments: jsonb("segments").notNull().default([]),
-    wordCount: integer("word_count"),
-    processingTimeMs: integer("processing_time_ms"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    segments: json("segments").notNull().default([]),
+    wordCount: int("word_count"),
+    processingTimeMs: int("processing_time_ms"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("transcripts_meeting_idx").on(t.meetingId)]
 );
 
-export const sowStatusEnum = pgEnum("sow_status", [
+export const sowStatusEnum = [
   "draft",
   "internal_review",
   "sent",
   "approved",
   "rejected",
-]);
+] as const;
 
 /**
  * Automated SOW Generator output — parsed from meeting intelligence.
  */
-export const sowDocuments = pgTable(
+export const sowDocuments = mysqlTable(
   "sow_documents",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    meetingId: uuid("meeting_id").references(() => meetings.id, { onDelete: "set null" }),
+    meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: "set null" }),
     title: text("title").notNull(),
-    status: sowStatusEnum("status").notNull().default("draft"),
+    status: varchar("status", { length: 64 }).notNull().default("draft"),
     /** Full structured SOW: scope items, deliverables, exclusions */
-    scopeItems: jsonb("scope_items").notNull().default([]),
-    technicalFeasibility: jsonb("technical_feasibility").notNull().default({}),
+    scopeItems: json("scope_items").notNull().default([]),
+    technicalFeasibility: json("technical_feasibility").notNull().default({}),
     /** Man-day estimates per scope item with totals */
-    manDayEstimates: jsonb("man_day_estimates").notNull().default({}),
+    manDayEstimates: json("man_day_estimates").notNull().default({}),
     /** Good / Better / Best option tiers with pricing deltas */
-    optionTiers: jsonb("option_tiers").notNull().default([]),
+    optionTiers: json("option_tiers").notNull().default([]),
     documentMarkdown: text("document_markdown"),
-    generationConfidence: numeric("generation_confidence", { precision: 5, scale: 2 }),
-    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    generationConfidence: decimal("generation_confidence", { precision: 5, scale: 2 }),
+    createdBy: varchar("created_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("sow_client_idx").on(t.clientId)]
 );

@@ -1,65 +1,66 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  integer,
-  numeric,
-  pgEnum,
   index,
   date,
-} from "drizzle-orm/pg-core";
+  varchar,
+  int,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants, users } from "./tenancy.js";
 import { clients, projects } from "./clients.js";
 
-export const ticketStatusEnum = pgEnum("ticket_status", [
+export const ticketStatusEnum = [
   "open",
   "in_progress",
   "waiting_on_client",
   "resolved",
   "closed",
-]);
+] as const;
 
-export const ticketPriorityEnum = pgEnum("ticket_priority", [
+export const ticketPriorityEnum = [
   "low",
   "medium",
   "high",
   "urgent",
-]);
+] as const;
 
-export const taskStatusEnum = pgEnum("task_status", [
+export const taskStatusEnum = [
   "todo",
   "in_progress",
   "in_review",
   "blocked",
   "done",
   "cancelled",
-]);
+] as const;
 
-export const tickets = pgTable(
+export const tickets = mysqlTable(
   "tickets",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
-    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
-    number: integer("number").notNull(),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
+    projectId: varchar("project_id", { length: 36 }).references(() => projects.id, { onDelete: "set null" }),
+    number: int("number").notNull(),
     subject: text("subject").notNull(),
     description: text("description"),
-    status: ticketStatusEnum("status").notNull().default("open"),
-    priority: ticketPriorityEnum("priority").notNull().default("medium"),
-    requesterId: uuid("requester_id").references(() => users.id, { onDelete: "set null" }),
-    assigneeId: uuid("assignee_id").references(() => users.id, { onDelete: "set null" }),
+    status: varchar("status", { length: 64 }).notNull().default("open"),
+    priority: varchar("priority", { length: 64 }).notNull().default("medium"),
+    requesterId: varchar("requester_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    assigneeId: varchar("assignee_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
     /** SLA targets and breach tracking for Team Scorecards */
-    slaDueAt: timestamp("sla_due_at", { withTimezone: true }),
-    firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
-    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
-    tags: jsonb("tags").notNull().default([]),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    slaDueAt: timestamp("sla_due_at"),
+    firstResponseAt: timestamp("first_response_at"),
+    resolvedAt: timestamp("resolved_at"),
+    tags: json("tags").notNull().default([]),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("tickets_tenant_idx").on(t.tenantId),
@@ -67,50 +68,50 @@ export const tickets = pgTable(
   ]
 );
 
-export const comments = pgTable(
+export const comments = mysqlTable(
   "comments",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     /** Polymorphic target: ticket | task | meeting | recommendation | creative_asset */
-    entityType: text("entity_type").notNull(),
-    entityId: uuid("entity_id").notNull(),
-    authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+    entityType: varchar("entity_type", { length: 191 }).notNull(),
+    entityId: varchar("entity_id", { length: 36 }).notNull(),
+    authorId: varchar("author_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
     body: text("body").notNull(),
-    isInternal: integer("is_internal").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    isInternal: int("is_internal").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("comments_entity_idx").on(t.tenantId, t.entityType, t.entityId)]
 );
 
-export const tasks = pgTable(
+export const tasks = mysqlTable(
   "tasks",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
-    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
+    projectId: varchar("project_id", { length: 36 }).references(() => projects.id, { onDelete: "set null" }),
     /** Set when the task was generated by a DMAIC project */
-    dmaicProjectId: uuid("dmaic_project_id"),
-    dmaicPhase: text("dmaic_phase"),
+    dmaicProjectId: varchar("dmaic_project_id", { length: 36 }),
+    dmaicPhase: varchar("dmaic_phase", { length: 191 }),
     title: text("title").notNull(),
     description: text("description"),
-    status: taskStatusEnum("status").notNull().default("todo"),
-    priority: ticketPriorityEnum("priority").notNull().default("medium"),
-    assigneeId: uuid("assignee_id").references(() => users.id, { onDelete: "set null" }),
-    estimateHours: numeric("estimate_hours", { precision: 7, scale: 2 }),
+    status: varchar("status", { length: 64 }).notNull().default("todo"),
+    priority: varchar("priority", { length: 64 }).notNull().default("medium"),
+    assigneeId: varchar("assignee_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    estimateHours: decimal("estimate_hours", { precision: 7, scale: 2 }),
     dueDate: date("due_date"),
-    startedAt: timestamp("started_at", { withTimezone: true }),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
     /** Rework counter feeds Team Scorecards (reopened after done). */
-    reworkCount: integer("rework_count").notNull().default(0),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    reworkCount: int("rework_count").notNull().default(0),
+    sortOrder: int("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("tasks_tenant_idx").on(t.tenantId),
@@ -119,47 +120,47 @@ export const tasks = pgTable(
   ]
 );
 
-export const subTasks = pgTable(
+export const subTasks = mysqlTable(
   "sub_tasks",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    taskId: uuid("task_id")
+    taskId: varchar("task_id", { length: 36 })
       .notNull()
       .references(() => tasks.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
-    status: taskStatusEnum("status").notNull().default("todo"),
-    assigneeId: uuid("assignee_id").references(() => users.id, { onDelete: "set null" }),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    status: varchar("status", { length: 64 }).notNull().default("todo"),
+    assigneeId: varchar("assignee_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    completedAt: timestamp("completed_at"),
+    sortOrder: int("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("subtasks_task_idx").on(t.taskId)]
 );
 
-export const sprintShowcases = pgTable(
+export const sprintShowcases = mysqlTable(
   "sprint_showcases",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     summary: text("summary"),
     /** Bi-weekly sprint video showcase: object storage key + duration */
     videoStorageKey: text("video_storage_key"),
-    videoDurationSeconds: integer("video_duration_seconds"),
+    videoDurationSeconds: int("video_duration_seconds"),
     sprintStart: date("sprint_start"),
     sprintEnd: date("sprint_end"),
-    highlights: jsonb("highlights").notNull().default([]),
-    publishedAt: timestamp("published_at", { withTimezone: true }),
-    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    highlights: json("highlights").notNull().default([]),
+    publishedAt: timestamp("published_at"),
+    createdBy: varchar("created_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("showcases_client_idx").on(t.clientId)]
 );
@@ -168,29 +169,29 @@ export const sprintShowcases = pgTable(
  * Team Scorecards — objective delivery metrics per user per period.
  * Computed by the AI worker from tickets/tasks; never hand-edited.
  */
-export const teamScorecards = pgTable(
+export const teamScorecards = mysqlTable(
   "team_scorecards",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
+    userId: varchar("user_id", { length: 36 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     periodStart: date("period_start").notNull(),
     periodEnd: date("period_end").notNull(),
-    tasksCompleted: integer("tasks_completed").notNull().default(0),
-    tasksOnTime: integer("tasks_on_time").notNull().default(0),
-    avgCycleTimeHours: numeric("avg_cycle_time_hours", { precision: 10, scale: 2 }),
-    slaCompliancePct: numeric("sla_compliance_pct", { precision: 5, scale: 2 }),
-    reworkRatePct: numeric("rework_rate_pct", { precision: 5, scale: 2 }),
-    ticketsResolved: integer("tickets_resolved").notNull().default(0),
-    avgFirstResponseMinutes: numeric("avg_first_response_minutes", {
+    tasksCompleted: int("tasks_completed").notNull().default(0),
+    tasksOnTime: int("tasks_on_time").notNull().default(0),
+    avgCycleTimeHours: decimal("avg_cycle_time_hours", { precision: 10, scale: 2 }),
+    slaCompliancePct: decimal("sla_compliance_pct", { precision: 5, scale: 2 }),
+    reworkRatePct: decimal("rework_rate_pct", { precision: 5, scale: 2 }),
+    ticketsResolved: int("tickets_resolved").notNull().default(0),
+    avgFirstResponseMinutes: decimal("avg_first_response_minutes", {
       precision: 10,
       scale: 2,
     }),
-    computedAt: timestamp("computed_at", { withTimezone: true }).notNull().defaultNow(),
+    computedAt: timestamp("computed_at").notNull().defaultNow(),
   },
   (t) => [index("scorecards_user_period_idx").on(t.userId, t.periodStart)]
 );

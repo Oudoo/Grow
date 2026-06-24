@@ -1,15 +1,15 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  integer,
-  numeric,
-  pgEnum,
   index,
-  vector,
-} from "drizzle-orm/pg-core";
+  varchar,
+  int,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants, users } from "./tenancy.js";
 import { clients } from "./clients.js";
 
@@ -20,7 +20,7 @@ import { clients } from "./clients.js";
  * searchable through pgvector embeddings.
  */
 
-export const knowledgeDocTypeEnum = pgEnum("knowledge_doc_type", [
+export const knowledgeDocTypeEnum = [
   "report",
   "email",
   "note",
@@ -30,27 +30,27 @@ export const knowledgeDocTypeEnum = pgEnum("knowledge_doc_type", [
   "digest",
   "research",
   "other",
-]);
+] as const;
 
-export const knowledgeDocuments = pgTable(
+export const knowledgeDocuments = mysqlTable(
   "knowledge_documents",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
-    type: knowledgeDocTypeEnum("type").notNull().default("note"),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
+    type: varchar("type", { length: 64 }).notNull().default("note"),
     title: text("title").notNull(),
     contentMarkdown: text("content_markdown").notNull(),
     /** Optional binary attachment in object storage */
     storageKey: text("storage_key"),
-    sourceEntityType: text("source_entity_type"),
-    sourceEntityId: uuid("source_entity_id"),
-    tags: jsonb("tags").notNull().default([]),
-    authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    sourceEntityType: varchar("source_entity_type", { length: 191 }),
+    sourceEntityId: varchar("source_entity_id", { length: 36 }),
+    tags: json("tags").notNull().default([]),
+    authorId: varchar("author_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("kdocs_tenant_idx").on(t.tenantId),
@@ -58,7 +58,7 @@ export const knowledgeDocuments = pgTable(
   ]
 );
 
-export const recommendationStatusEnum = pgEnum("recommendation_status", [
+export const recommendationStatusEnum = [
   "proposed",
   "verified",
   "presented",
@@ -66,42 +66,42 @@ export const recommendationStatusEnum = pgEnum("recommendation_status", [
   "rejected",
   "implemented",
   "measured",
-]);
+] as const;
 
-export const recommendations = pgTable(
+export const recommendations = mysqlTable(
   "recommendations",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     body: text("body").notNull(),
     /** marketing | operations | creative | budget | technical */
-    category: text("category").notNull().default("marketing"),
-    status: recommendationStatusEnum("status").notNull().default("proposed"),
+    category: varchar("category", { length: 191 }).notNull().default("marketing"),
+    status: varchar("status", { length: 64 }).notNull().default("proposed"),
     /**
      * AI Recommendation Verification Engine output:
      * [{claim, evidence, metricRecordIds, sourceRequestIds, verdict}]
      */
-    evidence: jsonb("evidence").notNull().default([]),
-    evidenceCount: integer("evidence_count").notNull().default(0),
+    evidence: json("evidence").notNull().default([]),
+    evidenceCount: int("evidence_count").notNull().default(0),
     /** AI Confidence Framework */
-    confidenceScore: numeric("confidence_score", { precision: 5, scale: 2 }),
-    dataSources: jsonb("data_sources").notNull().default([]),
-    expectedImpact: jsonb("expected_impact").notNull().default({}),
+    confidenceScore: decimal("confidence_score", { precision: 5, scale: 2 }),
+    dataSources: json("data_sources").notNull().default([]),
+    expectedImpact: json("expected_impact").notNull().default({}),
     /** Measured impact after implementation, for AOM historical queries */
-    measuredImpact: jsonb("measured_impact").notNull().default({}),
-    proposedBy: uuid("proposed_by").references(() => users.id, { onDelete: "set null" }),
-    aiGenerated: integer("ai_generated").notNull().default(0),
-    presentedAt: timestamp("presented_at", { withTimezone: true }),
-    decidedAt: timestamp("decided_at", { withTimezone: true }),
-    implementedAt: timestamp("implemented_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    measuredImpact: json("measured_impact").notNull().default({}),
+    proposedBy: varchar("proposed_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    aiGenerated: int("ai_generated").notNull().default(0),
+    presentedAt: timestamp("presented_at"),
+    decidedAt: timestamp("decided_at"),
+    implementedAt: timestamp("implemented_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("recommendations_tenant_idx").on(t.tenantId),
@@ -109,39 +109,39 @@ export const recommendations = pgTable(
   ]
 );
 
-export const decisionOutcomeEnum = pgEnum("decision_outcome", [
+export const decisionOutcomeEnum = [
   "approved",
   "rejected",
   "deferred",
   "modified",
-]);
+] as const;
 
 /**
  * Decisions — explicit records of what was decided, by whom, and why.
  * Linked to recommendations, meetings, or change requests.
  */
-export const decisions = pgTable(
+export const decisions = mysqlTable(
   "decisions",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
-    outcome: decisionOutcomeEnum("outcome").notNull(),
+    outcome: varchar("outcome", { length: 64 }).notNull(),
     reason: text("reason"),
     /** Free-text name + optional user link; client-side approvers may not be users */
     approvedByName: text("approved_by_name"),
-    approvedByUserId: uuid("approved_by_user_id").references(() => users.id, {
+    approvedByUserId: varchar("approved_by_user_id", { length: 36 }).references(() => users.id, {
       onDelete: "set null",
     }),
     /** Source link: recommendation | meeting | change_request | cat_approval */
-    sourceEntityType: text("source_entity_type"),
-    sourceEntityId: uuid("source_entity_id"),
-    context: jsonb("context").notNull().default({}),
-    decidedAt: timestamp("decided_at", { withTimezone: true }).notNull().defaultNow(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    sourceEntityType: varchar("source_entity_type", { length: 191 }),
+    sourceEntityId: varchar("source_entity_id", { length: 36 }),
+    context: json("context").notNull().default({}),
+    decidedAt: timestamp("decided_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [
     index("decisions_tenant_idx").on(t.tenantId),
@@ -149,35 +149,35 @@ export const decisions = pgTable(
   ]
 );
 
-export const changeRequestStatusEnum = pgEnum("change_request_status", [
+export const changeRequestStatusEnum = [
   "submitted",
   "under_review",
   "approved",
   "rejected",
   "implemented",
-]);
+] as const;
 
-export const changeRequests = pgTable(
+export const changeRequests = mysqlTable(
   "change_requests",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     description: text("description").notNull(),
-    status: changeRequestStatusEnum("status").notNull().default("submitted"),
+    status: varchar("status", { length: 64 }).notNull().default("submitted"),
     requestedByName: text("requested_by_name"),
-    requestedByUserId: uuid("requested_by_user_id").references(() => users.id, {
+    requestedByUserId: varchar("requested_by_user_id", { length: 36 }).references(() => users.id, {
       onDelete: "set null",
     }),
-    impactAssessment: jsonb("impact_assessment").notNull().default({}),
-    estimatedManDays: numeric("estimated_man_days", { precision: 7, scale: 2 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    impactAssessment: json("impact_assessment").notNull().default({}),
+    estimatedManDays: decimal("estimated_man_days", { precision: 7, scale: 2 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("change_requests_client_idx").on(t.clientId)]
 );
@@ -187,26 +187,25 @@ export const changeRequests = pgTable(
  * source entity embedded with the configured embedding model (1536 dims,
  * OpenAI text-embedding-3-small by default).
  */
-export const aomEmbeddings = pgTable(
+export const aomEmbeddings = mysqlTable(
   "aom_embeddings",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").references(() => clients.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id", { length: 36 }).references(() => clients.id, { onDelete: "cascade" }),
     /** meeting | transcript | knowledge_document | recommendation | decision | ticket | task | change_request */
-    entityType: text("entity_type").notNull(),
-    entityId: uuid("entity_id").notNull(),
-    chunkIndex: integer("chunk_index").notNull().default(0),
+    entityType: varchar("entity_type", { length: 191 }).notNull(),
+    entityId: varchar("entity_id", { length: 36 }).notNull(),
+    chunkIndex: int("chunk_index").notNull().default(0),
     chunkText: text("chunk_text").notNull(),
-    embedding: vector("embedding", { dimensions: 1536 }),
-    embeddingModel: text("embedding_model").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    embedding: json("embedding"),
+    embeddingModel: varchar("embedding_model", { length: 191 }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [
     index("aom_embeddings_entity_idx").on(t.tenantId, t.entityType, t.entityId),
-    index("aom_embeddings_vector_idx").using("hnsw", t.embedding.op("vector_cosine_ops")),
   ]
 );
 
@@ -214,20 +213,20 @@ export const aomEmbeddings = pgTable(
  * Explicit graph links between AOM entities (meeting -> recommendation ->
  * decision -> task...), powering historical context queries.
  */
-export const aomLinks = pgTable(
+export const aomLinks = mysqlTable(
   "aom_links",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    fromEntityType: text("from_entity_type").notNull(),
-    fromEntityId: uuid("from_entity_id").notNull(),
-    toEntityType: text("to_entity_type").notNull(),
-    toEntityId: uuid("to_entity_id").notNull(),
+    fromEntityType: varchar("from_entity_type", { length: 191 }).notNull(),
+    fromEntityId: varchar("from_entity_id", { length: 36 }).notNull(),
+    toEntityType: varchar("to_entity_type", { length: 191 }).notNull(),
+    toEntityId: varchar("to_entity_id", { length: 36 }).notNull(),
     /** generated_from | approved_by | implements | references | supersedes */
-    linkType: text("link_type").notNull().default("references"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    linkType: varchar("link_type", { length: 191 }).notNull().default("references"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [
     index("aom_links_from_idx").on(t.tenantId, t.fromEntityType, t.fromEntityId),

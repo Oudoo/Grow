@@ -1,19 +1,19 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  integer,
-  numeric,
-  pgEnum,
   index,
   date,
-} from "drizzle-orm/pg-core";
+  varchar,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants, users } from "./tenancy.js";
 import { clients, projects } from "./clients.js";
 
-export const creativeAssetStatusEnum = pgEnum("creative_asset_status", [
+export const creativeAssetStatusEnum = [
   "draft",
   "internal_review",
   "awaiting_client_approval",
@@ -22,118 +22,118 @@ export const creativeAssetStatusEnum = pgEnum("creative_asset_status", [
   "in_pilot",
   "scaled",
   "retired",
-]);
+] as const;
 
-export const creativeAssets = pgTable(
+export const creativeAssets = mysqlTable(
   "creative_assets",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }),
-    name: text("name").notNull(),
+    projectId: varchar("project_id", { length: 36 }).references(() => projects.id, { onDelete: "set null" }),
+    name: varchar("name", { length: 191 }).notNull(),
     /** image | video | carousel | copy | landing_page */
-    assetType: text("asset_type").notNull(),
-    status: creativeAssetStatusEnum("status").notNull().default("draft"),
+    assetType: varchar("asset_type", { length: 191 }).notNull(),
+    status: varchar("status", { length: 64 }).notNull().default("draft"),
     /** Object storage key for the asset binary */
     storageKey: text("storage_key"),
     previewUrl: text("preview_url"),
     copyText: text("copy_text"),
     /** Target platform(s): meta, tiktok, linkedin... */
-    platforms: jsonb("platforms").notNull().default([]),
-    metadata: jsonb("metadata").notNull().default({}),
-    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    platforms: json("platforms").notNull().default([]),
+    metadata: json("metadata").notNull().default({}),
+    createdBy: varchar("created_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("creative_assets_client_idx").on(t.clientId, t.status)]
 );
 
-export const catApprovalStatusEnum = pgEnum("cat_approval_status", [
+export const catApprovalStatusEnum = [
   "pending",
   "approved",
   "rejected",
   "changes_requested",
-]);
+] as const;
 
 /**
  * Creative Acceptance Testing (CAT) — strict client sign-off workflow.
  * Each row is one approval request presented in the client portal.
  */
-export const catApprovals = pgTable(
+export const catApprovals = mysqlTable(
   "cat_approvals",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    creativeAssetId: uuid("creative_asset_id")
+    creativeAssetId: varchar("creative_asset_id", { length: 36 })
       .notNull()
       .references(() => creativeAssets.id, { onDelete: "cascade" }),
-    status: catApprovalStatusEnum("status").notNull().default("pending"),
-    requestedBy: uuid("requested_by").references(() => users.id, { onDelete: "set null" }),
+    status: varchar("status", { length: 64 }).notNull().default("pending"),
+    requestedBy: varchar("requested_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
     /** Client-side signer (portal user) */
-    decidedByUserId: uuid("decided_by_user_id").references(() => users.id, {
+    decidedByUserId: varchar("decided_by_user_id", { length: 36 }).references(() => users.id, {
       onDelete: "set null",
     }),
     decidedByName: text("decided_by_name"),
     decisionNote: text("decision_note"),
     /** Sign-off checklist the client confirms: brand, claims, compliance */
-    checklist: jsonb("checklist").notNull().default([]),
-    requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
-    decidedAt: timestamp("decided_at", { withTimezone: true }),
-    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    checklist: json("checklist").notNull().default([]),
+    requestedAt: timestamp("requested_at").notNull().defaultNow(),
+    decidedAt: timestamp("decided_at"),
+    expiresAt: timestamp("expires_at"),
   },
   (t) => [index("cat_approvals_client_idx").on(t.clientId, t.status)]
 );
 
-export const abPilotStatusEnum = pgEnum("ab_pilot_status", [
+export const abPilotStatusEnum = [
   "scheduled",
   "running",
   "completed",
   "promoted",
   "stopped",
-]);
+] as const;
 
 /**
  * 7-day micro-budget pilot tests run after CAT approval, before scaling.
  */
-export const abPilots = pgTable(
+export const abPilots = mysqlTable(
   "ab_pilots",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    creativeAssetId: uuid("creative_asset_id")
+    creativeAssetId: varchar("creative_asset_id", { length: 36 })
       .notNull()
       .references(() => creativeAssets.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
-    status: abPilotStatusEnum("status").notNull().default("scheduled"),
-    platform: text("platform").notNull(),
+    name: varchar("name", { length: 191 }).notNull(),
+    status: varchar("status", { length: 64 }).notNull().default("scheduled"),
+    platform: varchar("platform", { length: 191 }).notNull(),
     /** Provider-side campaign/adset ids for live result tracking */
     externalCampaignId: text("external_campaign_id"),
-    dailyBudget: numeric("daily_budget", { precision: 12, scale: 2 }).notNull(),
-    currency: text("currency").notNull().default("USD"),
+    dailyBudget: decimal("daily_budget", { precision: 12, scale: 2 }).notNull(),
+    currency: varchar("currency", { length: 191 }).notNull().default("USD"),
     startDate: date("start_date"),
     endDate: date("end_date"),
     /** Daily tracked results with source request ids */
-    results: jsonb("results").notNull().default([]),
+    results: json("results").notNull().default([]),
     /** Final verdict: {winner, upliftPct, significance, recommendation} */
-    verdict: jsonb("verdict").notNull().default({}),
-    confidenceScore: numeric("confidence_score", { precision: 5, scale: 2 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    verdict: json("verdict").notNull().default({}),
+    confidenceScore: decimal("confidence_score", { precision: 5, scale: 2 }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [index("ab_pilots_client_idx").on(t.clientId, t.status)]
 );

@@ -1,56 +1,57 @@
+import { randomUUID } from "node:crypto";
 import {
-  pgTable,
-  uuid,
+  mysqlTable,
   text,
   timestamp,
-  jsonb,
-  numeric,
-  pgEnum,
   index,
   uniqueIndex,
   date,
-} from "drizzle-orm/pg-core";
+  varchar,
+  decimal,
+  json,
+  primaryKey,
+} from "drizzle-orm/mysql-core";
 import { tenants, users } from "./tenancy.js";
 
-export const clientStatusEnum = pgEnum("client_status", [
+export const clientStatusEnum = [
   "prospect",
   "onboarding",
   "active",
   "paused",
   "offboarded",
-]);
+] as const;
 
-export const projectStatusEnum = pgEnum("project_status", [
+export const projectStatusEnum = [
   "planning",
   "active",
   "on_hold",
   "completed",
   "cancelled",
-]);
+] as const;
 
-export const clients = pgTable(
+export const clients = mysqlTable(
   "clients",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
+    name: varchar("name", { length: 191 }).notNull(),
     /** Used in the client portal URL: /client/[slug] */
-    slug: text("slug").notNull(),
-    industry: text("industry"),
+    slug: varchar("slug", { length: 191 }).notNull(),
+    industry: varchar("industry", { length: 191 }),
     websiteUrl: text("website_url"),
-    status: clientStatusEnum("status").notNull().default("active"),
-    accountManagerId: uuid("account_manager_id").references(() => users.id, {
+    status: varchar("status", { length: 64 }).notNull().default("active"),
+    accountManagerId: varchar("account_manager_id", { length: 36 }).references(() => users.id, {
       onDelete: "set null",
     }),
-    monthlyRetainer: numeric("monthly_retainer", { precision: 12, scale: 2 }),
+    monthlyRetainer: decimal("monthly_retainer", { precision: 12, scale: 2 }),
     /** Gamified milestone targets: revenue, leads, ROAS etc. */
-    milestoneTargets: jsonb("milestone_targets").notNull().default([]),
-    settings: jsonb("settings").notNull().default({}),
+    milestoneTargets: json("milestone_targets").notNull().default([]),
+    settings: json("settings").notNull().default({}),
     onboardedAt: date("onboarded_at"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("clients_tenant_slug_idx").on(t.tenantId, t.slug),
@@ -58,26 +59,26 @@ export const clients = pgTable(
   ]
 );
 
-export const projects = pgTable(
+export const projects = mysqlTable(
   "projects",
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id")
+    id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
+    tenantId: varchar("tenant_id", { length: 36 })
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id")
+    clientId: varchar("client_id", { length: 36 })
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    name: text("name").notNull(),
+    name: varchar("name", { length: 191 }).notNull(),
     description: text("description"),
-    status: projectStatusEnum("status").notNull().default("active"),
-    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
-    budget: numeric("budget", { precision: 12, scale: 2 }),
+    status: varchar("status", { length: 64 }).notNull().default("active"),
+    ownerId: varchar("owner_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
+    budget: decimal("budget", { precision: 12, scale: 2 }),
     startDate: date("start_date"),
     endDate: date("end_date"),
-    metadata: jsonb("metadata").notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: json("metadata").notNull().default({}),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     index("projects_tenant_idx").on(t.tenantId),

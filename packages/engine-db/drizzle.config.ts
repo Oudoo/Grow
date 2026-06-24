@@ -2,15 +2,14 @@ import { defineConfig } from "drizzle-kit";
 import "dotenv/config";
 
 export default defineConfig({
-  dialect: "postgresql",
+  dialect: "mysql",
   schema: "./src/schema/index.ts",
   out: "./drizzle",
   dbCredentials: {
     url:
       process.env.DATABASE_URL ??
-      "postgres://growengine:growengine_dev@localhost:5432/growengine",
+      "mysql://growengine:growengine_dev@localhost:3306/growengine",
   },
-  extensionsFilters: ["postgis"],
-  verbose: true,
+    verbose: true,
   strict: true,
 });
