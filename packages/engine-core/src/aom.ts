@@ -75,32 +75,53 @@ export async function semanticSearch(
   opts: { clientId?: string; entityTypes?: string[]; limit?: number } = {}
 ): Promise<SemanticSearchResult[]> {
   const [queryVector] = await embedTexts([query], { ...ctx, feature: "aom_search" });
-  const vectorLiteral = `[${queryVector.join(",")}]`;
+  if (!queryVector?.length) return [];
 
   const conditions = [eq(aomEmbeddings.tenantId, tenantId)];
   if (opts.clientId) conditions.push(eq(aomEmbeddings.clientId, opts.clientId));
 
-  const similarity = dsql<number>`1 - (${aomEmbeddings.embedding} <=> ${vectorLiteral}::vector)`;
-
-  let queryBuilder = db
+  // MySQL has no native vector operators (no pgvector). Embeddings are stored
+  // as JSON arrays; we fetch the tenant-scoped candidate chunks and rank them
+  // by cosine similarity in application code. Bounded to keep memory flat —
+  // for larger corpora, swap in a dedicated vector store behind this function.
+  const CANDIDATE_CAP = 2000;
+  const rows = await db
     .select({
       entityType: aomEmbeddings.entityType,
       entityId: aomEmbeddings.entityId,
       clientId: aomEmbeddings.clientId,
       chunkText: aomEmbeddings.chunkText,
-      similarity,
+      embedding: aomEmbeddings.embedding,
     })
     .from(aomEmbeddings)
     .where(and(...conditions))
-    .orderBy(dsql`${aomEmbeddings.embedding} <=> ${vectorLiteral}::vector`)
-    .limit(opts.limit ?? 12)
-    .$dynamic();
+    .limit(CANDIDATE_CAP);
 
-  const rows = await queryBuilder;
-  const filtered = opts.entityTypes?.length
-    ? rows.filter((r) => opts.entityTypes!.includes(r.entityType))
-    : rows;
-  return filtered.map((r) => ({ ...r, similarity: Number(r.similarity) }));
+  const wanted = opts.entityTypes?.length ? new Set(opts.entityTypes) : null;
+  const qNorm = Math.sqrt(queryVector.reduce((s, v) => s + v * v, 0)) || 1;
+
+  const scored: SemanticSearchResult[] = [];
+  for (const r of rows) {
+    if (wanted && !wanted.has(r.entityType)) continue;
+    const vec = r.embedding as number[] | null;
+    if (!Array.isArray(vec) || vec.length !== queryVector.length) continue;
+    let dot = 0;
+    let norm = 0;
+    for (let i = 0; i < vec.length; i++) {
+      dot += vec[i] * queryVector[i];
+      norm += vec[i] * vec[i];
+    }
+    const similarity = dot / (qNorm * (Math.sqrt(norm) || 1));
+    scored.push({
+      entityType: r.entityType,
+      entityId: r.entityId,
+      clientId: r.clientId,
+      chunkText: r.chunkText,
+      similarity,
+    });
+  }
+  scored.sort((a, b) => b.similarity - a.similarity);
+  return scored.slice(0, opts.limit ?? 12);
 }
 
 export async function linkEntities(input: {

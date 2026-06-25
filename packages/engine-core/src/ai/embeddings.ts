@@ -2,8 +2,10 @@ import { env } from "../env.js";
 import { openai, recordAiCost, type AiCallContext } from "./provider.js";
 
 /**
- * Embedding generation for the AOM semantic search layer (pgvector,
- * 1536 dimensions). OpenAI text-embedding-3-small by default.
+ * Embedding generation for the AOM semantic search layer (1536 dimensions,
+ * OpenAI text-embedding-3-small by default). Vectors are stored as JSON
+ * arrays in MySQL and ranked by cosine similarity in application code
+ * (see semanticSearch in aom.ts) — no pgvector dependency.
  */
 export async function embedTexts(
   texts: string[],
