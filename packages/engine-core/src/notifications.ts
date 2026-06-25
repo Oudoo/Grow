@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import nodemailer from "nodemailer";
 import { and, eq } from "drizzle-orm";
 import {
@@ -54,20 +55,20 @@ export interface NotifyInput {
 
 /** Create the notification record and enqueue dispatch. */
 export async function notify(input: NotifyInput) {
-  const [record] = await db
-    .insert(notifications)
-    .values({
-      tenantId: input.tenantId,
-      userId: input.userId ?? null,
-      channel: input.channel,
-      templateKey: input.templateKey,
-      title: input.title,
-      body: input.body,
-      linkUrl: input.linkUrl,
-      metadata: input.metadata ?? {},
-      status: input.channel === "in_app" ? "delivered" : "queued",
-    })
-    .returning();
+  const id = randomUUID();
+  await db.insert(notifications).values({
+    id,
+    tenantId: input.tenantId,
+    userId: input.userId ?? null,
+    channel: input.channel,
+    templateKey: input.templateKey,
+    title: input.title,
+    body: input.body,
+    linkUrl: input.linkUrl,
+    metadata: input.metadata ?? {},
+    status: input.channel === "in_app" ? "delivered" : "queued",
+  });
+  const [record] = await db.select().from(notifications).where(eq(notifications.id, id));
 
   if (input.channel !== "in_app") {
     await enqueueNotificationJob({

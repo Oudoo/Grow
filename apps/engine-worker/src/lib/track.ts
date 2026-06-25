@@ -1,10 +1,14 @@
 import { eq } from "drizzle-orm";
 import { db, queueJobs } from "@growengine/db";
-import type { Job } from "bullmq";
+import type { QueueJob } from "@growengine/core";
 
-/** Mirror BullMQ job lifecycle into queue_jobs for the health dashboard. */
+/**
+ * Mirror job lifecycle into queue_jobs for the health dashboard. The poll
+ * worker already records active/completed/failed around each job; handlers
+ * may still call this to surface mid-flight status (e.g. partial progress).
+ */
 export async function markJobStatus(
-  job: Job,
+  job: QueueJob<unknown>,
   status: "active" | "completed" | "failed",
   error?: string
 ) {

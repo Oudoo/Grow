@@ -1,6 +1,5 @@
-import { Worker, type Job } from "bullmq";
 import { and, eq, inArray, sql as dsql } from "drizzle-orm";
-import { createHmac } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import {
   db,
   clients,
@@ -9,7 +8,7 @@ import {
   webhookDeliveries,
 } from "@growengine/db";
 import {
-  bullConnectionOptions,
+  createPollWorker,
   QUEUE_NAMES,
   deliverNotification,
   enqueueAiJob,
@@ -111,17 +110,16 @@ async function handleWebhookDelivery(data: NotificationJobData) {
     const types = endpoint.eventTypes as string[];
     if (!types.includes("*") && !types.includes(eventType)) continue;
 
-    const [delivery] = await db
-      .insert(webhookDeliveries)
-      .values({
-        tenantId: data.tenantId,
-        endpointId: endpoint.id,
-        eventType,
-        payload,
-      })
-      .returning();
+    const deliveryId = randomUUID();
+    await db.insert(webhookDeliveries).values({
+      id: deliveryId,
+      tenantId: data.tenantId,
+      endpointId: endpoint.id,
+      eventType,
+      payload,
+    });
 
-    const body = JSON.stringify({ event: eventType, payload, deliveryId: delivery.id });
+    const body = JSON.stringify({ event: eventType, payload, deliveryId });
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (endpoint.encryptedSecret) {
       const secret = decryptSecret(endpoint.encryptedSecret);
@@ -143,20 +141,20 @@ async function handleWebhookDelivery(data: NotificationJobData) {
           attempts: dsql`${webhookDeliveries.attempts} + 1`,
           deliveredAt: res.ok ? new Date() : null,
         })
-        .where(eq(webhookDeliveries.id, delivery.id));
+        .where(eq(webhookDeliveries.id, deliveryId));
     } catch {
       await db
         .update(webhookDeliveries)
         .set({ status: "failed", attempts: dsql`${webhookDeliveries.attempts} + 1` })
-        .where(eq(webhookDeliveries.id, delivery.id));
+        .where(eq(webhookDeliveries.id, deliveryId));
     }
   }
 }
 
 export function createNotificationWorker() {
-  const worker = new Worker<NotificationJobData>(
+  return createPollWorker<NotificationJobData>(
     QUEUE_NAMES.notification,
-    async (job: Job<NotificationJobData>) => {
+    async (job) => {
       await markJobStatus(job, "active");
       switch (job.data.kind) {
         case "dispatch":
@@ -170,12 +168,8 @@ export function createNotificationWorker() {
         case "webhook_delivery":
           return handleWebhookDelivery(job.data);
       }
-    },
-    { connection: bullConnectionOptions(), concurrency: 5 }
+    }
   );
-  worker.on("completed", (job) => markJobStatus(job, "completed"));
-  worker.on("failed", (job, err) => job && markJobStatus(job, "failed", err.message));
-  return worker;
 }
 
 void inArray;

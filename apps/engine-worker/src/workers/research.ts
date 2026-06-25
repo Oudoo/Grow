@@ -1,10 +1,10 @@
-import { Worker, type Job } from "bullmq";
+import { randomUUID } from "node:crypto";
 import {
   db,
   knowledgeDocuments,
 } from "@growengine/db";
 import {
-  bullConnectionOptions,
+  createPollWorker,
   QUEUE_NAMES,
   crawlSite,
   searchMentions,
@@ -57,17 +57,16 @@ Sections: Positioning & Messaging, Product/Service Focus, Content Strategy Signa
     { maxTokens: 5000 }
   );
 
-  const [doc] = await db
-    .insert(knowledgeDocuments)
-    .values({
-      tenantId: data.tenantId,
-      clientId: data.clientId ?? null,
-      type: "research",
-      title: `Competitor Analysis — ${competitorName} — ${new Date().toISOString().slice(0, 10)}`,
-      contentMarkdown: markdown,
-      tags: ["competitor", competitorName],
-    })
-    .returning();
+  const docId = randomUUID();
+  await db.insert(knowledgeDocuments).values({
+    id: docId,
+    tenantId: data.tenantId,
+    clientId: data.clientId ?? null,
+    type: "research",
+    title: `Competitor Analysis — ${competitorName} — ${new Date().toISOString().slice(0, 10)}`,
+    contentMarkdown: markdown,
+    tags: ["competitor", competitorName],
+  });
 
   try {
     await indexEntity(
@@ -75,7 +74,7 @@ Sections: Positioning & Messaging, Product/Service Focus, Content Strategy Signa
         tenantId: data.tenantId,
         clientId: data.clientId ?? null,
         entityType: "knowledge_document",
-        entityId: doc.id,
+        entityId: docId,
         text: markdown,
       },
       ctx
@@ -83,7 +82,7 @@ Sections: Positioning & Messaging, Product/Service Focus, Content Strategy Signa
   } catch {
     /* embeddings optional */
   }
-  return { documentId: doc.id, pagesCrawled: pages.length, mentions: mentions.length };
+  return { documentId: docId, pagesCrawled: pages.length, mentions: mentions.length };
 }
 
 async function handlePrMentions(data: ResearchJobData) {
@@ -91,20 +90,19 @@ async function handlePrMentions(data: ResearchJobData) {
   const mentions = await searchMentions(query, feeds ?? []);
   if (mentions.length === 0) return { mentions: 0 };
 
-  const [doc] = await db
-    .insert(knowledgeDocuments)
-    .values({
-      tenantId: data.tenantId,
-      clientId: data.clientId ?? null,
-      type: "research",
-      title: `PR Mentions — "${query}" — ${new Date().toISOString().slice(0, 10)}`,
-      contentMarkdown: mentions
-        .map((m) => `- [${m.title}](${m.link}) — ${m.source}${m.publishedAt ? ` (${m.publishedAt.slice(0, 10)})` : ""}\n  ${m.snippet}`)
-        .join("\n"),
-      tags: ["pr_mentions", query],
-    })
-    .returning();
-  return { documentId: doc.id, mentions: mentions.length };
+  const docId = randomUUID();
+  await db.insert(knowledgeDocuments).values({
+    id: docId,
+    tenantId: data.tenantId,
+    clientId: data.clientId ?? null,
+    type: "research",
+    title: `PR Mentions — "${query}" — ${new Date().toISOString().slice(0, 10)}`,
+    contentMarkdown: mentions
+      .map((m) => `- [${m.title}](${m.link}) — ${m.source}${m.publishedAt ? ` (${m.publishedAt.slice(0, 10)})` : ""}\n  ${m.snippet}`)
+      .join("\n"),
+    tags: ["pr_mentions", query],
+  });
+  return { documentId: docId, mentions: mentions.length };
 }
 
 async function handleWebCrawl(data: ResearchJobData) {
@@ -117,9 +115,9 @@ async function handleWebCrawl(data: ResearchJobData) {
 }
 
 export function createResearchWorker() {
-  const worker = new Worker<ResearchJobData>(
+  return createPollWorker<ResearchJobData>(
     QUEUE_NAMES.research,
-    async (job: Job<ResearchJobData>) => {
+    async (job) => {
       await markJobStatus(job, "active");
       switch (job.data.operation) {
         case "competitor_analysis":
@@ -130,10 +128,6 @@ export function createResearchWorker() {
         case "web_crawl":
           return handleWebCrawl(job.data);
       }
-    },
-    { connection: bullConnectionOptions(), concurrency: 2 }
+    }
   );
-  worker.on("completed", (job) => markJobStatus(job, "completed"));
-  worker.on("failed", (job, err) => job && markJobStatus(job, "failed", err.message));
-  return worker;
 }

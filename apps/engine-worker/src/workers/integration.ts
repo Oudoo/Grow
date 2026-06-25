@@ -1,4 +1,4 @@
-import { Worker, type Job } from "bullmq";
+import { randomUUID } from "node:crypto";
 import { and, eq, sql as dsql } from "drizzle-orm";
 import {
   db,
@@ -8,7 +8,7 @@ import {
   usageRecords,
 } from "@growengine/db";
 import {
-  bullConnectionOptions,
+  createPollWorker,
   QUEUE_NAMES,
   type IntegrationJobData,
   getConnector,
@@ -56,15 +56,14 @@ async function handleSync(data: IntegrationJobData) {
   const connector = getConnector(row.provider);
   const startedAt = new Date();
 
-  const [log] = await db
-    .insert(integrationLogs)
-    .values({
-      tenantId: row.tenantId,
-      integrationId: row.id,
-      status: "started",
-      operation: data.operation,
-    })
-    .returning();
+  const logId = randomUUID();
+  await db.insert(integrationLogs).values({
+    id: logId,
+    tenantId: row.tenantId,
+    integrationId: row.id,
+    status: "started",
+    operation: data.operation,
+  });
 
   await db
     .update(integrations)
@@ -128,13 +127,7 @@ async function handleSync(data: IntegrationJobData) {
           sanityStatus: sanity.status,
           sanityNotes: sanity.findings,
         })
-        .onConflictDoUpdate({
-          target: [
-            metricRecords.integrationId,
-            metricRecords.metric,
-            metricRecords.date,
-            metricRecords.dimensions,
-          ],
+        .onDuplicateKeyUpdate({
           set: {
             value: String(metric.value),
             sourceRequestId: metric.sourceRequestId,
@@ -158,7 +151,7 @@ async function handleSync(data: IntegrationJobData) {
         durationMs: Date.now() - startedAt.getTime(),
         finishedAt: new Date(),
       })
-      .where(eq(integrationLogs.id, log.id));
+      .where(eq(integrationLogs.id, logId));
 
     await db
       .update(integrations)
@@ -202,7 +195,7 @@ async function handleSync(data: IntegrationJobData) {
         durationMs: Date.now() - startedAt.getTime(),
         finishedAt: new Date(),
       })
-      .where(eq(integrationLogs.id, log.id));
+      .where(eq(integrationLogs.id, logId));
     await db
       .update(integrations)
       .set({
@@ -256,9 +249,9 @@ async function handleHealthCheck(data: IntegrationJobData) {
 }
 
 export function createIntegrationWorker() {
-  const worker = new Worker<IntegrationJobData>(
+  return createPollWorker<IntegrationJobData>(
     QUEUE_NAMES.integration,
-    async (job: Job<IntegrationJobData>) => {
+    async (job) => {
       await markJobStatus(job, "active");
       switch (job.data.operation) {
         case "sync":
@@ -269,10 +262,6 @@ export function createIntegrationWorker() {
         case "health_check":
           return handleHealthCheck(job.data);
       }
-    },
-    { connection: bullConnectionOptions(), concurrency: 4 }
+    }
   );
-  worker.on("completed", (job) => markJobStatus(job, "completed"));
-  worker.on("failed", (job, err) => job && markJobStatus(job, "failed", err.message));
-  return worker;
 }

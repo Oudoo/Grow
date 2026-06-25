@@ -29,7 +29,7 @@ async function scheduleDueSyncs() {
     .where(
       and(
         dsql`${integrations.status} IN ('connected','error')`,
-        dsql`(${integrations.lastSyncAt} IS NULL OR ${integrations.lastSyncAt} < NOW() - (${integrations.syncFrequencyMinutes} || ' minutes')::interval)`,
+        dsql`(${integrations.lastSyncAt} IS NULL OR ${integrations.lastSyncAt} < NOW() - INTERVAL ${integrations.syncFrequencyMinutes} MINUTE)`,
         dsql`${integrations.consecutiveFailures} < 10`
       )
     )

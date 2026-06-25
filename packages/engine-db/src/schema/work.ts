@@ -104,7 +104,7 @@ export const tasks = mysqlTable(
     priority: varchar("priority", { length: 64 }).notNull().default("medium"),
     assigneeId: varchar("assignee_id", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
     estimateHours: decimal("estimate_hours", { precision: 7, scale: 2 }),
-    dueDate: date("due_date"),
+    dueDate: date("due_date", { mode: "string" }),
     startedAt: timestamp("started_at"),
     completedAt: timestamp("completed_at"),
     /** Rework counter feeds Team Scorecards (reopened after done). */
@@ -155,8 +155,8 @@ export const sprintShowcases = mysqlTable(
     /** Bi-weekly sprint video showcase: object storage key + duration */
     videoStorageKey: text("video_storage_key"),
     videoDurationSeconds: int("video_duration_seconds"),
-    sprintStart: date("sprint_start"),
-    sprintEnd: date("sprint_end"),
+    sprintStart: date("sprint_start", { mode: "string" }),
+    sprintEnd: date("sprint_end", { mode: "string" }),
     highlights: json("highlights").notNull().default([]),
     publishedAt: timestamp("published_at"),
     createdBy: varchar("created_by", { length: 36 }).references(() => users.id, { onDelete: "set null" }),
@@ -179,8 +179,8 @@ export const teamScorecards = mysqlTable(
     userId: varchar("user_id", { length: 36 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    periodStart: date("period_start").notNull(),
-    periodEnd: date("period_end").notNull(),
+    periodStart: date("period_start", { mode: "string" }).notNull(),
+    periodEnd: date("period_end", { mode: "string" }).notNull(),
     tasksCompleted: int("tasks_completed").notNull().default(0),
     tasksOnTime: int("tasks_on_time").notNull().default(0),
     avgCycleTimeHours: decimal("avg_cycle_time_hours", { precision: 10, scale: 2 }),

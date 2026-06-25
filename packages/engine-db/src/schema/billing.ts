@@ -63,8 +63,8 @@ export const subscriptions = mysqlTable(
       .notNull()
       .references(() => plans.id, { onDelete: "restrict" }),
     status: varchar("status", { length: 64 }).notNull().default("active"),
-    currentPeriodStart: date("current_period_start").notNull(),
-    currentPeriodEnd: date("current_period_end").notNull(),
+    currentPeriodStart: date("current_period_start", { mode: "string" }).notNull(),
+    currentPeriodEnd: date("current_period_end", { mode: "string" }).notNull(),
     cancelAtPeriodEnd: int("cancel_at_period_end").notNull().default(0),
     externalRefs: json("external_refs").notNull().default({}),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -117,7 +117,7 @@ export const usageRecords = mysqlTable(
     meter: varchar("meter", { length: 191 }).notNull(),
     quantity: decimal("quantity", { precision: 18, scale: 4 }).notNull(),
     /** Aggregation day for rollups */
-    usageDate: date("usage_date").notNull(),
+    usageDate: date("usage_date", { mode: "string" }).notNull(),
     metadata: json("metadata").notNull().default({}),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

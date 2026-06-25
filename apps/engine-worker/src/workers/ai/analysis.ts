@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { and, eq, desc, sql as dsql } from "drizzle-orm";
 import {
   db,
@@ -57,19 +58,19 @@ export async function handleMeetingAnalysis(data: AiJobData) {
       meeting.recordingStorageKey.split("/").pop() ?? "recording.mp3",
       ctx
     );
-    [transcript] = await db
-      .insert(transcripts)
-      .values({
-        tenantId: data.tenantId,
-        meetingId,
-        engine: result.engine,
-        language: result.language,
-        fullText: result.fullText,
-        segments: result.segments,
-        wordCount: result.fullText.split(/\s+/).length,
-        processingTimeMs: result.processingTimeMs,
-      })
-      .returning();
+    const transcriptId = randomUUID();
+    await db.insert(transcripts).values({
+      id: transcriptId,
+      tenantId: data.tenantId,
+      meetingId,
+      engine: result.engine,
+      language: result.language,
+      fullText: result.fullText,
+      segments: result.segments,
+      wordCount: result.fullText.split(/\s+/).length,
+      processingTimeMs: result.processingTimeMs,
+    });
+    [transcript] = await db.select().from(transcripts).where(eq(transcripts.id, transcriptId));
     await publishEvent({
       tenantId: data.tenantId,
       eventType: EVENT_TYPES.transcriptReady,
@@ -130,18 +131,18 @@ Return strict JSON with keys:
     .where(eq(meetings.id, meetingId));
 
   // 3. File the baseline into the AOM as a knowledge document + index
-  const [doc] = await db
-    .insert(knowledgeDocuments)
-    .values({
-      tenantId: data.tenantId,
-      clientId: meeting.clientId,
-      type: "expectation_baseline",
-      title: `Expectation Baseline — ${meeting.title}`,
-      contentMarkdown: analysis.expectationBaselineMarkdown,
-      sourceEntityType: "meeting",
-      sourceEntityId: meetingId,
-    })
-    .returning();
+  const baselineDocId = randomUUID();
+  await db.insert(knowledgeDocuments).values({
+    id: baselineDocId,
+    tenantId: data.tenantId,
+    clientId: meeting.clientId,
+    type: "expectation_baseline",
+    title: `Expectation Baseline — ${meeting.title}`,
+    contentMarkdown: analysis.expectationBaselineMarkdown,
+    sourceEntityType: "meeting",
+    sourceEntityId: meetingId,
+  });
+  const doc = { id: baselineDocId };
   await linkEntities({
     tenantId: data.tenantId,
     fromEntityType: "knowledge_document",
@@ -587,16 +588,16 @@ Structure: Executive Summary, Performance by Metric (with concrete numbers), Not
     { maxTokens: 6000 }
   );
 
-  const [doc] = await db
-    .insert(knowledgeDocuments)
-    .values({
-      tenantId: data.tenantId,
-      clientId,
-      type: "report",
-      title,
-      contentMarkdown: markdown,
-    })
-    .returning();
+  const reportDocId = randomUUID();
+  await db.insert(knowledgeDocuments).values({
+    id: reportDocId,
+    tenantId: data.tenantId,
+    clientId,
+    type: "report",
+    title,
+    contentMarkdown: markdown,
+  });
+  const doc = { id: reportDocId };
 
   try {
     await indexEntity(

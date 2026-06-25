@@ -1,7 +1,6 @@
-import { Worker, type Job } from "bullmq";
 import { eq } from "drizzle-orm";
 import { db, aiJobs } from "@growengine/db";
-import { bullConnectionOptions, QUEUE_NAMES, type AiJobData } from "@growengine/core";
+import { createPollWorker, QUEUE_NAMES, type AiJobData } from "@growengine/core";
 import { markJobStatus } from "../../lib/track.js";
 import {
   handleForecast,
@@ -53,9 +52,9 @@ const handlers: Record<AiJobData["jobType"], (data: AiJobData) => Promise<unknow
 };
 
 export function createAiWorker() {
-  const worker = new Worker<AiJobData>(
+  return createPollWorker<AiJobData>(
     QUEUE_NAMES.ai,
-    async (job: Job<AiJobData>) => {
+    async (job) => {
       await markJobStatus(job, "active");
       const { aiJobId, jobType } = job.data;
 
@@ -95,10 +94,6 @@ export function createAiWorker() {
         }
         throw err;
       }
-    },
-    { connection: bullConnectionOptions(), concurrency: 2 }
+    }
   );
-  worker.on("completed", (job) => markJobStatus(job, "completed"));
-  worker.on("failed", (job, err) => job && markJobStatus(job, "failed", err.message));
-  return worker;
 }

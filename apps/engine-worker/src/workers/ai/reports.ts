@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { and, eq, sql as dsql } from "drizzle-orm";
 import {
   db,
@@ -141,16 +142,17 @@ export async function handleDigest(data: AiJobData) {
     { maxTokens: 2500 }
   );
 
-  const [doc] = await db
-    .insert(knowledgeDocuments)
-    .values({
-      tenantId: data.tenantId,
-      clientId,
-      type: "digest",
-      title: `${period === "weekly" ? "Weekly" : "Monthly"} KPI Digest — ${new Date().toISOString().slice(0, 10)}`,
-      contentMarkdown: markdown,
-    })
-    .returning();
+  const docId = randomUUID();
+  const docTitle = `${period === "weekly" ? "Weekly" : "Monthly"} KPI Digest — ${new Date().toISOString().slice(0, 10)}`;
+  await db.insert(knowledgeDocuments).values({
+    id: docId,
+    tenantId: data.tenantId,
+    clientId,
+    type: "digest",
+    title: docTitle,
+    contentMarkdown: markdown,
+  });
+  const doc = { id: docId, title: docTitle };
 
   // Deliver to client portal users by email + in-app
   const portalUsers = await db

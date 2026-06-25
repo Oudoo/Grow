@@ -210,15 +210,24 @@ export const queueJobs = mysqlTable(
     /** waiting | active | completed | failed | delayed */
     status: varchar("status", { length: 191 }).notNull().default("waiting"),
     payloadSummary: json("payload_summary").notNull().default({}),
+    /** Full job payload the in-app worker executes (not just the summary). */
+    payload: json("payload").notNull().default({}),
     error: text("error"),
     attempts: int("attempts").notNull().default(0),
+    maxAttempts: int("max_attempts").notNull().default(3),
     durationMs: int("duration_ms"),
+    /** When this job becomes eligible to run (delays + exponential backoff). */
+    availableAt: timestamp("available_at").notNull().defaultNow(),
+    /** Claim lock so the poll loop never runs a job twice. */
+    lockedAt: timestamp("locked_at"),
+    lockedBy: varchar("locked_by", { length: 191 }),
     enqueuedAt: timestamp("enqueued_at").notNull().defaultNow(),
     finishedAt: timestamp("finished_at"),
   },
   (t) => [
     index("queue_jobs_queue_idx").on(t.queueName, t.status),
     index("queue_jobs_bull_idx").on(t.bullJobId),
+    index("queue_jobs_poll_idx").on(t.status, t.availableAt),
   ]
 );
 

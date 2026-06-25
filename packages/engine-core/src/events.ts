@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { db, domainEvents } from "@growengine/db";
 import { enqueueDomainEvent } from "./queues.js";
 
@@ -57,16 +59,16 @@ export interface PublishEventInput {
  * auditable record even if Redis is briefly unavailable.
  */
 export async function publishEvent(input: PublishEventInput) {
-  const [event] = await db
-    .insert(domainEvents)
-    .values({
-      tenantId: input.tenantId,
-      eventType: input.eventType,
-      payload: input.payload ?? {},
-      entityType: input.entityType,
-      entityId: input.entityId,
-    })
-    .returning();
+  const id = randomUUID();
+  await db.insert(domainEvents).values({
+    id,
+    tenantId: input.tenantId,
+    eventType: input.eventType,
+    payload: input.payload ?? {},
+    entityType: input.entityType,
+    entityId: input.entityId,
+  });
+  const [event] = await db.select().from(domainEvents).where(eq(domainEvents.id, id));
 
   await enqueueDomainEvent({
     domainEventId: event.id,

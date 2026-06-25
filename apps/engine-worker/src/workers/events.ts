@@ -1,8 +1,8 @@
-import { Worker, type Job } from "bullmq";
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, domainEvents, integrations, forecasts } from "@growengine/db";
 import {
-  bullConnectionOptions,
+  createPollWorker,
   QUEUE_NAMES,
   EVENT_TYPES,
   enqueueAiJob,
@@ -36,21 +36,20 @@ const handlers: Record<string, Handler[]> = {
           .where(eq(forecasts.clientId, clientId));
         const latest = existing.filter((f) => f.metric === metric).pop();
         if (latest) {
-          const [row] = await db
-            .insert(forecasts)
-            .values({
-              tenantId,
-              clientId,
-              metric,
-              horizonDays: latest.horizonDays,
-              status: "queued",
-            })
-            .returning();
+          const forecastId = randomUUID();
+          await db.insert(forecasts).values({
+            id: forecastId,
+            tenantId,
+            clientId,
+            metric,
+            horizonDays: latest.horizonDays,
+            status: "queued",
+          });
           await enqueueAiJob({
             tenantId,
             aiJobId: "",
             jobType: "forecast",
-            input: { clientId, metric, horizonDays: latest.horizonDays, forecastId: row.id },
+            input: { clientId, metric, horizonDays: latest.horizonDays, forecastId },
           });
         }
       }
@@ -94,9 +93,9 @@ const handlers: Record<string, Handler[]> = {
 };
 
 export function createEventsWorker() {
-  const worker = new Worker<DomainEventJobData>(
+  return createPollWorker<DomainEventJobData>(
     QUEUE_NAMES.events,
-    async (job: Job<DomainEventJobData>) => {
+    async (job) => {
       await markJobStatus(job, "active");
       const { domainEventId, tenantId, eventType, payload } = job.data;
       const results: { handler: string; ok: boolean; error?: string }[] = [];
@@ -141,10 +140,6 @@ export function createEventsWorker() {
           dispatchedAt: new Date(),
         })
         .where(eq(domainEvents.id, domainEventId));
-    },
-    { connection: bullConnectionOptions(), concurrency: 5 }
+    }
   );
-  worker.on("completed", (job) => markJobStatus(job, "completed"));
-  worker.on("failed", (job, err) => job && markJobStatus(job, "failed", err.message));
-  return worker;
 }

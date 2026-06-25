@@ -125,8 +125,8 @@ export const abPilots = mysqlTable(
     externalCampaignId: text("external_campaign_id"),
     dailyBudget: decimal("daily_budget", { precision: 12, scale: 2 }).notNull(),
     currency: varchar("currency", { length: 191 }).notNull().default("USD"),
-    startDate: date("start_date"),
-    endDate: date("end_date"),
+    startDate: date("start_date", { mode: "string" }),
+    endDate: date("end_date", { mode: "string" }),
     /** Daily tracked results with source request ids */
     results: json("results").notNull().default([]),
     /** Final verdict: {winner, upliftPct, significance, recommendation} */

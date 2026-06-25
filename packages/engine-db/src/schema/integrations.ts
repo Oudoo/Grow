@@ -137,7 +137,7 @@ export const metricRecords = mysqlTable(
     metric: varchar("metric", { length: 191 }).notNull(),
     /** Dimension scope, e.g. {"campaign_id": "...", "channel": "paid_social"} */
     dimensions: json("dimensions").notNull().default({}),
-    date: date("date").notNull(),
+    date: date("date", { mode: "string" }).notNull(),
     value: decimal("value", { precision: 18, scale: 4 }).notNull(),
     currency: varchar("currency", { length: 191 }),
     /** Verifiable Data Layer: provider API request id (x-fb-trace-id etc.) */
