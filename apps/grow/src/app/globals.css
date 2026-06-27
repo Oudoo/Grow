@@ -236,3 +236,64 @@ body {
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes shake { 0%,100% { transform: translateX(0); } 15% { transform: translateX(-4px); } 30% { transform: translateX(4px); } 45% { transform: translateX(-3px); } 60% { transform: translateX(3px); } 75% { transform: translateX(-1px); } }
 @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 oklch(0.585 0.21 277 / 0.3); } 50% { box-shadow: 0 0 0 8px oklch(0.585 0.21 277 / 0); } }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Grow Engine module — scoped theme (.engine-scope)
+   The engine ships a light shadcn-style theme on its own HSL tokens. We expose
+   the shadcn color utilities (bg-card, border-border, text-muted-foreground, …)
+   as Tailwind tokens, but the token VALUES are only defined inside
+   .engine-scope, so the hub's dark theme is untouched.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: hsl(var(--eng-background));
+  --color-foreground: hsl(var(--eng-foreground));
+  --color-card: hsl(var(--eng-card));
+  --color-card-foreground: hsl(var(--eng-card-foreground));
+  --color-primary: hsl(var(--eng-primary));
+  --color-primary-foreground: hsl(var(--eng-primary-foreground));
+  --color-secondary: hsl(var(--eng-secondary));
+  --color-secondary-foreground: hsl(var(--eng-secondary-foreground));
+  --color-muted: hsl(var(--eng-muted));
+  --color-muted-foreground: hsl(var(--eng-muted-foreground));
+  --color-accent: hsl(var(--eng-accent));
+  --color-accent-foreground: hsl(var(--eng-accent-foreground));
+  --color-destructive: hsl(var(--eng-destructive));
+  --color-destructive-foreground: hsl(var(--eng-destructive-foreground));
+  --color-border: hsl(var(--eng-border));
+  --color-input: hsl(var(--eng-input));
+  --color-ring: hsl(var(--eng-ring));
+}
+
+.engine-scope {
+  --eng-background: 220 20% 98%;
+  --eng-foreground: 224 25% 12%;
+  --eng-card: 0 0% 100%;
+  --eng-card-foreground: 224 25% 12%;
+  --eng-primary: 243 75% 59%;
+  --eng-primary-foreground: 0 0% 100%;
+  --eng-secondary: 220 14% 94%;
+  --eng-secondary-foreground: 224 20% 20%;
+  --eng-muted: 220 14% 94%;
+  --eng-muted-foreground: 224 10% 45%;
+  --eng-accent: 243 75% 95%;
+  --eng-accent-foreground: 243 65% 42%;
+  --eng-destructive: 0 72% 50%;
+  --eng-destructive-foreground: 0 0% 100%;
+  --eng-border: 220 13% 89%;
+  --eng-input: 220 13% 89%;
+  --eng-ring: 243 75% 59%;
+  background: hsl(var(--eng-background));
+  color: hsl(var(--eng-foreground));
+}
+.engine-scope * { border-color: hsl(var(--eng-border)); }
+
+.engine-scope .prose-doc h1 { font-size: 1.5rem; line-height: 2rem; font-weight: 700; margin: 1.5rem 0 0.75rem; }
+.engine-scope .prose-doc h2 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.engine-scope .prose-doc h3 { font-size: 1.125rem; font-weight: 600; margin: 1rem 0 0.5rem; }
+.engine-scope .prose-doc p { margin: 0.5rem 0; line-height: 1.625; }
+.engine-scope .prose-doc ul { list-style: disc; margin: 0.5rem 0 0.5rem 1.5rem; }
+.engine-scope .prose-doc ol { list-style: decimal; margin: 0.5rem 0 0.5rem 1.5rem; }
+.engine-scope .prose-doc table { width: 100%; font-size: 0.875rem; margin: 0.75rem 0; border-collapse: collapse; }
+.engine-scope .prose-doc th, .engine-scope .prose-doc td { border: 1px solid hsl(var(--eng-border)); padding: 0.25rem 0.5rem; text-align: left; }
+.engine-scope .prose-doc code { background: hsl(var(--eng-muted)); padding: 0 0.25rem; border-radius: 0.25rem; font-size: 0.875rem; }
+.engine-scope .prose-doc blockquote { border-left: 4px solid hsl(var(--eng-border)); padding-left: 0.75rem; font-style: italic; color: hsl(var(--eng-muted-foreground)); margin: 0.5rem 0; }

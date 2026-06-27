@@ -18,6 +18,8 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 1 week
 export interface SessionPayload {
   /** AdminUser id */
   uid: string;
+  email: string;
+  name: string;
   role: UserRole;
   /** Per-module access levels */
   access: AccessMap;

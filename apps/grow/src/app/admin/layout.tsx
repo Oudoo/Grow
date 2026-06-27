@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Integrated GROW modules — native sections of this app.
   const systems = [
-    { name: "Grow Engine", href: "/admin/grow-engine", icon: Gauge },
+    { name: "Grow Engine", href: "/engine", icon: Gauge },
     { name: "Growees Producer", href: "/producer", icon: Users },
   ];
 

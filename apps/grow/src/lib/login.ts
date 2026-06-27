@@ -18,6 +18,8 @@ export interface LoginResult {
 
 type UserRow = {
   id: string;
+  email: string;
+  name: string;
   role: string;
   access: string | null;
   permissions: string | null;
@@ -29,6 +31,8 @@ async function issueSession(user: UserRow): Promise<string> {
   const access = parseAccess(user.access ?? user.permissions);
   const token = await signSession({
     uid: user.id,
+    email: user.email,
+    name: user.name,
     role,
     access,
     clientId: user.clientId ?? null,
