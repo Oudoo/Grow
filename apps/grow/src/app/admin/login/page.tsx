@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
-import { Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Lock, ArrowRight, ShieldCheck, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import { loginAction } from "./actions";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,12 +20,12 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const result = await loginAction(password);
+      const result = await loginAction(email, password);
       if (result.success) {
-        router.push("/admin");
+        router.push(result.landing || "/admin");
         return;
       }
-      setError(result.error || "Invalid security access code.");
+      setError(result.error || "Invalid email or password.");
     } catch {
       setError("Something went wrong. Please try again.");
     }
@@ -45,14 +46,35 @@ export default function LoginPage() {
             <ShieldCheck className="w-8 h-8 text-cyan" />
           </div>
           <h1 className="text-2xl font-heading font-bold text-platinum">Grow Core Access</h1>
-          <p className="text-slate text-sm mt-2">Enter staff access code to access the command center.</p>
+          <p className="text-slate text-sm mt-2">Sign in with your account to access the command center.</p>
         </div>
 
         <Card className="p-8 border-fg/10 bg-obsidian/80 backdrop-blur-xl">
           <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
             <div>
               <label className="block text-xs font-bold text-slate uppercase tracking-wider mb-2">
-                access code
+                email
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-slate/50" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  name="email"
+                  className="block w-full pl-10 pr-3 py-3 border border-fg/10 rounded-xl leading-5 bg-void text-platinum placeholder-slate/50 focus:outline-none focus:ring-1 focus:ring-cyan focus:border-cyan transition-colors sm:text-sm"
+                  placeholder="you@grow.agency"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate uppercase tracking-wider mb-2">
+                password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -62,10 +84,10 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  name="staff-clearance"
+                  autoComplete="current-password"
+                  name="password"
                   className="block w-full pl-10 pr-3 py-3 border border-fg/10 rounded-xl leading-5 bg-void text-platinum placeholder-slate/50 focus:outline-none focus:ring-1 focus:ring-cyan focus:border-cyan transition-colors sm:text-sm"
-                  placeholder="Enter code..."
+                  placeholder="Enter your password..."
                   required
                 />
               </div>
@@ -77,19 +99,10 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-bold text-void bg-cyan hover:bg-cyan/90 focus:outline-none transition-colors disabled:opacity-50"
             >
-              {loading ? "Authenticating..." : "Authorize Access"}
+              {loading ? "Authenticating..." : "Sign In"}
               {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
             </button>
           </form>
-
-          {/* Demo helper — one-click fill of the demo access code */}
-          <button
-            type="button"
-            onClick={() => setPassword("GrowDemo2026")}
-            className="mt-4 w-full text-center text-xs text-slate/70 hover:text-cyan transition-colors font-data"
-          >
-            Demo access code: <span className="text-cyan font-semibold">GrowDemo2026</span> — click to fill
-          </button>
         </Card>
       </motion.div>
     </div>

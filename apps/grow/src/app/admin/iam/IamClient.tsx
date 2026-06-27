@@ -6,16 +6,19 @@ import {
   updateAdminUserAction,
   toggleAdminUserActiveAction,
   deleteAdminUserAction,
-  seedSuperAdminAction,
 } from "./actions";
-import { Shield, UserPlus, Pencil, Trash2, PowerOff, Power, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { UserPlus, Pencil, Trash2, PowerOff, Power, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+
+type AccessMap = Record<string, "none" | "view" | "manage" | undefined>;
+type ModuleDef = { key: string; label: string };
 
 type UserRow = {
   id: string;
   email: string;
   name: string;
   role: string;
-  permissions: string[];
+  access: AccessMap;
+  clientId: string | null;
   isActive: boolean;
   createdAt: Date;
 };
@@ -23,32 +26,16 @@ type UserRow = {
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: "Super Admin",
   ADMIN: "Admin",
+  MEMBER: "Member",
   VIEWER: "Viewer",
+  CLIENT: "Client",
 };
 
-const PERM_LABELS: Record<string, string> = {
-  crm: "CRM",
-  finance: "Finance Hub",
-  products: "Content Management",
-  projects: "Project Management",
-  support: "Help Desk",
-  analytics: "Analytics",
-  iam: "IAM Portal",
-};
-
-export function IamClient({ users: initial, allPermissions }: { users: UserRow[]; allPermissions: string[] }) {
+export function IamClient({ users: initial, modules }: { users: UserRow[]; modules: ModuleDef[] }) {
   const [users, setUsers] = useState<UserRow[]>(initial);
   const [showCreate, setShowCreate] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [seeding, startSeed] = useTransition();
-
-  function handleSeedSuperAdmin() {
-    startSeed(async () => {
-      await seedSuperAdminAction();
-      window.location.reload();
-    });
-  }
 
   function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -85,22 +72,10 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
     });
   }
 
-  const superAdminExists = users.some((u) => u.email === "admin@grow.agency");
-
   return (
     <div className="space-y-8">
       {/* Quick actions bar */}
       <div className="flex flex-wrap gap-3">
-        {!superAdminExists && (
-          <button
-            onClick={handleSeedSuperAdmin}
-            disabled={seeding}
-            className="flex items-center gap-2 px-4 py-2 bg-amethyst/10 text-amethyst border border-amethyst/30 rounded-xl hover:bg-amethyst hover:text-void font-bold transition-colors disabled:opacity-50"
-          >
-            <Shield className="w-4 h-4" />
-            {seeding ? "Creating…" : "Create Super Admin (admin@grow.agency)"}
-          </button>
-        )}
         <button
           onClick={() => setShowCreate(!showCreate)}
           className="flex items-center gap-2 px-4 py-2 bg-cyan/10 text-cyan border border-cyan/20 rounded-xl hover:bg-cyan hover:text-void font-bold transition-colors"
@@ -115,10 +90,10 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
       {showCreate && (
         <div className="bg-obsidian border border-cyan/20 rounded-2xl p-6">
           <h2 className="text-xl font-bold text-platinum mb-6 flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-cyan" /> Create New Admin Account
+            <UserPlus className="w-5 h-5 text-cyan" /> Create New Account
           </h2>
           <form onSubmit={handleCreate} className="space-y-5">
-            <UserFormFields allPermissions={allPermissions} />
+            <UserFormFields modules={modules} />
             <div className="flex justify-end gap-3 pt-4 border-t border-fg/10">
               <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 text-slate hover:text-platinum">Cancel</button>
               <button type="submit" disabled={pending} className="px-6 py-2 bg-cyan text-void font-bold rounded-xl hover:bg-cyan/90 disabled:opacity-50 flex items-center gap-2">
@@ -132,7 +107,7 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
       {/* Users table */}
       {users.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-fg/10 rounded-2xl text-slate">
-          No admin accounts yet. Create one above or seed the Super Admin account.
+          No accounts yet. Create the first one above.
         </div>
       ) : (
         <div className="space-y-4">
@@ -147,7 +122,7 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
                     <Pencil className="w-4 h-4 text-cyan" /> Editing: {user.email}
                   </h3>
                   <form onSubmit={(e) => handleUpdate(user.id, e)} className="space-y-5">
-                    <UserFormFields allPermissions={allPermissions} user={user} />
+                    <UserFormFields modules={modules} user={user} />
                     <div className="flex justify-end gap-3 pt-4 border-t border-fg/10">
                       <button type="button" onClick={() => setEditingId(null)} className="px-4 py-2 text-slate hover:text-platinum">Cancel</button>
                       <button type="submit" disabled={pending} className="px-6 py-2 bg-cyan text-void font-bold rounded-xl hover:bg-cyan/90 disabled:opacity-50 flex items-center gap-2">
@@ -163,17 +138,24 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
                       <span className="font-bold text-platinum truncate">{user.name}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                         user.role === "SUPER_ADMIN" ? "bg-amethyst/20 text-amethyst" :
-                        user.role === "ADMIN" ? "bg-cyan/20 text-cyan" : "bg-slate/20 text-slate"
+                        user.role === "ADMIN" ? "bg-cyan/20 text-cyan" :
+                        user.role === "CLIENT" ? "bg-emerald-500/20 text-emerald-400" : "bg-slate/20 text-slate"
                       }`}>{ROLE_LABELS[user.role] ?? user.role}</span>
                       {!user.isActive && <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full font-bold">Inactive</span>}
                     </div>
                     <p className="text-sm text-slate truncate">{user.email}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {user.permissions.map((p) => (
-                        <span key={p} className="text-[10px] px-1.5 py-0.5 bg-fg/5 text-slate rounded">
-                          {PERM_LABELS[p] ?? p}
-                        </span>
-                      ))}
+                      {user.role === "SUPER_ADMIN" ? (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-amethyst/10 text-amethyst rounded">Full access (all modules)</span>
+                      ) : (
+                        modules
+                          .filter((m) => user.access[m.key] && user.access[m.key] !== "none")
+                          .map((m) => (
+                            <span key={m.key} className="text-[10px] px-1.5 py-0.5 bg-fg/5 text-slate rounded">
+                              {m.label}: <span className={user.access[m.key] === "manage" ? "text-cyan" : "text-slate"}>{user.access[m.key]}</span>
+                            </span>
+                          ))
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
@@ -207,7 +189,7 @@ export function IamClient({ users: initial, allPermissions }: { users: UserRow[]
   );
 }
 
-function UserFormFields({ allPermissions, user }: { allPermissions: string[]; user?: UserRow }) {
+function UserFormFields({ modules, user }: { modules: ModuleDef[]; user?: UserRow }) {
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -227,11 +209,17 @@ function UserFormFields({ allPermissions, user }: { allPermissions: string[]; us
         </div>
         <div>
           <label className="text-xs font-bold text-slate uppercase tracking-wider block mb-1">Role</label>
-          <select name="role" defaultValue={user?.role ?? "VIEWER"} className="w-full bg-void border border-fg/10 rounded-xl px-4 py-2 text-platinum focus:border-cyan outline-none">
-            <option value="SUPER_ADMIN">Super Admin</option>
+          <select name="role" defaultValue={user?.role ?? "MEMBER"} className="w-full bg-void border border-fg/10 rounded-xl px-4 py-2 text-platinum focus:border-cyan outline-none">
+            <option value="SUPER_ADMIN">Super Admin (full access)</option>
             <option value="ADMIN">Admin</option>
+            <option value="MEMBER">Member</option>
             <option value="VIEWER">Viewer</option>
+            <option value="CLIENT">Client (external, scoped)</option>
           </select>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-slate uppercase tracking-wider block mb-1">Client ID <span className="text-slate/50 normal-case">(Client role only — engine client this account sees)</span></label>
+          <input name="clientId" defaultValue={user?.clientId ?? ""} placeholder="e.g. acme-outdoor client id" className="w-full bg-void border border-fg/10 rounded-xl px-4 py-2 text-platinum focus:border-cyan outline-none font-data text-sm" />
         </div>
         {user && (
           <div>
@@ -244,19 +232,26 @@ function UserFormFields({ allPermissions, user }: { allPermissions: string[]; us
         )}
       </div>
       <div>
-        <label className="text-xs font-bold text-slate uppercase tracking-wider block mb-3">Section Permissions</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {allPermissions.map((p) => (
-            <label key={p} className="flex items-center gap-2 px-3 py-2 bg-void border border-fg/10 rounded-lg cursor-pointer hover:border-cyan/30 transition-colors">
-              <input
-                type="checkbox"
-                name={`perm_${p}`}
-                defaultChecked={user ? user.permissions.includes(p) : true}
-                className="accent-cyan"
-              />
-              <span className="text-sm text-slate capitalize">{PERM_LABELS[p] ?? p}</span>
-            </label>
-          ))}
+        <label className="text-xs font-bold text-slate uppercase tracking-wider block mb-3">Module Access Levels</label>
+        <p className="text-xs text-slate/60 mb-3">Super Admins always have full access regardless of these settings.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {modules.map((m) => {
+            const current = user?.access[m.key] ?? "none";
+            return (
+              <div key={m.key} className="flex items-center justify-between gap-3 px-3 py-2 bg-void border border-fg/10 rounded-lg">
+                <span className="text-sm text-slate">{m.label}</span>
+                <select
+                  name={`access_${m.key}`}
+                  defaultValue={current}
+                  className="bg-obsidian border border-fg/10 rounded-lg px-2 py-1 text-sm text-platinum focus:border-cyan outline-none"
+                >
+                  <option value="none">None</option>
+                  <option value="view">View</option>
+                  <option value="manage">Manage</option>
+                </select>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>

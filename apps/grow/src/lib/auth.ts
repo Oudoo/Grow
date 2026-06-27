@@ -1,38 +1,53 @@
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
+import type { AccessLevel, AccessMap, ModuleKey, UserRole } from './access';
+import { can } from './access';
+
+/**
+ * Edge-safe session + crypto layer for the unified Grow IAM.
+ *
+ * Every human is one `AdminUser`; their identity and per-module access are
+ * carried inside a signed (HMAC-SHA256) session cookie so middleware can gate
+ * routes WITHOUT a database hit (Prisma can't run on the Edge runtime). The
+ * DB-touching login lives in `./login` (server-only).
+ */
 
 const SESSION_COOKIE = 'grow_session_id';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 1 week
 
+export interface SessionPayload {
+  /** AdminUser id */
+  uid: string;
+  role: UserRole;
+  /** Per-module access levels */
+  access: AccessMap;
+  /** Engine client scope for CLIENT users, else null */
+  clientId: string | null;
+  exp: number;
+}
+
 /**
- * HMAC signing key for session tokens.
- * MUST be set via the AUTH_SECRET environment variable in production.
- * A static/known value would let anyone forge an admin session, so we never
- * ship a usable hardcoded secret.
+ * HMAC signing key for session tokens. MUST be set via AUTH_SECRET in
+ * production — a static value would let anyone forge a session.
  */
 function getSecret(): string {
   const secret = process.env.AUTH_SECRET;
   if (secret && secret.length >= 16) return secret;
-
   if (process.env.NODE_ENV === 'production') {
     console.warn(
       'SECURITY WARNING: AUTH_SECRET is missing or too short (<16 chars). ' +
-        'Set a strong, random AUTH_SECRET in the environment to secure admin sessions.'
+        'Set a strong, random AUTH_SECRET in the environment to secure sessions.'
     );
   }
-  // Dev-only fallback so local development works without setup.
   return secret || 'grow-dev-insecure-secret-change-me';
 }
 
 const encoder = new TextEncoder();
 
 /**
- * Resolve a SubtleCrypto implementation that works across runtimes:
- *  - Edge runtime (Next.js middleware) and Node 20+ expose global Web Crypto.
- *  - Older Node (e.g. 18 without --experimental-global-webcrypto, as on some
- *    shared hosts) does NOT, so we lazily fall back to node:crypto's webcrypto.
- * The fallback uses a computed specifier so bundlers never statically pull
- * node:crypto into the Edge bundle — that branch never runs on Edge.
+ * SubtleCrypto that works across runtimes (Edge + Node, including older Node
+ * without global webcrypto). The node:crypto fallback uses a computed
+ * specifier so bundlers never pull it into the Edge bundle.
  */
 let cachedSubtle: SubtleCrypto | null = null;
 async function getSubtle(): Promise<SubtleCrypto> {
@@ -72,7 +87,7 @@ function base64UrlToStr(s: string): string {
   return new TextDecoder().decode(base64UrlToBytes(s));
 }
 
-/** Constant-time string comparison to avoid leaking length/secret via timing. */
+/** Constant-time comparison to avoid leaking secrets via timing. */
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;
@@ -83,54 +98,45 @@ function timingSafeEqual(a: string, b: string): boolean {
 // ---- Signed session tokens (HMAC-SHA256 via Web Crypto) ----
 async function importHmacKey(secret: string): Promise<CryptoKey> {
   const subtle = await getSubtle();
-  return subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign', 'verify']
-  );
+  return subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
 
-async function signSession(expSeconds: number): Promise<string> {
-  const data = strToBase64Url(JSON.stringify({ exp: expSeconds }));
+/** Build a signed session token for an authenticated user. */
+export async function signSession(payload: Omit<SessionPayload, 'exp'>, ttlSeconds = SESSION_TTL_SECONDS): Promise<string> {
+  const full: SessionPayload = { ...payload, exp: Math.floor(Date.now() / 1000) + ttlSeconds };
+  const data = strToBase64Url(JSON.stringify(full));
   const key = await importHmacKey(getSecret());
   const sigBuf = await (await getSubtle()).sign('HMAC', key, encoder.encode(data));
   return `${data}.${bytesToBase64Url(new Uint8Array(sigBuf))}`;
 }
 
-async function verifySession(token: string | undefined): Promise<boolean> {
-  if (!token) return false;
+/** Verify a token's signature + expiry and return its payload, or null. */
+export async function verifySession(token: string | undefined): Promise<SessionPayload | null> {
+  if (!token) return null;
   const parts = token.split('.');
-  if (parts.length !== 2) return false;
+  if (parts.length !== 2) return null;
   const [data, sig] = parts;
 
   const key = await importHmacKey(getSecret());
   const expectedBuf = await (await getSubtle()).sign('HMAC', key, encoder.encode(data));
   const expected = bytesToBase64Url(new Uint8Array(expectedBuf));
-  if (!timingSafeEqual(sig, expected)) return false;
+  if (!timingSafeEqual(sig, expected)) return null;
 
   try {
-    const payload = JSON.parse(base64UrlToStr(data)) as { exp?: number };
-    if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return false;
-    return true;
+    const payload = JSON.parse(base64UrlToStr(data)) as SessionPayload;
+    if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    if (!payload.uid || !payload.role) return null;
+    return payload;
   } catch {
-    return false;
+    return null;
   }
 }
 
-// ---- Password verification (PBKDF2 via Web Crypto — edge-safe, no node:crypto) ----
+// ---- Password hashing (PBKDF2 via Web Crypto — edge-safe) ----
 async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   const subtle = await getSubtle();
-  const baseKey = await subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits']
-  );
+  const baseKey = await subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await subtle.deriveBits(
-    // Copy into a fresh ArrayBuffer-backed view to satisfy the strict BufferSource type.
     { name: 'PBKDF2', salt: new Uint8Array(salt), iterations, hash: 'SHA-256' },
     baseKey,
     256
@@ -138,52 +144,26 @@ async function pbkdf2(password: string, salt: Uint8Array, iterations: number): P
   return new Uint8Array(bits);
 }
 
-async function verifyPassword(password: string): Promise<boolean> {
-  if (!password) return false;
-
-  // Preferred: a PBKDF2 hash, format "pbkdf2$<iterations>$<saltB64url>$<hashB64url>".
-  // Tolerate common hosting-panel entry mistakes: surrounding quotes and stray
-  // whitespace/newlines that would otherwise silently break verification.
-  const rawHash = process.env.ADMIN_PASSWORD_HASH;
-  const hash = rawHash?.trim().replace(/^["']|["']$/g, '');
-  if (hash) {
-    const [scheme, iterStr, saltB64, hashB64] = hash.split('$');
-    const iterations = parseInt(iterStr ?? '', 10);
-    if (
-      scheme === 'pbkdf2' &&
-      saltB64 &&
-      hashB64 &&
-      Number.isFinite(iterations) &&
-      iterations >= 1
-    ) {
-      const actual = await pbkdf2(password, base64UrlToBytes(saltB64), iterations);
-      return timingSafeEqual(bytesToBase64Url(actual), hashB64);
-    }
-    // The hash is present but malformed — often because an env-var panel expanded
-    // the "$" separators or kept surrounding quotes. Don't hard-fail; fall through
-    // to the plaintext ADMIN_PASSWORD fallback so a configured backup still works.
-    console.warn(
-      'SECURITY WARNING: ADMIN_PASSWORD_HASH is set but malformed (check for ' +
-        'shell-expanded "$" or stray quotes). Falling back to ADMIN_PASSWORD.'
-    );
-  }
-
-  // Fallback: a plaintext password supplied only via the environment.
-  const plain = process.env.ADMIN_PASSWORD?.trim();
-  if (plain) return timingSafeEqual(password, plain);
-
-  console.warn(
-    'SECURITY WARNING: Neither ADMIN_PASSWORD_HASH nor ADMIN_PASSWORD is usable. Admin login is disabled.'
-  );
-  return false;
+/** Hash a plaintext password for storage: "pbkdf2$<iters>$<saltB64url>$<hashB64url>". */
+export async function hashPassword(plain: string, iterations = 210_000): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const hash = await pbkdf2(plain, salt, iterations);
+  return `pbkdf2$${iterations}$${bytesToBase64Url(salt)}$${bytesToBase64Url(hash)}`;
 }
 
-export async function login(password: string): Promise<boolean> {
-  if (!(await verifyPassword(password))) return false;
+/** Verify a plaintext password against a stored pbkdf2 hash string. */
+export async function verifyPasswordHash(plain: string, stored: string | null | undefined): Promise<boolean> {
+  if (!plain || !stored) return false;
+  const clean = stored.trim().replace(/^["']|["']$/g, '');
+  const [scheme, iterStr, saltB64, hashB64] = clean.split('$');
+  const iterations = parseInt(iterStr ?? '', 10);
+  if (scheme !== 'pbkdf2' || !saltB64 || !hashB64 || !Number.isFinite(iterations) || iterations < 1) return false;
+  const actual = await pbkdf2(plain, base64UrlToBytes(saltB64), iterations);
+  return timingSafeEqual(bytesToBase64Url(actual), hashB64);
+}
 
-  const exp = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
-  const token = await signSession(exp);
-
+// ---- Cookie helpers ----
+export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -192,26 +172,49 @@ export async function login(password: string): Promise<boolean> {
     path: '/',
     maxAge: SESSION_TTL_SECONDS,
   });
-  return true;
 }
 
-export async function logout() {
+export async function logout(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 }
 
-export async function isAuthenticated(): Promise<boolean> {
+// ---- Session readers ----
+/** Current session payload (server components / actions), or null. */
+export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   return verifySession(cookieStore.get(SESSION_COOKIE)?.value);
 }
 
-export async function isAuthenticatedMiddleware(request: NextRequest): Promise<boolean> {
+/** Alias that reads like an identity getter. */
+export const getCurrentUser = getSession;
+
+export async function isAuthenticated(): Promise<boolean> {
+  return (await getSession()) !== null;
+}
+
+/** Edge-safe: decode the session from a middleware request. */
+export async function getSessionFromRequest(request: NextRequest): Promise<SessionPayload | null> {
   return verifySession(request.cookies.get(SESSION_COOKIE)?.value);
 }
 
-/** Throws "Unauthorized" if the caller is not an authenticated admin. */
-export async function assertAuthenticated(): Promise<void> {
-  if (!(await isAuthenticated())) {
-    throw new Error('Unauthorized');
+export async function isAuthenticatedMiddleware(request: NextRequest): Promise<boolean> {
+  return (await getSessionFromRequest(request)) !== null;
+}
+
+// ---- Guards ----
+/** Throws "Unauthorized" if there is no valid session. */
+export async function assertAuthenticated(): Promise<SessionPayload> {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+  return session;
+}
+
+/** Throws unless the current user has at least `level` on `module`. */
+export async function assertAccess(module: ModuleKey, level: AccessLevel = 'view'): Promise<SessionPayload> {
+  const session = await assertAuthenticated();
+  if (!can(session.role, session.access, module, level)) {
+    throw new Error('Forbidden');
   }
+  return session;
 }

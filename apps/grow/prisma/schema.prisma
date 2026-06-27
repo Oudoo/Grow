@@ -132,8 +132,12 @@ model AdminUser {
   email        String   @unique
   passwordHash String
   name         String
-  role         String   @default("VIEWER") // SUPER_ADMIN, ADMIN, VIEWER
-  permissions  String?  @db.Text // JSON array: ["crm","finance","products","projects","support","analytics","iam"]
+  role         String   @default("VIEWER") // SUPER_ADMIN, ADMIN, MEMBER, VIEWER, CLIENT
+  permissions  String?  @db.Text // LEGACY on/off JSON array — superseded by `access`
+  // Per-module access levels: {"crm":"manage","engine":"view",…} with none|view|manage
+  access       String?  @db.Text
+  // For CLIENT users: the engine client (clients.id) this account is scoped to
+  clientId     String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

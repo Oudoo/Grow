@@ -1,15 +1,15 @@
 import { prisma } from "@/lib/db";
 import { Shield } from "lucide-react";
 import { IamClient } from "./IamClient";
+import { MODULES, parseAccess, type AccessMap } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
-
-const ALL_PERMISSIONS = ["crm", "finance", "products", "projects", "support", "analytics", "iam"] as const;
 
 export default async function IamPage() {
   let users: {
     id: string; email: string; name: string; role: string;
-    permissions: string | null; isActive: boolean; createdAt: Date;
+    permissions: string | null; access: string | null; clientId: string | null;
+    isActive: boolean; createdAt: Date;
   }[] = [];
 
   try {
@@ -19,9 +19,17 @@ export default async function IamPage() {
   }
 
   const rows = users.map((u) => ({
-    ...u,
-    permissions: u.permissions ? (JSON.parse(u.permissions) as string[]) : [],
+    id: u.id,
+    email: u.email,
+    name: u.name,
+    role: u.role,
+    access: parseAccess(u.access ?? u.permissions) as AccessMap,
+    clientId: u.clientId,
+    isActive: u.isActive,
+    createdAt: u.createdAt,
   }));
+
+  const modules = MODULES.map((m) => ({ key: m.key as string, label: m.label }));
 
   return (
     <div className="p-10 max-w-7xl mx-auto">
@@ -31,11 +39,11 @@ export default async function IamPage() {
             <Shield className="w-8 h-8 text-amethyst" />
             IAM Portal
           </h1>
-          <p className="text-slate">Manage admin accounts and their access permissions.</p>
+          <p className="text-slate">One account per person — staff and clients. Set each user&apos;s access per module.</p>
         </div>
       </div>
 
-      <IamClient users={rows} allPermissions={ALL_PERMISSIONS as unknown as string[]} />
+      <IamClient users={rows} modules={modules} />
     </div>
   );
 }
