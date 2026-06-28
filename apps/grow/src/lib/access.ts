@@ -137,6 +137,28 @@ export function defaultLanding(role: UserRole, map: AccessMap | null | undefined
   return "/portal";
 }
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www", "app", "api", "mail", "admin", "portal", "ftp", "cpanel", "webmail",
+  "ns1", "ns2", "static", "cdn", "blog", "smtp", "imap", "dev", "staging",
+]);
+
+const ROOT_DOMAIN = "growcdx.com";
+
+/**
+ * Extract a client's white-label subdomain label from a Host header, or null.
+ * `acme.growcdx.com` → "acme"; the apex, www, reserved labels, multi-level
+ * hosts and localhost all → null. Pure/edge-safe (no DB).
+ */
+export function clientSubdomain(host: string | null | undefined): string | null {
+  if (!host) return null;
+  const h = host.split(":")[0].toLowerCase().trim();
+  if (!h.endsWith("." + ROOT_DOMAIN)) return null;
+  const label = h.slice(0, -(ROOT_DOMAIN.length + 1));
+  if (!label || label.includes(".")) return null; // only single-label subdomains
+  if (RESERVED_SUBDOMAINS.has(label)) return null;
+  return label;
+}
+
 /** Which module a request path belongs to (longest-prefix match), or null if public. */
 export function moduleForPath(pathname: string): ModuleKey | null {
   let match: ModuleDef | null = null;

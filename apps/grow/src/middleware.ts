@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
-import { can, defaultLanding, moduleForPath, type ModuleKey } from '@/lib/access';
+import { can, clientSubdomain, defaultLanding, moduleForPath, type ModuleKey } from '@/lib/access';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginRoute = pathname === '/admin/login';
 
-  // Protected surfaces: the Admin OS, the engine + producer modules, and their
-  // APIs. The marketing site (/, /services, /about, …) stays public.
+  // White-label: if this is a client subdomain (<slug>.growcdx.com), forward
+  // the slug to server components (for branding) and make the subdomain root
+  // open the client portal instead of the marketing site.
+  const subdomain = clientSubdomain(request.headers.get('host'));
+  const fwdHeaders = new Headers(request.headers);
+  if (subdomain) fwdHeaders.set('x-grow-subdomain', subdomain);
+  const pass = () => NextResponse.next({ request: { headers: fwdHeaders } });
+
+  if (subdomain && pathname === '/') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/portal';
+    return NextResponse.rewrite(url, { request: { headers: fwdHeaders } });
+  }
+
+  // Protected surfaces: the Admin OS, the engine + producer modules, the client
+  // portal, and their APIs. The marketing apex (/, /services, …) stays public.
   const isProtected =
     !isLoginRoute &&
     (pathname.startsWith('/admin') ||
@@ -26,7 +40,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(defaultLanding(session.role, session.access), request.url));
   }
 
-  if (!isProtected) return NextResponse.next();
+  if (!isProtected) return pass();
 
   // Not authenticated → API 401, pages redirect to login.
   if (!session) {
@@ -49,11 +63,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(target, request.url));
   }
 
-  return NextResponse.next();
+  return pass();
 }
 
 export const config = {
   matcher: [
+    '/',
     '/admin/:path*',
     '/producer/:path*',
     '/engine/:path*',

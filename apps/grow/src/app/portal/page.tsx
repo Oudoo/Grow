@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, clients } from "@growengine/db";
 import { getSession } from "@/lib/auth";
 import { entitledProducts } from "@/lib/access";
-import { getClientAccess } from "@/lib/entitlements";
+import { getClientAccess, getClientAccessBySubdomain } from "@/lib/entitlements";
 import { ArrowRight, LayoutGrid } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -21,11 +22,20 @@ export default async function PortalPage() {
 
   const products = entitledProducts(session.role, session.access);
 
-  // Resolve the client's name + white-label branding for a client account.
+  // White-label branding: a client subdomain (<slug>.growcdx.com) is
+  // authoritative; otherwise fall back to the signed-in client's branding.
   let clientName: string | null = null;
   let logoUrl: string | null = null;
   let primary: string | null = null;
-  if (session.clientId) {
+
+  const subdomain = (await headers()).get("x-grow-subdomain");
+  const bySub = subdomain ? await getClientAccessBySubdomain(subdomain) : null;
+
+  if (bySub) {
+    clientName = bySub.branding.brandName;
+    logoUrl = bySub.branding.logoUrl;
+    primary = bySub.branding.primaryColor;
+  } else if (session.clientId) {
     const [row] = await db
       .select({ name: clients.name })
       .from(clients)
