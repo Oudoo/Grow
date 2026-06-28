@@ -28,6 +28,11 @@ if (process.env.DATABASE_URL) {
     console.warn("[start] Schema sync did not complete cleanly. Starting anyway.");
   }
 
+  // Ensure the Grow Engine's MySQL schema (Drizzle-managed, not covered by
+  // prisma db push). Idempotent + failure-tolerant.
+  console.log("[start] Ensuring Grow Engine schema…");
+  run("node", ["scripts/migrate-engine.mjs"]);
+
   // Ensure the founding team's IAM super-admin accounts exist (idempotent).
   console.log("[start] Ensuring staff IAM accounts…");
   run("node", ["scripts/seed-staff.mjs"]);
