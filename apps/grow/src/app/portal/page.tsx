@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, clients } from "@growengine/db";
 import { getSession } from "@/lib/auth";
 import { entitledProducts } from "@/lib/access";
+import { getClientAccess } from "@/lib/entitlements";
 import { ArrowRight, LayoutGrid } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +21,10 @@ export default async function PortalPage() {
 
   const products = entitledProducts(session.role, session.access);
 
-  // Resolve the client (for branding + greeting) when this is a client account.
+  // Resolve the client's name + white-label branding for a client account.
   let clientName: string | null = null;
+  let logoUrl: string | null = null;
+  let primary: string | null = null;
   if (session.clientId) {
     const [row] = await db
       .select({ name: clients.name })
@@ -28,14 +32,25 @@ export default async function PortalPage() {
       .where(eq(clients.id, session.clientId))
       .limit(1);
     clientName = row?.name ?? null;
+    const ca = await getClientAccess(session.clientId);
+    if (ca) {
+      clientName = ca.branding.brandName || clientName;
+      logoUrl = ca.branding.logoUrl;
+      primary = ca.branding.primaryColor;
+    }
   }
+  const accent = primary || undefined;
 
   return (
     <div className="min-h-screen bg-void text-platinum">
       <header className="border-b border-fg/5">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <LayoutGrid className="w-6 h-6 text-cyan" />
+            {logoUrl ? (
+              <Image src={logoUrl} alt="" width={36} height={36} className="h-9 w-auto" unoptimized />
+            ) : (
+              <LayoutGrid className="w-6 h-6" style={accent ? { color: accent } : { color: "var(--color-cyan)" }} />
+            )}
             <div>
               <div className="font-heading font-bold text-lg leading-tight">{clientName ?? "GROW"}</div>
               <div className="text-xs text-slate">Your workspace</div>
@@ -58,11 +73,12 @@ export default async function PortalPage() {
             <Link
               key={p.key}
               href={p.path}
-              className="group rounded-2xl border border-fg/10 bg-obsidian p-6 hover:border-cyan/40 transition-colors"
+              className="group rounded-2xl border border-fg/10 bg-obsidian p-6 transition-colors hover:border-cyan/40"
+              style={accent ? { borderColor: undefined } : undefined}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="font-heading font-bold text-lg text-platinum">{p.label}</span>
-                <ArrowRight className="w-5 h-5 text-slate group-hover:text-cyan group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-5 h-5 text-slate group-hover:translate-x-1 transition-all" style={accent ? { color: accent } : undefined} />
               </div>
               <p className="text-sm text-slate leading-relaxed">{p.description}</p>
             </Link>

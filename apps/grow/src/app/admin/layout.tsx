@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen } from "lucide-react";
+import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2 } from "lucide-react";
 import { logoutAction } from "./actions";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -30,6 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Content Management", href: "/admin/products", icon: Package },
     { name: "Project Management", href: "/admin/projects", icon: Briefcase },
     { name: "IAM Portal", href: "/admin/iam", icon: Shield },
+    { name: "Client Access", href: "/admin/clients", icon: Building2 },
     { name: "Branding", href: "/admin/branding", icon: Palette },
     { name: "Grow Playbook", href: "/admin/playbook", icon: BookOpen },
     { name: "White-Label", href: "/admin/whitelabel", icon: Paintbrush },

@@ -143,6 +143,23 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 }
 
+// Per-client tool entitlements + white-label branding. Keyed by the engine
+// client id (no cross-ORM FK). Admin-granted: flipping a tool on here grants
+// it to ALL of that client's CLIENT users (inherited at login). Branding +
+// subdomain drive the white-labeled client portal.
+model ClientAccess {
+  clientId     String   @id
+  tools        String?  @db.Text // JSON array of entitled product keys, e.g. ["engine","chatbot"]
+  brandName    String?
+  logoUrl      String?  @db.Text
+  primaryColor String?
+  accentColor  String?
+  subdomain    String?  @unique // <subdomain>.growcdx.com
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 // White-label / Tenant config
 model TenantConfig {
   id             String   @id @default("default")

@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "./db";
 import { signSession, setSessionCookie, verifyPasswordHash, hashPassword } from "./auth";
 import { defaultLanding, parseAccess, type UserRole } from "./access";
+import { applyClientTools, getClientAccess } from "./entitlements";
 
 /**
  * Server-only login (touches Prisma — never imported by Edge middleware).
@@ -28,7 +29,12 @@ type UserRow = {
 
 async function issueSession(user: UserRow): Promise<string> {
   const role = (user.role as UserRole) ?? "VIEWER";
-  const access = parseAccess(user.access ?? user.permissions);
+  let access = parseAccess(user.access ?? user.permissions);
+  // CLIENT accounts inherit the tools their client is entitled to (admin-granted).
+  if (user.clientId) {
+    const ca = await getClientAccess(user.clientId);
+    if (ca?.isActive) access = applyClientTools(access, ca.tools);
+  }
   const token = await signSession({
     uid: user.id,
     email: user.email,
