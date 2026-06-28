@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
     (pathname.startsWith('/admin') ||
       pathname.startsWith('/producer') ||
       pathname.startsWith('/engine') ||
+      pathname.startsWith('/portal') ||
       pathname.startsWith('/api/producer') ||
       pathname.startsWith('/api/engine'));
 
@@ -56,6 +57,7 @@ export const config = {
     '/admin/:path*',
     '/producer/:path*',
     '/engine/:path*',
+    '/portal/:path*',
     '/api/producer/:path*',
     '/api/engine/:path*',
   ],

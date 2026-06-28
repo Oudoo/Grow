@@ -25,7 +25,8 @@ export type ModuleKey =
   | "branding"
   | "playbook"
   | "producer"
-  | "engine";
+  | "engine"
+  | "chatbot";
 
 export type AccessMap = Partial<Record<ModuleKey, AccessLevel>>;
 
@@ -54,6 +55,29 @@ export const MODULES: ModuleDef[] = [
 ];
 
 export const MODULE_KEYS = MODULES.map((m) => m.key);
+
+/**
+ * Launchable products (standalone tools a client can be entitled to), as shown
+ * on the client portal dashboard. Distinct from internal admin sub-modules
+ * (crm/finance/…). A user sees a product card only if they have ≥view on it.
+ */
+export interface ProductDef {
+  key: ModuleKey;
+  label: string;
+  path: string;
+  description: string;
+}
+
+export const PRODUCTS: ProductDef[] = [
+  { key: "engine", label: "Grow Engine", path: "/engine", description: "Live KPIs, intelligence, approvals, reports and your agency memory." },
+  { key: "producer", label: "Growees Producer", path: "/producer", description: "AI-assisted recruitment — vacancies, candidates and scorecards." },
+  { key: "chatbot", label: "Grow Chatbot", path: "/chatbot", description: "Build and run bilingual AI chat assistants for your channels." },
+];
+
+/** Products this user may open (≥view), in canonical order. */
+export function entitledProducts(role: UserRole, map: AccessMap | null | undefined): ProductDef[] {
+  return PRODUCTS.filter((p) => can(role, map, p.key, "view"));
+}
 
 const LEVEL_RANK: Record<AccessLevel, number> = { none: 0, view: 1, manage: 2 };
 
@@ -105,11 +129,12 @@ export function parseAccess(raw: string | null | undefined): AccessMap {
 
 /** First module (by canonical order) the user may open — used for post-login landing. */
 export function defaultLanding(role: UserRole, map: AccessMap | null | undefined): string {
-  if (role === "CLIENT") return "/engine";
+  // Clients land on their tool launcher; staff land on their first admin module.
+  if (role === "CLIENT") return "/portal";
   for (const m of MODULES) {
     if (can(role, map, m.key, "view")) return m.path;
   }
-  return "/admin/login";
+  return "/portal";
 }
 
 /** Which module a request path belongs to (longest-prefix match), or null if public. */
