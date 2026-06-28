@@ -23,6 +23,7 @@ export type ModuleKey =
   | "analytics"
   | "iam"
   | "branding"
+  | "playbook"
   | "producer"
   | "engine";
 
@@ -47,6 +48,7 @@ export const MODULES: ModuleDef[] = [
   { key: "projects", label: "Project Management", path: "/admin/projects" },
   { key: "iam", label: "IAM Portal", path: "/admin/iam" },
   { key: "branding", label: "Branding", path: "/admin/branding" },
+  { key: "playbook", label: "Grow Playbook", path: "/admin/playbook" },
   { key: "engine", label: "Grow Engine", path: "/engine" },
   { key: "producer", label: "Growees Producer", path: "/producer" },
 ];

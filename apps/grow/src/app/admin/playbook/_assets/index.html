@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grow Ecosystem — Executive Induction Playbooks</title>
+    <meta name="description" content="Interactive meeting playbooks for Grow Ecosystem client inductions. Internal PM tool for DMAIC intelligence extraction.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="app-shell">
+        <!-- ═══ SIDEBAR ═══ -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-logo">
+                    <div class="brand-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div>
+                        <div class="brand-title">GROW</div>
+                        <div class="brand-subtitle">Ecosystem Playbooks</div>
+                    </div>
+                </div>
+                <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/></svg>
+                </button>
+            </div>
+
+            <div class="nav-section-label">Client Accounts</div>
+            <div class="nav-tabs">
+                <button class="nav-tab" id="tab-nour" onclick="switchTab('nour')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Nour Clinic Elite
+                </button>
+                <button class="nav-tab" id="tab-heka" onclick="switchTab('heka')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Heka Cosmetics
+                </button>
+                <button class="nav-tab" id="tab-hekap" onclick="switchTab('hekap')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Heka Pharmacy
+                </button>
+                <button class="nav-tab" id="tab-base" onclick="switchTab('base')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Base Training Club
+                </button>
+                <button class="nav-tab" id="tab-roky" onclick="switchTab('roky')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                    its just roky
+                </button>
+                <button class="nav-tab" id="tab-dental180" onclick="switchTab('dental180')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+                    180 Dental & Cosmetics
+                </button>
+            </div>
+
+            <div style="margin-top:var(--space-xl)">
+                <div class="nav-section-label">Intelligence</div>
+                <div class="nav-tabs">
+                    <button class="nav-tab" id="tab-dashboard" onclick="switchTab('dashboard')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        Consolidated
+                        <span class="nav-tab-badge">ALL</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    INTERNAL USE ONLY
+                </div>
+            </div>
+        </nav>
+
+        <!-- ═══ MAIN CONTENT ═══ -->
+        <main class="main-content">
+            <div class="main-content-inner">
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: NOUR CLINIC ELITE                -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-nour">
+
+                    <!-- Header -->
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: Prof. Ahmed Adel Nour-Eldin (Nour Clinic Elite)</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-nour" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    60 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Timer -->
+                    <div class="meeting-timer">
+                        <div>
+                            <div id="timer-display-nour" class="timer-display">60:00</div>
+                        </div>
+                        <div class="timer-info">
+                            <div id="timer-phase-nour" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-nour" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('nour')" title="Start">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            </button>
+                            <button class="timer-btn" onclick="pauseTimer('nour')" title="Pause">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            </button>
+                            <button class="timer-btn" onclick="resetTimer('nour')" title="Reset">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Readiness Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="nour-1" id="nour-check-1"><label for="nour-check-1">Printed Predictive Forecast document</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="nour-2" id="nour-check-2"><label for="nour-check-2">Reviewed clinic's digital footprint & Google reviews</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="nour-3" id="nour-check-3"><label for="nour-check-3">Prepared Green Lab integration talking points</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="nour-4" id="nour-check-4"><label for="nour-check-4">Confirmed Dr. Marwan's attendance status</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="nour-5" id="nour-check-5"><label for="nour-check-5">CRM patient data pulled for benchmarking</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CAC"</span><span class="matrix-do">✅ Say "Cost to acquire a high-ticket patient"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "LTV"</span><span class="matrix-do">✅ Say "Patient retention and lifetime care"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Lead Gen"</span><span class="matrix-do">✅ Say "Connecting patients with expertise"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Friction"</span><span class="matrix-do">✅ Say "Bottlenecks in the waiting room"</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:10 | Legacy & Clinical Vision</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Put away your laptop. Look him in the eye. Acknowledge his 30 years of history.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"Professor, we have reviewed the clinic's digital footprint. Your 30-year clinical reputation and the integration of the Green Lab are unmatched. As you scale this level of elite care into the new branches in Sheikh Zayed and the 5th Settlement, ensuring the patient booking experience matches your medical prestige is critical. Walk me through the exact journey right now—what happens from the moment a patient reaches out for a consultation to the moment they sit in your waiting room?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Current Process Flow & Primary Bottleneck</label>
+                                        <textarea class="capture-input" data-field="nour_p1" rows="3" placeholder="Type the Professor's answer here..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:10 – 0:25 | Patient Experience & Capacity</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Slide the printed Predictive Forecast across the table. Let him correct your numbers.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"Professor, to make sure we build a system that can actually handle your capacity, we used a standard baseline of 15 major surgeries a month. We estimate that not bringing those specific patients back for Green Lab treatments is leaving a lot of money on the table. But before we get into the math—does 15 surgeries a month sound close to reality, or are we underestimating your team?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Real Surgical Volume & Pricing Corrections</label>
+                                        <textarea class="capture-input" data-field="nour_p2" rows="3" placeholder="e.g., He said they actually do 20 surgeries, average price is EGP 90k..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:25 – 0:40 | The Lifetime Care Pathway</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">The "Succession & Expansion" Hook. Bring Dr. Marwan into the conversation if present.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"As you expand the 'Elite' branches into Sheikh Zayed and the 5th Settlement, we can't rely just on your personal reputation anymore. We need a system that fills the clinic for the rest of the doctors. What specific procedure right now has the highest patient demand, but causes the most headaches for your administrative staff?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Highest Demand / Highest Friction Service</label>
+                                        <textarea class="capture-input" data-field="nour_p3" rows="3" placeholder="Type the procedure name here..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:40 – 0:50 | Ecosystem Architecture</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Handling the Vezeeta/Booking App Objection. Remind him it commoditizes his legacy.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script (If they mention Vezeeta)</div>
+                                        <p class="script-text">"Professor, for a clinic with your level of prestige, the patient experience needs to feel elite from the very first click online all the way to your waiting room. Relying on standard external booking directories can dilute that premium feel and leave you without full ownership of your patient data. How is your front desk currently capturing digital bookings, and do you feel you have 100% control over that patient journey?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Current Tech Stack & Stance on Aggregators</label>
+                                        <textarea class="capture-input" data-field="nour_p4" rows="3" placeholder="How do they currently manage patient data?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. 00:50 – 1:00 | Immediate Operational Enhancements</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Close the meeting by establishing authority and defining the "14-Day Quick Win".</p>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Agreed Next Steps / Final Thoughts</label>
+                                        <textarea class="capture-input" data-field="nour_p5" rows="3" placeholder="Any final commitments or constraints mentioned..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('nour')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('nour')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('nour')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-nour" class="save-indicator"></div>
+                </div>
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: HEKA PHARMACY                    -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-heka">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: Heka Cosmetics (Heka Wellness Hub)</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-heka" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    60 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="meeting-timer">
+                        <div><div id="timer-display-heka" class="timer-display">60:00</div></div>
+                        <div class="timer-info">
+                            <div id="timer-phase-heka" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-heka" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('heka')" title="Start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                            <button class="timer-btn" onclick="pauseTimer('heka')" title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                            <button class="timer-btn" onclick="resetTimer('heka')" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="heka-1" id="heka-check-1"><label for="heka-check-1">Printed Predictive Forecast document</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="heka-2" id="heka-check-2"><label for="heka-check-2">Reviewed Source Beauty marketplace presence</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="heka-3" id="heka-check-3"><label for="heka-check-3">Analyzed Shopify/website analytics if available</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="heka-4" id="heka-check-4"><label for="heka-check-4">Researched hero SKU product line</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="heka-5" id="heka-check-5"><label for="heka-check-5">Prepared D2C vs B2B benchmark data</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Internal Banner -->
+                    <div class="internal-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <div>
+                            <strong>Internal Use Only</strong>
+                            Do not show this screen to the client. This tool helps navigate the conversation and covertly extract DMAIC data regarding inventory, SKUs, and D2C splits without using a form.
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Marketing ROI"</span><span class="matrix-do">✅ Say "Margin Protection and Ecosystem Control"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Lead Gen / Traffic"</span><span class="matrix-do">✅ Say "Connecting customers with your clinical formulations"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Lifetime Value (LTV)"</span><span class="matrix-do">✅ Say "Routine compliance and serum replenishment"</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:10 | Brand & Ecosystem Vision</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Heka positions itself as medically-formulated clean beauty. Speak to the science and the ecosystem, not just e-commerce widgets. Acknowledge their formulation expertise.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"Your formulations are clinically driven — that's rare in this market. But right now, platforms like Source Beauty are great for volume yet they own the customer data and eat roughly 35-40% of the margin. We want to help you own the ecosystem. Tell me about your current vision for the brand in the next 12 months."</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Brand Vision & Growth Direction</label>
+                                        <textarea class="capture-input" data-field="heka_p1" rows="3" placeholder="What is their 12-month brand vision?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:10 – 0:25 | Inventory & Operations</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Slide the Predictive Forecast Document across the table. Let them naturally correct your assumptions about volume and operations.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"As your formulations gain traction on TikTok or Instagram, sudden viral spikes can cause logistical nightmares. What happens to your backend when a hero SKU suddenly sells out? Are your website and retail partners syncing inventory automatically, or is your team managing this across spreadsheets?"</p>
+                                    </div>
+                                    <div class="goal-box">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                                        <span class="goal-text">Goal: Identify their ERP/Tech stack (Zoho, Shopify native, Odoo) to structure our Business Systems SOW.</span>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Current Tech Stack / ERP</label>
+                                        <textarea class="capture-input" data-field="heka_p2" rows="3" placeholder="e.g., Just using Shopify, inventory on Google Sheets"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:25 – 0:40 | Customer Retention & Replenishment</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Use the biological skin cycle angle. Frame retention as "routine compliance" rather than marketing automation.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"Because your products are based on biological skin cycles, a customer needs to replenish their serum every 45 to 60 days to see real holistic results. Right now, when someone buys a serum from your site, what automated system ensures they reorder on day 45 before they run out?"</p>
+                                    </div>
+                                    <div class="goal-box">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                                        <span class="goal-text">Goal: Expose the lack of an automated retention sequence. This tees up the 14-Day Quick Win (installing automated email/SMS replenishment flows).</span>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Highest Volume SKU & Highest Margin SKU</label>
+                                        <textarea class="capture-input" data-field="heka_p3" rows="3" placeholder="e.g., Vitamin C Serum is highest vol, Night Cream is highest margin"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:40 – 0:50 | D2C vs B2B Strategy</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">The Aggregator Trap — use deliberately wrong numbers so they correct you and reveal their real financial split.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"We ran a benchmark forecast based on premium Egyptian skincare brands. Currently, platforms like Source Beauty are great for volume, but they own the customer data and eat roughly 35-40% of the margin. Are you currently sitting at roughly a 75% B2B and 25% D2C split, or have you shifted more towards your own website already?"</p>
+                                    </div>
+                                    <div class="goal-box">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                                        <span class="goal-text">Goal: They will naturally correct your percentages, giving you their exact D2C vs. Retail volume split.</span>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Actual D2C vs. B2B Split</label>
+                                        <textarea class="capture-input" data-field="heka_p4" rows="3" placeholder="e.g., Actually 60% Source Beauty / 40% Website"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. 00:50 – 1:00 | Quick Wins & Next Steps</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Close with the 14-Day Quick Win commitment. Define the first automated flow to install.</p>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Primary Friction Point</label>
+                                        <textarea class="capture-input" data-field="heka_p5a" rows="3" placeholder="e.g., Stockouts during viral moments, DMs overwhelming staff"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Agreed Next Steps / Final Commitments</label>
+                                        <textarea class="capture-input" data-field="heka_p5b" rows="3" placeholder="Any final commitments, deadlines, or constraints..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('heka')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('heka')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('heka')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-heka" class="save-indicator"></div>
+                </div>
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: HEKA PHARMACY                    -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-hekap">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: Heka Pharmacy (Heka Wellness Hub)</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-hekap" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    60 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="meeting-timer">
+                        <div><div id="timer-display-hekap" class="timer-display">60:00</div></div>
+                        <div class="timer-info">
+                            <div id="timer-phase-hekap" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-hekap" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('hekap')" title="Start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                            <button class="timer-btn" onclick="pauseTimer('hekap')" title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                            <button class="timer-btn" onclick="resetTimer('hekap')" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="hekap-1" id="hekap-check-1"><label for="hekap-check-1">Reviewed pharmacy's product mix (OTC, skincare, supplements, prescriptions)</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="hekap-2" id="hekap-check-2"><label for="hekap-check-2">Researched local competitor landscape and nearby pharmacy chains</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="hekap-3" id="hekap-check-3"><label for="hekap-check-3">Checked Google My Business presence, ratings, and review volume</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="hekap-4" id="hekap-check-4"><label for="hekap-check-4">Mapped their social media activity and content quality</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="hekap-5" id="hekap-check-5"><label for="hekap-check-5">Prepared CRM/ERP integration scenarios and loyalty program benchmarks</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Internal Banner -->
+                    <div class="internal-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <div>
+                            <strong>Internal Use Only</strong>
+                            An induction meeting with a pharmacy client is the perfect opportunity to dig past surface-level marketing and uncover the operational realities that drive their revenue. The goal is to understand their business from the inside out.
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CAC" or "Lead Gen"</span><span class="matrix-do">✅ Say "Cost to bring in a new regular patient"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "LTV"</span><span class="matrix-do">✅ Say "Patient lifetime value and chronic refill retention"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CRM / ERP"</span><span class="matrix-do">✅ Say "Patient management and prescription tracking system"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Marketing ROI"</span><span class="matrix-do">✅ Say "Measurable impact on foot traffic and prescription volume"</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:12 | Core Business Objectives &amp; Revenue Drivers</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Anchor the conversation on revenue reality, not aspirations. You need to understand where money is actually being made and what is being left on the table before proposing anything.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"What is your primary growth objective for the next 6 to 12 months — are you looking to increase overall foot traffic, boost high-margin OTC sales, or grow your prescription volume?"</p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"Which products or services are currently your most profitable, and which are underperforming?" <em>(e.g., skincare, supplements, chronic medication, or in-house consultations)</em></p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"What is the lifetime value of a typical patient here, and how are you currently working to increase it?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Primary Growth Objective (6–12 Months)</label>
+                                        <textarea class="capture-input" data-field="hekap_p1a" rows="2" placeholder="Foot traffic / OTC sales / prescription volume — which is the #1 priority?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Most Profitable vs. Underperforming Products</label>
+                                        <textarea class="capture-input" data-field="hekap_p1b" rows="2" placeholder="e.g., Skincare = high margin, generic OTC = high vol, consultations = underperforming"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Estimated Patient Lifetime Value &amp; Retention Approach</label>
+                                        <textarea class="capture-input" data-field="hekap_p1c" rows="2" placeholder="What is their current LTV estimate? Any active retention efforts?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:12 – 0:24 | Target Audience &amp; Patient Experience</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Build a precise picture of who walks through the door, who they are failing to attract, and where the experience breaks down. This feeds the targeting and positioning strategy.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"Who makes up the core of your current customer base?" <em>(e.g., elderly patients needing chronic refills, young professionals buying vitamins/skincare, neighborhood walk-ins)</em></p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"Are there specific patient segments you want to attract but are currently missing?"</p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"What are the most common complaints or pain points your patients express?" <em>(e.g., wait times, medication unavailability, lack of delivery options)</em></p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Current Core Customer Base Profile</label>
+                                        <textarea class="capture-input" data-field="hekap_p2a" rows="2" placeholder="e.g., Elderly chronic refill patients + young professionals in the area"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Missing / Target Segments</label>
+                                        <textarea class="capture-input" data-field="hekap_p2b" rows="2" placeholder="Who are they trying to reach but failing to convert?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Top Patient Pain Points</label>
+                                        <textarea class="capture-input" data-field="hekap_p2c" rows="2" placeholder="Wait times? Stock gaps? No delivery? Poor online presence?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:24 – 0:36 | Digital Infrastructure &amp; Retention Operations</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Understand the current state of their backend systems and retention mechanics. This is vital for proposing data-driven marketing, loyalty programs, and automated patient engagement.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"How are you currently capturing and managing patient data?" <em>(Understanding if they have a CRM or integrated ERP system is vital for proposing data-driven marketing or loyalty programs)</em></p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"What does your current process look like for prescription refills and deliveries?" <em>(Are they leveraging WhatsApp Business automation, a dedicated app, or manual phone calls?)</em></p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"Do you currently run any patient loyalty or rewards programs, and if so, how is the data tracked?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Patient Data Management &amp; CRM / ERP Stack</label>
+                                        <textarea class="capture-input" data-field="hekap_p3a" rows="2" placeholder="e.g., No CRM, manual ledger / WhatsApp lists / basic POS system"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Refill &amp; Delivery Process</label>
+                                        <textarea class="capture-input" data-field="hekap_p3b" rows="2" placeholder="e.g., Manual phone calls, WhatsApp group, no automated reminders"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Loyalty / Rewards Program Status</label>
+                                        <textarea class="capture-input" data-field="hekap_p3c" rows="2" placeholder="Does one exist? How is it tracked — app, stamp card, spreadsheet?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:36 – 0:48 | Brand Positioning &amp; Competitive Landscape</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Uncover their unique selling proposition and the gaps in their current marketing and digital presence. This informs both the messaging strategy and where to allocate effort first.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"Why do your best patients choose you over the larger pharmacy chains or the competitor down the street?" <em>(This uncovers their unique selling proposition)</em></p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"What previous marketing efforts have you tried, and what was the ROI or general result?"</p>
+                                    </div>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"How do you currently handle your digital presence and local SEO?" <em>(e.g., Google My Business reviews, social media engagement)</em></p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Core USP — Why Patients Choose Them</label>
+                                        <textarea class="capture-input" data-field="hekap_p4a" rows="2" placeholder="What differentiates them from chains and local competitors?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Previous Marketing Efforts &amp; Outcomes</label>
+                                        <textarea class="capture-input" data-field="hekap_p4b" rows="2" placeholder="e.g., Tried Meta ads with no tracking, ran promotions through WhatsApp"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Digital Presence &amp; Local SEO Status</label>
+                                        <textarea class="capture-input" data-field="hekap_p4c" rows="2" placeholder="GMB claimed and active? Social media posting frequency and engagement?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. 00:48 – 1:00 | Budget &amp; Execution Readiness</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Close by establishing what is actually actionable given their internal capacity and budget. Define the immediate next step and set expectations for the rollout timeline.</p>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Internal Resources &amp; Staff Availability</label>
+                                        <textarea class="capture-input" data-field="hekap_p5a" rows="2" placeholder="Who on their team can support execution? Is there a dedicated marketing or ops person?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Ideal Rollout Timeline</label>
+                                        <textarea class="capture-input" data-field="hekap_p5b" rows="2" placeholder="Are they expecting results in 30 days, 90 days, or 6 months?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Budget Range &amp; Investment Appetite</label>
+                                        <textarea class="capture-input" data-field="hekap_p5c" rows="2" placeholder="Any budget discussed? Reluctance or openness to paid media spend?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('hekap')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('hekap')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('hekap')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-hekap" class="save-indicator"></div>
+                </div>
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: BASE TRAINING CLUB               -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-base">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: Base Training Club</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-base" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    45 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="meeting-timer">
+                        <div><div id="timer-display-base" class="timer-display">45:00</div></div>
+                        <div class="timer-info">
+                            <div id="timer-phase-base" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-base" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('base')" title="Start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                            <button class="timer-btn" onclick="pauseTimer('base')" title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                            <button class="timer-btn" onclick="resetTimer('base')" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="base-1" id="base-check-1"><label for="base-check-1">Visited their Instagram and reviewed content quality</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="base-2" id="base-check-2"><label for="base-check-2">Confirmed current member count (benchmark: 80)</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="base-3" id="base-check-3"><label for="base-check-3">Researched local competitor gyms in Giza area</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="base-4" id="base-check-4"><label for="base-check-4">Prepared capacity utilization calculation (16% → 70%)</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="base-5" id="base-check-5"><label for="base-check-5">Drafted Summer Heat mitigation offer ideas</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Objective Banner -->
+                    <div class="internal-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <div>
+                            <strong>Meeting Objective</strong>
+                            Secure alignment, establish authority, and extract data for the DMAIC Project roadmap. Frame everything around <b>Capacity (16% to 70%)</b> and <b>Operational Friction (Lead Leaks)</b>.
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CAC" or "Lead Gen"</span><span class="matrix-do">✅ Frame as "Cost to fill one spot" and "Connecting athletes to training"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Churn" or "Retention"</span><span class="matrix-do">✅ Say "Keeping members committed through the summer"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CRM" or "Funnel"</span><span class="matrix-do">✅ Say "Member tracking system" and "Sign-up pathway"</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:10 | The Vision & Capacity</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Acknowledge their 80 members. Paint the picture of hitting the 500-member capacity. Set the stage that organic alone won't fill 420 empty spots.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"You have a capacity of 500, but you are at 80. If we fast-forward 12 months and this facility is completely full, what does that look like? Are you opening a second branch, or maximizing profit here?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Vision & Growth Ambition</label>
+                                        <textarea class="capture-input" data-field="base_p1" rows="3" placeholder="What's their 12-month vision? Second branch or maximize current?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:10 – 0:25 | The Friction Log (The Leaky Bucket)</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Gently confront the manual DM protocol. Explain that if we drive traffic now, the manual system breaks. Introduce the 14-Day Quick Win (Automated DM Routing).</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"You mentioned in the audit that following up with leads is a headache. Walk me through exactly what happens when someone DMs you at 11:00 PM on a Friday asking for prices. Who answers it? What happens next?"</p>
+                                    </div>
+                                    <div class="script-box" style="border-left-color: #DC2626;">
+                                        <div class="script-label">⚡ Objection Handler: "We just need more reach/followers"</div>
+                                        <p class="script-text">"Reach isn't your problem right now; routing is. If we get you 10,000 views tomorrow and 50 people DM you, your current manual reply system will drop 40 of them. Followers don't pay rent; members do. We install the CRM tracking first, then we turn on the traffic."</p>
+                                    </div>
+                                    <div class="script-box" style="border-left-color: #DC2626;">
+                                        <div class="script-label">⚡ Objection Handler: "We just use spreadsheets"</div>
+                                        <p class="script-text">"Spreadsheets are fine for 80 members. They will physically break your staff at 300 members. Right now, your CAC is 'NA'. If you want to hit your 500 capacity, we have to know exactly how much it costs to buy a customer. We can't track ROI on a spreadsheet."</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Current Lead Handling Process & Friction Points</label>
+                                        <textarea class="capture-input" data-field="base_p2" rows="3" placeholder="Walk through their DM reply chain, who answers, what drops..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:25 – 0:35 | Seasonality & Mitigation</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Address the "Summer Heat" churn. Present the strategy to pivot offers (e.g., Early AM / Late PM classes) to offset the Egyptian summer drop-off.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"There are 50 commercial gyms in Giza with air conditioning. Why do your 80 members choose to sweat it out outside at Base Training Club instead of going to Gold's Gym?"</p>
+                                    </div>
+                                    <div class="script-box" style="border-left-color: #DC2626;">
+                                        <div class="script-label">⚡ Objection Handler: "We lose people because of the heat"</div>
+                                        <p class="script-text">"That's an environmental reality, but it's an operational excuse. We don't fight the heat; we pivot the offer. We will run targeted ads for 'After Dark' sessions or '6 AM Sunrise' blocks specifically targeting people avoiding the sun. We offset the churn mathematically."</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: UVP & Seasonality Challenges</label>
+                                        <textarea class="capture-input" data-field="base_p3" rows="3" placeholder="Why do members stay? What's the real summer drop-off rate?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:35 – 0:45 | Systems & DMAIC Data</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Explain the need for a basic CRM to track acquisition cost. Ask the 5 operational questions to build their customized roadmap.</p>
+                                    <div class="capture-group">
+                                        <label class="capture-label">1. DEFINE — Standard 1-Month Membership Price (EGP)</label>
+                                        <span class="capture-sublabel">What is the exact price of a standard 1-month membership?</span>
+                                        <input type="text" class="capture-input" data-field="base_p4a" placeholder="e.g., 1500 EGP">
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">2. MEASURE — 90-Day New Member Goal</label>
+                                        <span class="capture-sublabel">What is the exact number of new members they want in the next 90 days?</span>
+                                        <input type="text" class="capture-input" data-field="base_p4b" placeholder="e.g., 100 members">
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">3. ANALYZE — Best Customer Target Profile</label>
+                                        <span class="capture-sublabel">Who is their absolute best customer? (e.g., 25-35 y/o males, corporate workers)</span>
+                                        <input type="text" class="capture-input" data-field="base_p4c" placeholder="e.g., Young professionals in Haram area">
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">4. IMPROVE — Agreed Test Ad Budget</label>
+                                        <span class="capture-sublabel">Are they willing to allocate a minimum test budget (5,000-10,000 EGP/month) for Meta Ads?</span>
+                                        <input type="text" class="capture-input" data-field="base_p4d" placeholder="e.g., Yes, 8000 EGP">
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">5. CONTROL — Staff CRM Manager (Name)</label>
+                                        <span class="capture-sublabel">Who is the specific staff member responsible for checking the CRM dashboard daily?</span>
+                                        <input type="text" class="capture-input" data-field="base_p4e" placeholder="e.g., Ahmed (Front Desk)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. Wrap-Up | Agreed Commitments</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Confirm the 14-Day Quick Win and get verbal commitment on the CRM installation timeline.</p>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Final Commitments & Next Steps</label>
+                                        <textarea class="capture-input" data-field="base_p5" rows="3" placeholder="Any final commitments, deadlines, or action items..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('base')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('base')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('base')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-base" class="save-indicator"></div>
+                </div>
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: ROKY (180 Dental & Cosmetics)            -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-dental180">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: 180 Dental & Cosmetics</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-dental180" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    60 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="meeting-timer">
+                        <div><div id="timer-display-dental180" class="timer-display">60:00</div></div>
+                        <div class="timer-info">
+                            <div id="timer-phase-dental180" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-dental180" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('dental180')" title="Start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                            <button class="timer-btn" onclick="pauseTimer('dental180')" title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                            <button class="timer-btn" onclick="resetTimer('dental180')" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-1" id="roky-check-1"><label for="roky-check-1">Brand Diagnosis Validated (Zayed/Maadi positioning)</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-2" id="roky-check-2"><label for="roky-check-2">Market & Competitor Analysis Validated</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-3" id="roky-check-3"><label for="roky-check-3">Prepared Revenue & Demand Forecasting</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-4" id="roky-check-4"><label for="roky-check-4">Strategic Roadmap Creation Validated</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-5" id="roky-check-5"><label for="roky-check-5">Reviewed Hybrid Upsell opportunities</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Objective Banner -->
+                    <div class="internal-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <div>
+                            <strong>Meeting Objective</strong>
+                            Shift from brand establishment to operational efficiency—maximize chair utilization, drive down high-ticket CAC, and master cross-departmental patient retention.
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Cross-Selling"</span><span class="matrix-do">✅ Say "Cross-departmental patient retention"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Lead Gen"</span><span class="matrix-do">✅ Say "High-ticket patient acquisition"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Sales"</span><span class="matrix-do">✅ Say "Treatment plan acceptance"</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:15 | Clinical Operations & Capacity</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Acknowledge their premium physical footprint in the Beverly Hills Compound. Empty chairs represent severe profit leakage. Focus on capacity utilization.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Questions</div>
+                                        <p class="script-text">• How many operational dental chairs do you currently have at your clinic?<br>• What is your current average chair utilization rate (percentage of booked time vs. available time)?<br>• What is your current patient "no-show" or cancellation rate?</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Chair Capacity & Utilization Rate</label>
+                                        <textarea class="capture-input" data-field="dental180_p1a" rows="2" placeholder="Total chairs, utilization %..."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: No-Show / Cancellation Rate</label>
+                                        <textarea class="capture-input" data-field="dental180_p1b" rows="2" placeholder="Cancellation rate..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:15 – 0:30 | Revenue & Service Margins</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Transition to high-ticket economics. Focus on the hybrid approach blending precision dentistry with facial artistry.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Questions</div>
+                                        <p class="script-text">• What percentage of your total revenue is generated by Dental Services versus Cosmetic/Aesthetic Services?<br>• Which specific treatment yields the highest profit margin, and which brings the highest volume of new patients?<br>• What is your average Treatment Plan Acceptance Rate?</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Revenue Split & Margin Drivers</label>
+                                        <textarea class="capture-input" data-field="dental180_p2a" rows="2" placeholder="Dental vs Aesthetics %, Highest margin..."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Treatment Plan Acceptance Rate</label>
+                                        <textarea class="capture-input" data-field="dental180_p2b" rows="2" placeholder="Acceptance % for high-ticket..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:30 – 0:40 | Patient Lifecycle & Cross-Selling</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Discuss the 'Hybrid Upsell' opportunity. A clear aligner patient is a prime candidate for lip fillers or masseter Botox.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Questions</div>
+                                        <p class="script-text">• What is the standard recall rate for routine patients (e.g., returning for 6-month cleanings)?<br>• What is your system for cross-pollinating patients? (e.g., converting teeth-whitening to dermal filler).<br>• What percentage of your patients are expatriates or medical tourists versus local residents?</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Recall Rate & Cross-Pollination Strategy</label>
+                                        <textarea class="capture-input" data-field="dental180_p3a" rows="3" placeholder="Recall rate, system for cross-selling..."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Expat vs Local Demographics</label>
+                                        <textarea class="capture-input" data-field="dental180_p3b" rows="2" placeholder="Percentage split..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:40 – 0:50 | Marketing & Acquisition</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Address Sales Process Friction. If front-desk staff are administrators rather than closers, conversion will suffer.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Questions</div>
+                                        <p class="script-text">• What is your average Customer Acquisition Cost (CAC) for a high-ticket patient (Implants/Veneers)?<br>• Which marketing channel currently drives the highest volume of qualified consultations?<br>• How are inbound leads handled? (e.g., Centralized call center, front desk receptionists, or dedicated sales closers?)</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: CAC & Top Channels</label>
+                                        <textarea class="capture-input" data-field="dental180_p4a" rows="2" placeholder="CAC, highest volume channel..."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Inbound Lead Handling</label>
+                                        <textarea class="capture-input" data-field="dental180_p4b" rows="2" placeholder="Who closes the leads?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. 00:50 – 1:00 | Tech Stack & Next Steps</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Psychological Setup</div>
+                                    <p class="psych-text">Establish next steps for 90 days. Focus on system integrations that map ROI to actual booked revenue.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Questions</div>
+                                        <p class="script-text">• Which Clinic Management System / CRM are you currently utilizing?<br>• How are you currently tracking the ROI of your marketing spend against actual booked revenues?</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Tech Stack (CRM/CMS)</label>
+                                        <textarea class="capture-input" data-field="dental180_p5a" rows="2" placeholder="Current CMS / CRM utilized..."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Next Steps & Final Thoughts</label>
+                                        <textarea class="capture-input" data-field="dental180_p5b" rows="3" placeholder="Agreed KPIs for first 90 days..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('dental180')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('dental180')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('dental180')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-dental180" class="save-indicator"></div>
+                </div>
+
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: ITS JUST ROKY                    -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-roky">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Executive Induction Playbook</h1>
+                                <p class="subtitle">Client: its just roky (Premium Health-Food Ecosystem)</p>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:var(--space-md);">
+                                <span id="live-badge-roky" class="live-badge" style="display:none;">LIVE</span>
+                                <span class="duration-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    60 Minutes
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="meeting-timer">
+                        <div><div id="timer-display-roky" class="timer-display">60:00</div></div>
+                        <div class="timer-info">
+                            <div id="timer-phase-roky" class="timer-phase">READY</div>
+                            <div class="timer-progress"><div id="timer-progress-roky" class="timer-progress-bar" style="width:0%"></div></div>
+                        </div>
+                        <div class="timer-controls">
+                            <button class="timer-btn" onclick="startTimer('roky')" title="Start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></button>
+                            <button class="timer-btn" onclick="pauseTimer('roky')" title="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></button>
+                            <button class="timer-btn" onclick="resetTimer('roky')" title="Reset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <div class="checklist-panel">
+                        <div class="checklist-header">
+                            <div class="checklist-header-left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                Pre-Meeting Readiness — The "Homework" Dossier
+                            </div>
+                            <span class="checklist-progress">0/5</span>
+                        </div>
+                        <div class="checklist-body">
+                            <div class="checklist-items">
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-1" id="roky-check-1"><label for="roky-check-1">Prepared polished 1–2 page Executive Footprint Audit to present at opening</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-2" id="roky-check-2"><label for="roky-check-2">Acknowledged premium health-food positioning — "its just roky" is NOT fast-casual</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-3" id="roky-check-3"><label for="roky-check-3">Mapped menu architecture — hero items "The Mexican" &amp; "The Krispy Kale" (335–460 EGP)</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-4" id="roky-check-4"><label for="roky-check-4">Identified revenue streams: à la carte, structured meal plans, event catering</label></div>
+                                <div class="checklist-item"><input type="checkbox" data-check-key="roky-5" id="roky-check-5"><label for="roky-check-5">Noted existing D2C and e-commerce infrastructure (Shopify)</label></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Internal Banner -->
+                    <div class="internal-banner">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <div>
+                            <strong>Internal Use Only — "Unlimited Dreams" Protocol Active</strong>
+                            Do not restrict, reject, or limit the client's vision at any stage. Capture it in its entirety to fuel our intelligence engine. The goal is to find the operational gaps we can scale.
+                        </div>
+                    </div>
+
+                    <!-- Translation Matrix -->
+                    <div class="translation-matrix">
+                        <div class="translation-matrix-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            The Translation Matrix (PM Rules)
+                        </div>
+                        <div class="matrix-grid">
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Fast food / delivery brand"</span><span class="matrix-do">✅ Say "Premium health-food ecosystem"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "Customers"</span><span class="matrix-do">✅ Say "High-value meal plan subscribers and event clients"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't say "CAC / Lead Gen"</span><span class="matrix-do">✅ Say "Most effective acquisition channel for your segment"</span></div>
+                            <div class="matrix-card"><span class="matrix-dont">🚫 Don't restrict or limit their vision</span><span class="matrix-do">✅ Capture everything — it fuels the intelligence engine</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Phases -->
+                    <div class="phases-container">
+
+                        <!-- Phase I -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">I. 00:00 – 0:10 | The Executive Download</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Open by presenting the Executive Footprint Audit. This instantly proves we are proactive, not reactive — we did the homework before walking in the door. Let them correct or add to the audit; every correction is intelligence.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script</div>
+                                        <p class="script-text">"Since we are looking to build a comprehensive growth ecosystem for 'its just roky,' our analysts have already mapped your current digital footprint and menu architecture. We see the premium positioning and the D2C foundation. Today is about finding the operational gaps we can scale."</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Client Reaction &amp; Corrections to Our Audit</label>
+                                        <textarea class="capture-input" data-field="roky_p1a" rows="3" placeholder="Did they correct our menu data, pricing, or revenue stream mapping? Note every correction."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Any Unreported Revenue Streams or Products</label>
+                                        <textarea class="capture-input" data-field="roky_p1b" rows="2" placeholder="Did they mention anything we missed — new menu lines, B2B partnerships, etc.?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">II. 00:10 – 0:25 | The "Unlimited Dreams" Protocol</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Do not restrict, reject, or limit the client's vision during this stage. Let them dream at full scale. Capture it in its entirety — the unfiltered vision is the raw material for the entire strategic roadmap.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Ask</div>
+                                        <p class="script-text">"If we fast-forward 12 to 24 months and everything has gone exactly as you envisioned — what does 'its just roky' look like? Are you running new cloud kitchens, scaling meal plan subscriptions nationally, or pushing into retail?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: 12–24 Month Expansion Vision (Verbatim)</label>
+                                        <textarea class="capture-input" data-field="roky_p2a" rows="3" placeholder="Cloud kitchens? Meal plan subscriptions? Retail shelves? New cities? Capture everything."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Priority Growth Lever They Are Most Excited About</label>
+                                        <textarea class="capture-input" data-field="roky_p2b" rows="2" placeholder="What lights them up most? That is where they will commit budget."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase III -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">III. 00:25 – 0:40 | The Friction Log &amp; Operational Bottleneck</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">This is the most critical operational question of the meeting. Identifying the exact pain point allows us to formulate the immediate "14-Day Quick Win" we will deliver post-signature to build unshakeable trust.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Script — Ask This Explicitly</div>
+                                        <p class="script-text">"What is the most frustrating bottleneck in your business right now?"</p>
+                                    </div>
+                                    <div class="goal-box">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                                        <span class="goal-text">Goal: The answer to this single question defines the entire 14-Day Quick Win deliverable. Write it down verbatim.</span>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Primary Bottleneck — VERBATIM</label>
+                                        <textarea class="capture-input" data-field="roky_p3a" rows="3" placeholder="Write their answer word for word. This becomes the 14-Day Quick Win brief."></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Secondary Friction Points Mentioned</label>
+                                        <textarea class="capture-input" data-field="roky_p3b" rows="2" placeholder="Any other operational complaints surfaced during this phase?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase IV -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">IV. 00:40 – 0:55 | The Culinary &amp; Systems Audit</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">This is the hidden Prerequisite Form extraction. Weave these five questions into the conversation naturally — do not deliver them as a questionnaire. Each answer feeds a specific module of The Grow Engine.</p>
+
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Kitchen Capacity</div>
+                                        <p class="script-text">"To ensure our marketing efforts don't break your kitchen operations, what is the maximum daily order volume your current infrastructure can sustain before food quality or fulfillment times degrade?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Max Daily Order Capacity</label>
+                                        <textarea class="capture-input" data-field="roky_p4a" rows="2" placeholder="e.g., Kitchen caps at ~80 orders/day before quality drops"></textarea>
+                                    </div>
+
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Revenue Hierarchy</div>
+                                        <p class="script-text">"Between your structured meal plans, direct à la carte delivery, third-party aggregators, and event catering, how would you rank them from highest revenue generator to lowest?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Revenue Stream Ranking (Highest → Lowest)</label>
+                                        <textarea class="capture-input" data-field="roky_p4b" rows="2" placeholder="e.g., Meal plans > Event catering > À la carte > Aggregators"></textarea>
+                                    </div>
+
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Tech Stack Friction</div>
+                                        <p class="script-text">"Are you currently managing meal plan renewals and delivery routing directly through Shopify and your POS, or is it creating friction for your management team?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Tech Stack Reality &amp; Friction Points</label>
+                                        <textarea class="capture-input" data-field="roky_p4c" rows="2" placeholder="e.g., Shopify for D2C, manual WhatsApp for meal plan renewals, no CRM"></textarea>
+                                    </div>
+
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Retention &amp; Churn</div>
+                                        <p class="script-text">"For your high-value meal plan subscribers, what are the top two reasons you hear when someone decides not to renew?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Top 2 Meal Plan Churn Reasons</label>
+                                        <textarea class="capture-input" data-field="roky_p4d" rows="2" placeholder="e.g., Price fatigue after month 2, menu variety drops off"></textarea>
+                                    </div>
+
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ Acquisition &amp; CAC</div>
+                                        <p class="script-text">"Currently, where are you seeing the most effective volume coming from — is it word of mouth, organic food styling on Instagram, or paid Meta ads?"</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Top Acquisition Channel &amp; Estimated CAC</label>
+                                        <textarea class="capture-input" data-field="roky_p4e" rows="2" placeholder="e.g., Instagram organic is strongest, Meta paid is being tested but no clear CAC yet"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phase V -->
+                        <div class="phase-card">
+                            <button class="phase-toggle">
+                                <span class="phase-toggle-title">V. 00:55 – 1:00 | Success Definition &amp; Next Steps</span>
+                                <svg class="phase-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="phase-body">
+                                <div class="phase-inner">
+                                    <div class="psych-label">Objective</div>
+                                    <p class="psych-text">Plant the strategic seed for backend system integrations (Zoho, Salesforce, custom ERPs) by pairing the baseline marketing proposal with a Business Systems Audit. Define the 14-Day Quick Win and explain the Good/Better/Best Technical Feasibility Report.</p>
+                                    <div class="script-box">
+                                        <div class="script-label">🗣️ The Close</div>
+                                        <p class="script-text">"The next step is delivering a Good/Better/Best Technical Feasibility Report mapping out exact man-day requirements for your growth. Alongside that, we will identify one high-leverage quick win we can execute in the next 14 days to prove the system before the full engagement begins."</p>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Agreed 14-Day Quick Win</label>
+                                        <textarea class="capture-input" data-field="roky_p5a" rows="2" placeholder="Defined from their Phase III bottleneck answer — what is the first deliverable?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Backend System Integration Interest (Zoho / Salesforce / Custom ERP)</label>
+                                        <textarea class="capture-input" data-field="roky_p5b" rows="2" placeholder="Are they open to a Business Systems Audit? Any existing tools they want to integrate?"></textarea>
+                                    </div>
+                                    <div class="capture-group">
+                                        <label class="capture-label">Capture: Final Commitments &amp; Decision Timeline</label>
+                                        <textarea class="capture-input" data-field="roky_p5c" rows="2" placeholder="Who signs off? What is the decision timeline? Any next meeting booked?"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="copyData('roky')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveData('roky')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save Data
+                        </button>
+                        <button class="btn btn-ghost" onclick="exportPDF('roky')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            Export PDF
+                        </button>
+                    </div>
+                    <div id="save-indicator-roky" class="save-indicator"></div>
+                </div>
+
+                
+                <!-- ════════════════════════════════════════ -->
+                <!-- PANEL: CONSOLIDATED DASHBOARD           -->
+                <!-- ════════════════════════════════════════ -->
+                <div class="tab-panel" id="panel-dashboard">
+
+                    <div class="page-header">
+                        <div class="page-header-top">
+                            <div>
+                                <h1>Consolidated Intelligence</h1>
+                                <p class="subtitle">Aggregated view across all client accounts</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div id="stat-clients" class="stat-value">3</div>
+                            <div class="stat-label">Active Clients</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="stat-fields" class="stat-value">0/0</div>
+                            <div class="stat-label">Fields Captured</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="stat-saved" class="stat-value">0</div>
+                            <div class="stat-label">Clients Saved</div>
+                        </div>
+                    </div>
+
+                    <!-- Client Cards -->
+                    <div class="dashboard-grid">
+
+                        <!-- Nour Card -->
+                        <div class="dashboard-card" id="dash-card-nour">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">Nour Clinic Elite</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+
+                        <!-- Heka Cosmetics Card -->
+                        <div class="dashboard-card" id="dash-card-heka">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">Heka Cosmetics</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+
+                        <!-- Heka Pharmacy Card -->
+                        <div class="dashboard-card" id="dash-card-hekap">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">Heka Pharmacy</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+
+                        <!-- Base Card -->
+                        <div class="dashboard-card" id="dash-card-base">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">Base Training Club</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+
+                        <!-- Roky Card -->
+                        <div class="dashboard-card" id="dash-card-roky">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">its just roky</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+
+                        <!-- Dental 180 Card -->
+                        <div class="dashboard-card" id="dash-card-dental180">
+                            <div class="dashboard-card-header">
+                                <span class="dashboard-card-title">180 Dental & Cosmetics</span>
+                                <span class="dashboard-card-status status-pending">Pending</span>
+                            </div>
+                            <div class="dashboard-card-meta">No data saved yet</div>
+                            <div class="dashboard-card-fields"></div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Actions -->
+                    <div class="action-bar">
+                        <button class="btn btn-dark" onclick="exportAllData()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy All Data
+                        </button>
+                        <button class="btn btn-primary" onclick="saveAllData()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            Save All Data
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
