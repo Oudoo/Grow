@@ -28,6 +28,10 @@ if (process.env.DATABASE_URL) {
     console.warn("[start] Schema sync did not complete cleanly. Starting anyway.");
   }
 
+  // Ensure the founding team's IAM super-admin accounts exist (idempotent).
+  console.log("[start] Ensuring staff IAM accounts…");
+  run("node", ["scripts/seed-staff.mjs"]);
+
   // Seed once, only if the catalog is empty.
   try {
     const require = createRequire(import.meta.url);
