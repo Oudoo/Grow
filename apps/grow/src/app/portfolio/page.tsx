@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { caseStudies } from "@/data/portfolio";
@@ -41,7 +42,7 @@ export default function PortfolioPage() {
             className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
           >
             {totals.map((s) => (
-              <div key={s.label} className="rounded-2xl border border-fg/10 bg-obsidian/60 px-4 py-5">
+              <div key={s.label} className="rounded-2xl border border-fg/10 bg-obsidian/60 px-4 py-5 backdrop-blur-md">
                 <div className="font-heading text-3xl font-bold text-platinum">{s.value}</div>
                 <div className="font-data text-[11px] uppercase tracking-wider text-slate mt-1">{s.label}</div>
               </div>
@@ -62,22 +63,38 @@ export default function PortfolioPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="h-full"
               >
                 <Link
                   href={`/portfolio/${c.slug}`}
-                  className="group flex flex-col h-full rounded-2xl border border-fg/10 bg-obsidian p-7 hover:border-cyan/40 transition-colors"
+                  className="group flex flex-col h-full rounded-2xl border border-fg/10 bg-obsidian overflow-hidden hover:border-cyan/40 transition-all duration-300 relative"
                 >
-                  <div className="flex items-center justify-between mb-5">
-                    <span className="font-data text-[11px] uppercase tracking-wider text-cyan">{c.sector}</span>
-                    <ArrowUpRight className="w-5 h-5 text-slate group-hover:text-cyan transition-colors" />
-                  </div>
-                  <div className="font-heading text-4xl font-bold text-platinum mb-1">{c.metrics[0].value}</div>
-                  <div className="text-sm text-slate mb-5">{c.metrics[0].label}</div>
-                  <h2 className="font-heading text-lg font-bold text-platinum leading-snug mb-3">{c.title}</h2>
-                  <p className="text-sm text-slate leading-relaxed mb-6 flex-1">{c.summary}</p>
-                  <div className="flex items-center justify-between pt-4 border-t border-fg/5">
-                    <span className="font-semibold text-sm text-platinum">{c.client}</span>
-                    <span className="font-data text-[11px] text-slate">{c.region}</span>
+                  {/* Image Cover */}
+                  {c.coverImage && (
+                    <div className="relative h-48 w-full overflow-hidden border-b border-fg/5">
+                      <Image
+                        src={c.coverImage}
+                        alt={c.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-obsidian to-transparent opacity-80" />
+                    </div>
+                  )}
+
+                  <div className="p-7 flex flex-col flex-1 relative z-10">
+                    <div className="flex items-center justify-between mb-5">
+                      <span className="font-data text-[11px] uppercase tracking-wider text-cyan">{c.sector}</span>
+                      <ArrowUpRight className="w-5 h-5 text-slate group-hover:text-cyan transition-colors" />
+                    </div>
+                    <div className="font-heading text-4xl font-bold text-platinum mb-1">{c.metrics[0].value}</div>
+                    <div className="text-sm text-slate mb-5">{c.metrics[0].label}</div>
+                    <h2 className="font-heading text-lg font-bold text-platinum leading-snug mb-3 group-hover:text-cyan transition-colors">{c.title}</h2>
+                    <p className="text-sm text-slate leading-relaxed mb-6 flex-1 line-clamp-3">{c.summary}</p>
+                    <div className="flex items-center justify-between pt-4 border-t border-fg/5">
+                      <span className="font-semibold text-sm text-platinum">{c.client}</span>
+                      <span className="font-data text-[11px] text-slate">{c.region}</span>
+                    </div>
                   </div>
                 </Link>
               </motion.div>
@@ -98,32 +115,48 @@ export default function PortfolioPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.45, delay: (i % 2) * 0.06 }}
+                className="h-full"
               >
                 <Link
                   href={`/portfolio/${c.slug}`}
-                  className="group flex flex-col h-full rounded-2xl border border-fg/10 bg-obsidian p-6 hover:border-cyan/40 transition-colors"
+                  className="group flex flex-col h-full rounded-2xl border border-fg/10 bg-obsidian overflow-hidden hover:border-cyan/40 transition-all duration-300"
                 >
-                  <div className="flex items-center gap-3 mb-4 flex-wrap">
-                    <span className="font-data text-[11px] uppercase tracking-wider text-cyan">{c.sector}</span>
-                    <span className="font-data text-[11px] text-slate">· {c.region}</span>
-                    <span className="font-data text-[11px] text-slate">· {c.year}</span>
-                  </div>
-                  <h2 className="font-heading text-lg font-bold text-platinum leading-snug mb-4 group-hover:text-cyan transition-colors">
-                    {c.title}
-                  </h2>
-                  <div className="grid grid-cols-2 gap-3 mb-5">
-                    {c.metrics.slice(0, 2).map((m) => (
-                      <div key={m.label} className="rounded-xl bg-fg/5 px-3 py-2.5">
-                        <div className="font-heading text-xl font-bold text-platinum">{m.value}</div>
-                        <div className="text-[11px] text-slate leading-tight mt-0.5">{m.label}</div>
+                  <div className="flex flex-col md:flex-row h-full">
+                    {/* Image Cover */}
+                    {c.coverImage && (
+                      <div className="relative h-48 md:h-auto md:w-2/5 overflow-hidden border-b md:border-b-0 md:border-r border-fg/5">
+                        <Image
+                          src={c.coverImage}
+                          alt={c.title}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-void/30 group-hover:bg-transparent transition-colors duration-500" />
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-auto flex items-center justify-between pt-3 border-t border-fg/5">
-                    <span className="font-semibold text-sm text-platinum">{c.client}</span>
-                    <span className="text-xs text-cyan flex items-center gap-1 font-semibold">
-                      Read case study <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                    </span>
+                    )}
+                    <div className="p-6 flex flex-col flex-1 w-full md:w-3/5 relative">
+                      <div className="flex items-center gap-3 mb-4 flex-wrap">
+                        <span className="font-data text-[11px] uppercase tracking-wider text-cyan">{c.sector}</span>
+                        <span className="font-data text-[11px] text-slate">· {c.region}</span>
+                      </div>
+                      <h2 className="font-heading text-lg font-bold text-platinum leading-snug mb-4 group-hover:text-cyan transition-colors">
+                        {c.title}
+                      </h2>
+                      <div className="grid grid-cols-2 gap-3 mb-5 mt-auto">
+                        {c.metrics.slice(0, 2).map((m) => (
+                          <div key={m.label} className="rounded-xl bg-fg/5 px-3 py-2.5">
+                            <div className="font-heading text-xl font-bold text-platinum">{m.value}</div>
+                            <div className="text-[11px] text-slate leading-tight mt-0.5 line-clamp-2">{m.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-fg/5">
+                        <span className="font-semibold text-sm text-platinum">{c.client}</span>
+                        <span className="text-xs text-cyan flex items-center gap-1 font-semibold">
+                          Read case study <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </Link>
               </motion.div>
