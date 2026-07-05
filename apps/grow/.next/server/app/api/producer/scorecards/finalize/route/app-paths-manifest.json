@@ -1,0 +1,3 @@
+{
+  "/api/producer/scorecards/finalize/route": "app/api/producer/scorecards/finalize/route.js"
+}

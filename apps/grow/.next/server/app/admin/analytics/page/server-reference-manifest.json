@@ -1,0 +1,17 @@
+{
+  "node": {
+    "00c80fc45df4f2eb7e5618fbe1398332b6472c29f6": {
+      "workers": {
+        "app/admin/analytics/page": {
+          "moduleId": 34528,
+          "async": false,
+          "exportedName": "logoutAction",
+          "filename": "apps/grow/src/app/admin/actions.ts"
+        }
+      },
+      "exportedName": "logoutAction",
+      "filename": "apps/grow/src/app/admin/actions.ts"
+    }
+  },
+  "edge": {}
+}

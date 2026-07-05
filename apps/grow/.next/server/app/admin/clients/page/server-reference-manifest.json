@@ -1,0 +1,29 @@
+{
+  "node": {
+    "00c80fc45df4f2eb7e5618fbe1398332b6472c29f6": {
+      "workers": {
+        "app/admin/clients/page": {
+          "moduleId": 695154,
+          "async": false,
+          "exportedName": "logoutAction",
+          "filename": "apps/grow/src/app/admin/actions.ts"
+        }
+      },
+      "exportedName": "logoutAction",
+      "filename": "apps/grow/src/app/admin/actions.ts"
+    },
+    "60813fda1ff9a7e8dc71e1995947b8492db57ce064": {
+      "workers": {
+        "app/admin/clients/page": {
+          "moduleId": 695154,
+          "async": false,
+          "exportedName": "saveClientAccessAction",
+          "filename": "apps/grow/src/app/admin/clients/actions.ts"
+        }
+      },
+      "exportedName": "saveClientAccessAction",
+      "filename": "apps/grow/src/app/admin/clients/actions.ts"
+    }
+  },
+  "edge": {}
+}
