@@ -14,14 +14,14 @@
     "dev:worker": "npm run dev --workspace=@growengine/worker",
     "dev:producer": "npm run dev --workspace=the-growees-producer",
 
-    "build": "npm run build:packages && npm-run-all --parallel build:hub build:engine build:producer && npm run build:worker",
-    "build:packages": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core",
+    "build": "npm run build:packages && npm run build:hub && ln -sfn apps/grow/.next .next",
+    "build:packages": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core && npm run build --workspace=@growengine/worker",
     "build:hub": "npm run build --workspace=grow",
     "build:engine": "npm run build --workspace=@growengine/web",
     "build:worker": "npm run build --workspace=@growengine/worker",
     "build:producer": "npm run build --workspace=the-growees-producer",
 
-    "start": "npm-run-all --parallel start:hub start:engine start:worker start:producer",
+    "start": "npm run start --workspace=grow",
     "start:hub": "npm run start --workspace=grow",
     "start:engine": "npm run start --workspace=@growengine/web",
     "start:worker": "npm run start --workspace=@growengine/worker",

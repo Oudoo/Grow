@@ -14,8 +14,17 @@
  * takes the whole site down.
  */
 import "dotenv/config";
+import { config as loadEnv } from "dotenv";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
+
+// Production secrets live OUTSIDE the deploy directory so git redeploys keep
+// them: create ~/.grow.env once (hPanel → File Manager) with DATABASE_URL,
+// AUTH_SECRET, ADMIN_EMAIL/ADMIN_PASSWORD, STAFF_PASSWORD. Values here never
+// override variables already set in the environment (hPanel env vars win).
+loadEnv({ path: join(homedir(), ".grow.env") });
 
 function run(cmd, args) {
   return spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
@@ -43,6 +52,7 @@ if (process.env.DATABASE_URL) {
     const { PrismaClient } = require("../src/generated/prisma");
     const prisma = new PrismaClient();
     const suites = await prisma.suite.count().catch(() => -1);
+    const vacancies = await prisma.vacancy.count().catch(() => -1);
     await prisma.$disconnect();
     if (suites === 0) {
       console.log("[start] Empty database — seeding catalog + demo data…");
@@ -51,6 +61,10 @@ if (process.env.DATABASE_URL) {
       run("node", ["scripts/seed-producer.mjs"]);  // recruiter demo (vacancies/candidates)
     } else if (suites > 0) {
       console.log(`[start] Database already has ${suites} suites — skipping seed.`);
+      if (vacancies === 0) {
+        console.log("[start] Producer module empty — seeding recruiter demo…");
+        run("node", ["scripts/seed-producer.mjs"]);
+      }
     }
   } catch (e) {
     console.warn("[start] Seed step skipped:", e.message);
