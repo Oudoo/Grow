@@ -229,6 +229,13 @@ export function Navbar() {
               </AnimatePresence>
             </div>
           ))}
+          <Link
+            href="/portfolio"
+            className="flex items-center text-sm font-medium text-slate hover:text-platinum transition-colors whitespace-nowrap"
+            onClick={() => setActiveMenu(null)}
+          >
+            {language === "ar" ? "أعمالنا" : "Portfolio"}
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -285,6 +292,14 @@ export function Navbar() {
                   <ArrowRight className={`w-4 h-4 text-slate ${language === "ar" ? "rotate-180" : ""}`} />
                 </Link>
               ))}
+              <Link
+                href="/portfolio"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between px-3 py-3 rounded-xl text-base font-medium text-platinum hover:bg-fg/5 transition-colors"
+              >
+                <span>{language === "ar" ? "أعمالنا" : "Portfolio"}</span>
+                <ArrowRight className={`w-4 h-4 text-slate ${language === "ar" ? "rotate-180" : ""}`} />
+              </Link>
               <Link
                 href="/audit"
                 onClick={() => setMobileOpen(false)}
