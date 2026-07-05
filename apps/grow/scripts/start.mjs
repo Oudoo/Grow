@@ -15,16 +15,37 @@
  */
 import "dotenv/config";
 import { config as loadEnv } from "dotenv";
+import { existsSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 
 // Production secrets live OUTSIDE the deploy directory so git redeploys keep
-// them: create ~/.grow.env once (hPanel → File Manager) with DATABASE_URL,
-// AUTH_SECRET, ADMIN_EMAIL/ADMIN_PASSWORD, STAFF_PASSWORD. Values here never
-// override variables already set in the environment (hPanel env vars win).
-loadEnv({ path: join(homedir(), ".grow.env") });
+// them. Create ONE file named `.grow.env` (DATABASE_URL, AUTH_SECRET,
+// ADMIN_EMAIL/ADMIN_PASSWORD, STAFF_PASSWORD) anywhere above the app — e.g.
+// the domain folder hPanel's File Manager opens into (the one holding
+// public_html). We search every ancestor directory plus the account home.
+// Values here never override variables already set in the environment.
+function findPersistentEnv() {
+  let dir = process.cwd();
+  for (let i = 0; i < 10; i++) {
+    const candidate = join(dir, ".grow.env");
+    if (existsSync(candidate)) return candidate;
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  const home = join(homedir(), ".grow.env");
+  return existsSync(home) ? home : null;
+}
+const persistentEnv = findPersistentEnv();
+if (persistentEnv) {
+  loadEnv({ path: persistentEnv });
+  console.log(`[start] Loaded persistent secrets from ${persistentEnv}`);
+} else {
+  console.warn("[start] No .grow.env found in any parent directory or home.");
+}
 
 function run(cmd, args) {
   return spawnSync(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
