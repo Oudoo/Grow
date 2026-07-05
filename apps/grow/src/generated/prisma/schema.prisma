@@ -1,0 +1,290 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "rhel-openssl-1.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Suite {
+  id       String    @id @default(uuid())
+  suite    String
+  suiteAr  String
+  slug     String    @unique
+  category String    @default("tech") // "creative" (marketing) | "tech" (systems)
+  products Product[]
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  name        String
+  nameAr      String
+  slug        String  @unique
+  description String
+  descAr      String
+  status      String  @default("PUBLISHED") // PUBLISHED, DRAFT
+  order       Int     @default(0)
+  features    String? @db.Text
+  suiteId     String
+  suite       Suite   @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id           String    @id @default(uuid())
+  name         String
+  email        String
+  company      String
+  message      String    @db.Text
+  date         DateTime  @default(now())
+  status       String    @default("new")
+  called       String    @default("no")
+  notes        String?   @db.Text
+  priority     String    @default("MEDIUM") // HOT, WARM, COLD, MEDIUM
+  dealValue    Int       @default(0)
+  source       String    @default("Website") // Website, Referral, LinkedIn, WhatsApp, Direct
+  nextFollowUp DateTime?
+}
+
+// Project Management Models
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?      @db.Text
+  assignee    String       @default("Unassigned")
+  status      String       @default("PENDING") // PENDING, IN_PROGRESS, DONE
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  subTasks    SubTask[]
+  comments    Comment[]
+  attachments Attachment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model SubTask {
+  id          String   @id @default(uuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  author    String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  url       String   @db.Text
+  name      String
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// Finance & Invoicing
+model Invoice {
+  id         String    @id @default(uuid())
+  invoiceNo  String    @unique
+  clientName String
+  amount     Float
+  status     String    @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
+  issueDate  DateTime  @default(now())
+  dueDate    DateTime?
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+// Support & Ticketing
+model Ticket {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  clientName  String
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// IAM – Admin Users
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("VIEWER") // SUPER_ADMIN, ADMIN, MEMBER, VIEWER, CLIENT
+  permissions  String?  @db.Text // LEGACY on/off JSON array — superseded by `access`
+  // Per-module access levels: {"crm":"manage","engine":"view",…} with none|view|manage
+  access       String?  @db.Text
+  // For CLIENT users: the engine client (clients.id) this account is scoped to
+  clientId     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// Per-client tool entitlements + white-label branding. Keyed by the engine
+// client id (no cross-ORM FK). Admin-granted: flipping a tool on here grants
+// it to ALL of that client's CLIENT users (inherited at login). Branding +
+// subdomain drive the white-labeled client portal.
+model ClientAccess {
+  clientId     String   @id
+  tools        String?  @db.Text // JSON array of entitled product keys, e.g. ["engine","chatbot"]
+  brandName    String?
+  logoUrl      String?  @db.Text
+  primaryColor String?
+  accentColor  String?
+  subdomain    String?  @unique // <subdomain>.growcdx.com
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// White-label / Tenant config
+model TenantConfig {
+  id             String   @id @default("default")
+  companyName    String   @default("GROW")
+  tagline        String?
+  primaryColor   String   @default("#4F46E5")
+  secondaryColor String   @default("#4338CA")
+  logoUrl        String?
+  fontHeading    String   @default("Neue Montreal / Archivo")
+  fontBody       String   @default("SF Pro / Roboto Mono")
+  contactEmail   String?
+  contactPhone   String?
+  address        String?
+  isDemo         Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Growees Producer — recruitment module
+// Tables prefixed `producer_` to keep the shared database cleanly organized.
+// Long-text columns use @db.Text (CVs, blueprints, generated HTML, notes).
+// ─────────────────────────────────────────────────────────────────────────
+model Vacancy {
+  id              String   @id @default(cuid())
+  title           String
+  department      String?
+  location        String?
+  salaryBudgetMin Float?
+  salaryBudgetMax Float?
+  acceptanceScore Float    @default(3.8)
+  jobPostingHtml  String   @db.Text
+  rawBlueprint    String   @db.Text
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  competencies Competency[]
+  candidates   Candidate[]
+
+  @@map("producer_vacancies")
+}
+
+model Competency {
+  id        String @id @default(cuid())
+  vacancyId String
+  name      String
+  category  String // "hard" | "soft"
+  weight    Float
+  order     Int
+
+  vacancy Vacancy @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  scores  Score[]
+
+  @@index([vacancyId])
+  @@map("producer_competencies")
+}
+
+model Candidate {
+  id              String   @id @default(cuid())
+  vacancyId       String
+  name            String
+  email           String
+  phone           String?
+  yearsExperience Float?
+  expectedSalary  Float?
+  rawCv           String   @db.Text
+  portfolioUrl    String?  @db.Text
+  portfolioTitle  String?
+  portfolioImage  String?  @db.Text
+  portfolioDesc   String?  @db.Text
+  compositeScore  Float?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  vacancy    Vacancy     @relation(fields: [vacancyId], references: [id], onDelete: Cascade)
+  scorecards Scorecard[]
+  offer      Offer?
+
+  @@index([vacancyId])
+  @@map("producer_candidates")
+}
+
+model Scorecard {
+  id          String   @id @default(cuid())
+  candidateId String
+  managerName String
+  submittedAt DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  scores    Score[]
+
+  @@index([candidateId])
+  @@map("producer_scorecards")
+}
+
+model Score {
+  id           String  @id @default(cuid())
+  scorecardId  String
+  competencyId String
+  value        Int
+  notes        String? @db.Text
+
+  scorecard  Scorecard  @relation(fields: [scorecardId], references: [id], onDelete: Cascade)
+  competency Competency @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+
+  @@unique([scorecardId, competencyId])
+  @@index([scorecardId])
+  @@index([competencyId])
+  @@map("producer_scores")
+}
+
+model Offer {
+  id               String   @id @default(cuid())
+  candidateId      String   @unique
+  offeredSalary    Float
+  firstWorkingDate String
+  contractType     String
+  itEquipment      String?
+  status           String   @default("draft")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@map("producer_offers")
+}
