@@ -29,6 +29,7 @@ function hashPassword(plain) {
 }
 
 const TEAM = [
+  { email: "mahmoud.hassan@growcdx.com", name: "Mahmoud Hassan" },
   { email: "ahmed.alaa@growcdx.com", name: "Dr. Ahmed Alaa" },
   { email: "shennawy@growcdx.com", name: "Dr. Shennawy" },
   { email: "danya.mohamed@growcdx.com", name: "Danya" },
