@@ -230,6 +230,12 @@
       "namedRegex": "^/api/engine/v1/recommendations(?:/)?$"
     },
     {
+      "page": "/api/health",
+      "regex": "^/api/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/health(?:/)?$"
+    },
+    {
       "page": "/api/producer/candidates",
       "regex": "^/api/producer/candidates(?:/)?$",
       "routeKeys": {},

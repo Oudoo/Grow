@@ -19,6 +19,7 @@
   "/api/engine/v1/clients/route": "app/api/engine/v1/clients/route.js",
   "/api/engine/v1/metrics/route": "app/api/engine/v1/metrics/route.js",
   "/api/engine/v1/recommendations/route": "app/api/engine/v1/recommendations/route.js",
+  "/api/health/route": "app/api/health/route.js",
   "/api/producer/candidates/route": "app/api/producer/candidates/route.js",
   "/api/producer/health/route": "app/api/producer/health/route.js",
   "/api/producer/offers/route": "app/api/producer/offers/route.js",

@@ -19,6 +19,7 @@
   "/api/engine/v1/clients/route": "/api/engine/v1/clients",
   "/api/engine/v1/metrics/route": "/api/engine/v1/metrics",
   "/api/engine/v1/recommendations/route": "/api/engine/v1/recommendations",
+  "/api/health/route": "/api/health",
   "/api/producer/candidates/route": "/api/producer/candidates",
   "/api/producer/health/route": "/api/producer/health",
   "/api/producer/offers/route": "/api/producer/offers",
