@@ -28,5 +28,12 @@ coverage
 # Local MCP config (contains API token — never commit)
 .mcp.json
 
-# never track build output
+# Build output is not tracked — EXCEPT the hub's production build.
+# Hostinger deploys straight from git and does not run `next build` on the
+# server, so the built app has to ship in the repo or the site serves nothing.
+# The webpack cache and source maps are excluded: they are the bulk of the
+# size (91MB of .map alone) and neither is needed to serve the app.
 **/.next/
+!apps/grow/.next/
+apps/grow/.next/cache/
+apps/grow/.next/**/*.map
