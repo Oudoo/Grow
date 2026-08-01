@@ -1,0 +1,7 @@
+#!/bin/sh
+# Refuse to push a state that would take growcdx.com down.
+# Hostinger deploys straight from main without building, so the committed
+# apps/grow/.next is the live site. See apps/grow/scripts/check-deploy-ready.mjs.
+#
+# Enable in a fresh clone with:  git config core.hooksPath .githooks
+exec node apps/grow/scripts/check-deploy-ready.mjs
