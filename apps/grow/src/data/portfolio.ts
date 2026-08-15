@@ -251,7 +251,7 @@ export const caseStudies: CaseStudy[] = [
       { value: "-31%", label: "sales cycle length on marketing-touched deals" },
     ],
     stack: ["LinkedIn", "Apollo", "HubSpot", "Clearbit", "Grow Engine"],
-    coverImage: "https://images.unsplash.com/photo-1586528116311-ad8ed7c663e0?q=80&w=1200",
+    coverImage: "https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=1200",
   },
   {
     slug: "layla-beauty",
@@ -284,7 +284,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Founder, Layla Beauty",
     },
     stack: ["TikTok", "Meta", "Snapchat", "Klaviyo", "Shopify"],
-    coverImage: "https://images.unsplash.com/photo-1596462502278-27bf85033e54?q=80&w=1200",
+    coverImage: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1200",
   },
   {
     slug: "qamar-hotels",

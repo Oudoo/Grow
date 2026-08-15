@@ -645,13 +645,13 @@
   },
   {
     "route": "/portfolio",
-    "firstLoadUncompressedJsBytes": 747262,
+    "firstLoadUncompressedJsBytes": 747259,
     "firstLoadChunkPaths": [
       ".next/static/chunks/2bdfl8k4tscey.js",
       ".next/static/chunks/2-mw-z_iqdmx0.js",
       ".next/static/chunks/3-frvzuznkysy.js",
       ".next/static/chunks/3ll-lnyp-744m.js",
-      ".next/static/chunks/1ovn45dzg5uba.js",
+      ".next/static/chunks/3nyz1qjz6rrlc.js",
       ".next/static/chunks/0ul87z7zje1ku.js",
       ".next/static/chunks/34qdcy-d9mu9u.js",
       ".next/static/chunks/3d7ps-otg5_nx.js",
