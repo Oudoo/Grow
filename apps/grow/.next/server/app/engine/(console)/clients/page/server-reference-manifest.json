@@ -5,8 +5,7 @@
         "app/engine/(console)/clients/page": {
           "moduleId": 327475,
           "async": false,
-          "exportedName": "logoutAction",
-          "filename": "apps/grow/src/app/admin/actions.ts"
+          "codeHash": null
         }
       },
       "exportedName": "logoutAction",
@@ -17,8 +16,7 @@
         "app/engine/(console)/clients/page": {
           "moduleId": 327475,
           "async": false,
-          "exportedName": "createClient",
-          "filename": "apps/grow/src/app/engine/_actions/clients.ts"
+          "codeHash": null
         }
       },
       "exportedName": "createClient",
@@ -29,8 +27,7 @@
         "app/engine/(console)/clients/page": {
           "moduleId": 327475,
           "async": false,
-          "exportedName": "createProject",
-          "filename": "apps/grow/src/app/engine/_actions/clients.ts"
+          "codeHash": null
         }
       },
       "exportedName": "createProject",
@@ -41,8 +38,7 @@
         "app/engine/(console)/clients/page": {
           "moduleId": 327475,
           "async": false,
-          "exportedName": "updateClientStatus",
-          "filename": "apps/grow/src/app/engine/_actions/clients.ts"
+          "codeHash": null
         }
       },
       "exportedName": "updateClientStatus",
@@ -53,8 +49,7 @@
         "app/engine/(console)/clients/page": {
           "moduleId": 327475,
           "async": false,
-          "exportedName": "addMilestoneTarget",
-          "filename": "apps/grow/src/app/engine/_actions/clients.ts"
+          "codeHash": null
         }
       },
       "exportedName": "addMilestoneTarget",

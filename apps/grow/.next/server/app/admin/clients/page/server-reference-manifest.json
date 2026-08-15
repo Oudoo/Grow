@@ -5,8 +5,7 @@
         "app/admin/clients/page": {
           "moduleId": 695154,
           "async": false,
-          "exportedName": "logoutAction",
-          "filename": "apps/grow/src/app/admin/actions.ts"
+          "codeHash": null
         }
       },
       "exportedName": "logoutAction",
@@ -17,8 +16,7 @@
         "app/admin/clients/page": {
           "moduleId": 695154,
           "async": false,
-          "exportedName": "saveClientAccessAction",
-          "filename": "apps/grow/src/app/admin/clients/actions.ts"
+          "codeHash": null
         }
       },
       "exportedName": "saveClientAccessAction",

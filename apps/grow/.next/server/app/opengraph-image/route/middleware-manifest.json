@@ -13,14 +13,14 @@
         "server/server-reference-manifest.js",
         "server/app/opengraph-image/route_client-reference-manifest.js",
         "server/edge/chunks/apps_grow__next-internal_server_app_opengraph-image_route_actions_1m57azn.js",
-        "server/edge/chunks/[root-of-the-server]__16ygchb._.js",
-        "server/edge/chunks/_12zo4kx._.js",
-        "server/edge/chunks/0wlq_next_dist_compiled_@vercel_og_0mo76p1._.js",
-        "server/edge/chunks/1c3r_next_dist_esm_build_templates_edge-wrapper_1ocv247.js"
+        "server/edge/chunks/[root-of-the-server]__1en0a2l._.js",
+        "server/edge/chunks/_0xc8yd2._.js",
+        "server/edge/chunks/[root-of-the-server]__0167nzz._.js",
+        "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_1wygcj3.js"
       ],
       "name": "app/opengraph-image/route",
       "page": "/opengraph-image/route",
-      "entrypoint": "server/edge/chunks/1c3r_next_dist_esm_build_templates_edge-wrapper_1ocv247.js",
+      "entrypoint": "server/edge/chunks/turbopack-node_modules_next_dist_esm_build_templates_edge-wrapper_1wygcj3.js",
       "matchers": [
         {
           "regexp": "^/opengraph-image(?:/)?$",
@@ -30,11 +30,11 @@
       "wasm": [
         {
           "name": "wasm_10a187050363648b49a36c79d5266d2c",
-          "filePath": "server/edge/chunks/0wlq_next_dist_compiled_@vercel_og_yoga_0athij3.wasm"
+          "filePath": "server/edge/chunks/node_modules_next_dist_compiled_@vercel_og_yoga_0athij3.wasm"
         },
         {
           "name": "wasm_151b7f7b511bd6dda63695d2c75c87a3",
-          "filePath": "server/edge/chunks/0wlq_next_dist_compiled_@vercel_og_resvg_0athij3.wasm"
+          "filePath": "server/edge/chunks/node_modules_next_dist_compiled_@vercel_og_resvg_0athij3.wasm"
         }
       ],
       "assets": [
@@ -44,7 +44,7 @@
         }
       ],
       "env": {
-        "__NEXT_BUILD_ID": "N2lyVAuaC_moLgYq4zL8Y",
+        "__NEXT_BUILD_ID": "2cnVZF2MZNhxMihlrSOm_",
         "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "BL8iaczQ2N7nYad3ro+/TSU6tKrSncsTQfNGG+bj4ws=",
         "__NEXT_PREVIEW_MODE_ID": "8c893212b667a5f8501a1dd21891da7d",
         "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "8f2c8bda5d6fae10c4ca8aace4b7f48815d36e0d01c013f367cda6dd8514f3ae",

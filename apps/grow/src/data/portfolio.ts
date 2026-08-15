@@ -61,7 +61,7 @@ export const caseStudies: CaseStudy[] = [
     },
     stack: ["Meta", "TikTok", "Snapchat", "Klaviyo", "GA4", "Grow Engine"],
     featured: true,
-    coverImage: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200",
+    coverImage: "/portfolio/covers/sahara-active.jpg",
   },
   {
     slug: "nileworth",
@@ -95,7 +95,7 @@ export const caseStudies: CaseStudy[] = [
     },
     stack: ["Meta", "Google Ads", "AppsFlyer", "Mixpanel", "Grow Engine"],
     featured: true,
-    coverImage: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1200",
+    coverImage: "/portfolio/covers/nileworth.jpg",
   },
   {
     slug: "khaleej-properties",
@@ -129,7 +129,7 @@ export const caseStudies: CaseStudy[] = [
     },
     stack: ["Google Ads", "Meta", "TikTok", "WhatsApp Business API", "HubSpot", "Grow Engine"],
     featured: true,
-    coverImage: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200",
+    coverImage: "/portfolio/covers/khaleej-properties.jpg",
   },
   {
     slug: "atlas-dental",
@@ -162,7 +162,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Managing Partner, Atlas Dental Group",
     },
     stack: ["Google Ads", "Google Business Profile", "Meta", "WhatsApp Business API", "Grow Engine"],
-    coverImage: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=1200",
+    coverImage: "/portfolio/covers/atlas-dental.jpg",
   },
   {
     slug: "meraki-foods",
@@ -190,7 +190,7 @@ export const caseStudies: CaseStudy[] = [
       { value: "2.8x", label: "average opening-week footfall vs. old launches" },
     ],
     stack: ["Meta", "TikTok", "Snapchat", "Google Maps", "Grow Playbook"],
-    coverImage: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1200",
+    coverImage: "/portfolio/covers/meraki-foods.jpg",
   },
   {
     slug: "edubridge-academy",
@@ -223,7 +223,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Admissions Director, EduBridge Academy",
     },
     stack: ["Meta", "Google Ads", "YouTube", "HubSpot", "WhatsApp Business API"],
-    coverImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200",
+    coverImage: "/portfolio/covers/edubridge-academy.jpg",
   },
   {
     slug: "falcon-logistics",
@@ -251,7 +251,7 @@ export const caseStudies: CaseStudy[] = [
       { value: "-31%", label: "sales cycle length on marketing-touched deals" },
     ],
     stack: ["LinkedIn", "Apollo", "HubSpot", "Clearbit", "Grow Engine"],
-    coverImage: "https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=1200",
+    coverImage: "/portfolio/covers/falcon-logistics.jpg",
   },
   {
     slug: "layla-beauty",
@@ -284,7 +284,7 @@ export const caseStudies: CaseStudy[] = [
       role: "Founder, Layla Beauty",
     },
     stack: ["TikTok", "Meta", "Snapchat", "Klaviyo", "Shopify"],
-    coverImage: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1200",
+    coverImage: "/portfolio/covers/layla-beauty.jpg",
   },
   {
     slug: "qamar-hotels",
@@ -312,7 +312,7 @@ export const caseStudies: CaseStudy[] = [
       { value: "31%", label: "email-driven repeat-stay bookings" },
     ],
     stack: ["Google Hotel Ads", "Tripadvisor", "Meta", "Mailchimp", "Grow Engine"],
-    coverImage: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200",
+    coverImage: "/portfolio/covers/qamar-hotels.jpg",
   },
   {
     slug: "techhive-talent",
@@ -345,7 +345,7 @@ export const caseStudies: CaseStudy[] = [
       role: "CTO, TechHive",
     },
     stack: ["Growees Producer", "LinkedIn", "Wuzzuf", "GitHub Jobs", "Grow Engine"],
-    coverImage: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1200",
+    coverImage: "/portfolio/covers/techhive-talent.jpg",
   },
 ];
 

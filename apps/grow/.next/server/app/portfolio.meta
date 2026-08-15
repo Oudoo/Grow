@@ -7,9 +7,21 @@
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/portfolio/__PAGE__",
-    "/portfolio",
     "/_index",
-    "/_head"
-  ]
+    "/portfolio/__PAGE__"
+  ],
+  "prefetchHints": {
+    "hints": 0,
+    "slots": {
+      "children": {
+        "hints": 64,
+        "slots": {
+          "children": {
+            "hints": 160,
+            "slots": null
+          }
+        }
+      }
+    }
+  }
 }

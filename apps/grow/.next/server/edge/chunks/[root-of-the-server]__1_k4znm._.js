@@ -1,0 +1,3 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["chunks/[root-of-the-server]__1_k4znm._.js",478500,(e,r,n)=>{r.exports=e.x("node:async_hooks",()=>require("node:async_hooks"))},951615,(e,r,n)=>{r.exports=e.x("node:buffer",()=>require("node:buffer"))},232806,(e,r,n)=>{self._ENTRIES||={};let o=Promise.resolve().then(()=>e.i(908667));o.catch(()=>{}),self._ENTRIES.middleware_middleware=new Proxy(o,{get(e,r){if("then"===r)return(r,n)=>e.then(r,n);let n=(...n)=>e.then(e=>(0,e[r])(...n));return n.then=(n,o)=>e.then(e=>e[r]).then(n,o),n}})}]);
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__1_k4znm._.js.map

@@ -2,6 +2,10 @@
   "version": 4,
   "routes": {
     "/": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 101473,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -26,6 +30,10 @@
       ]
     },
     "/_global-error": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 8944,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -51,6 +59,10 @@
     },
     "/_not-found": {
       "initialStatus": 404,
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 45480,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -75,6 +87,10 @@
       ]
     },
     "/about": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 54331,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -99,6 +115,10 @@
       ]
     },
     "/admin/branding": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 57710,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -123,6 +143,10 @@
       ]
     },
     "/admin/login": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 50381,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -147,6 +171,10 @@
       ]
     },
     "/admin/playbook": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 57139,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -171,6 +199,10 @@
       ]
     },
     "/audit": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 50675,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -195,6 +227,10 @@
       ]
     },
     "/audit-quiz": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 50099,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -224,6 +260,9 @@
         "content-type": "image/svg+xml",
         "x-next-cache-tags": "_N_T_/layout,_N_T_/icon.svg/layout,_N_T_/icon.svg/route,_N_T_/icon.svg"
       },
+      "routeType": "route",
+      "response": "complete",
+      "compute": "static",
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -248,6 +287,10 @@
       ]
     },
     "/methodology": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 57972,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -272,6 +315,10 @@
       ]
     },
     "/portfolio": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 72053,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -296,6 +343,10 @@
       ]
     },
     "/portfolio/atlas-dental": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70049,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -320,6 +371,10 @@
       ]
     },
     "/portfolio/edubridge-academy": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70078,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -344,6 +399,10 @@
       ]
     },
     "/portfolio/falcon-logistics": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 66400,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -368,6 +427,10 @@
       ]
     },
     "/portfolio/khaleej-properties": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70504,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -392,6 +455,10 @@
       ]
     },
     "/portfolio/layla-beauty": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 69915,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -416,6 +483,10 @@
       ]
     },
     "/portfolio/meraki-foods": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 66545,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -440,6 +511,10 @@
       ]
     },
     "/portfolio/nileworth": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70232,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -464,6 +539,10 @@
       ]
     },
     "/portfolio/qamar-hotels": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 66398,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -488,6 +567,10 @@
       ]
     },
     "/portfolio/sahara-active": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70941,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -512,6 +595,10 @@
       ]
     },
     "/portfolio/techhive-talent": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 70106,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -536,6 +623,10 @@
       ]
     },
     "/producer": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 49020,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -560,6 +651,10 @@
       ]
     },
     "/products": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 103623,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -589,6 +684,9 @@
         "content-type": "text/plain",
         "x-next-cache-tags": "_N_T_/layout,_N_T_/robots.txt/layout,_N_T_/robots.txt/route,_N_T_/robots.txt"
       },
+      "routeType": "route",
+      "response": "complete",
+      "compute": "static",
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -613,6 +711,10 @@
       ]
     },
     "/services": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 61543,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -642,6 +744,9 @@
         "content-type": "application/xml",
         "x-next-cache-tags": "_N_T_/layout,_N_T_/sitemap.xml/layout,_N_T_/sitemap.xml/route,_N_T_/sitemap.xml"
       },
+      "routeType": "route",
+      "response": "complete",
+      "compute": "static",
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -666,6 +771,10 @@
       ]
     },
     "/suites": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 80941,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -690,6 +799,10 @@
       ]
     },
     "/support": {
+      "routeType": "page",
+      "response": "complete",
+      "compute": "static",
+      "htmlSize": 50901,
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -716,6 +829,9 @@
   },
   "dynamicRoutes": {
     "/portfolio/[slug]": {
+      "routeType": "page",
+      "response": "empty",
+      "compute": "blocking",
       "experimentalBypassFor": [
         {
           "type": "header",

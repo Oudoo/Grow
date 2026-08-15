@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "GROW — Integrated Creative & Enterprise Infrastructure Operating as One. A unified monorepo: the GROW hub (marketing site + admin OS), Grow Engine (growth-intelligence platform), Growees Producer (recruitment engine), and shared brand + engine packages.",
+  "//workspaces": "Only what production actually builds and runs. apps/engine-web and apps/producer are superseded by the /engine and /producer modules inside apps/grow; including them made `npm install` pull their dependency trees onto the server, which is where the critical Auth.js advisory and most of the other CVEs came from. apps/engine-worker stays — it is @growengine/worker, a direct hub dependency.",
   "workspaces": [
-    "apps/*",
+    "apps/grow",
+    "apps/engine-worker",
     "packages/*"
   ],
   "scripts": {
@@ -37,6 +39,14 @@
     "lint:hub": "npm run lint --workspace=grow",
     "lint:engine": "npm run lint --workspace=@growengine/web",
     "lint:producer": "npm run lint --workspace=the-growees-producer"
+  },
+  "//overrides": "Security patches for transitive dependencies we do not control directly. Every entry stays inside the same major version so no API changes reach our code. brace-expansion, js-yaml, next, drizzle-orm and sharp are deliberately NOT pinned here: they need a major bump or are direct dependencies, so they get upgraded and tested on their own rather than silently forced.",
+  "overrides": {
+    "undici": "^7.29.0",
+    "postcss": "^8.5.23",
+    "nanoid": "^3.3.17",
+    "form-data": "^4.0.6",
+    "shell-quote": "^1.9.0"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5",
