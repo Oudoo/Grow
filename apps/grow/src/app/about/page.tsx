@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Server, Activity, Shield, Crosshair } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useState } from "react";
 import { useLanguage } from "@/components/LanguageContext";
 
@@ -166,62 +165,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. The Leadership/Team Section */}
-      <section className="py-24 bg-void border-y border-fg/5 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-bold font-heading text-platinum mb-4">{t("about.team.title")}</h2>
-            <p className="text-slate text-lg">{t("about.team.subtitle")}</p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { id: 'ahmed-alaa', name: t("about.team.1.name"), role: t("about.team.1.role"), desc: t("about.team.1.desc"), linkedin: "#" },
-              { id: 'shennawy', name: t("about.team.2.name"), role: t("about.team.2.role"), desc: t("about.team.2.desc"), linkedin: "#" },
-              { id: 'mahmoud', name: t("about.team.3.name"), role: t("about.team.3.role"), desc: t("about.team.3.desc"), linkedin: "https://www.linkedin.com/in/oudoo/" },
-              { id: 'danya', name: t("about.team.4.name"), role: t("about.team.4.role"), desc: t("about.team.4.desc"), linkedin: "#" }
-            ].map((leader, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-              >
-                <a 
-                  href={leader.linkedin} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="group cursor-pointer block"
-                >
-                  <div className="aspect-square rounded-3xl bg-obsidian border border-fg/10 mb-6 overflow-hidden relative flex items-center justify-center glass group-hover:border-cyan/50 transition-colors duration-500">
-                    {/* The actual photo */}
-                    <Image
-                      src={`/team/${leader.id}.jpg`}
-                      alt={leader.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover relative z-10 transition-transform duration-700 group-hover:scale-105"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    {/* Fallback placeholder underneath */}
-                    <span className="absolute inset-0 flex items-center justify-center text-slate/50 font-mono text-xs tracking-widest uppercase group-hover:text-cyan transition-colors z-0">
-                      {leader.name} Portrait
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold font-heading text-platinum mb-1 group-hover:text-cyan transition-colors">{leader.name}</h3>
-                  <p className="text-cyan text-sm font-semibold mb-4">{leader.role}</p>
-                  <p className="text-slate leading-relaxed">{leader.desc}</p>
-                </a>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. The Proof Point (CTA) */}
+      {/* 4. The Proof Point (CTA) */}
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-platinum text-void" />
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-cyan/20 to-transparent rounded-full blur-[100px] pointer-events-none" />
