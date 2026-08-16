@@ -17,7 +17,7 @@
     "dev:producer": "npm run dev --workspace=the-growees-producer",
 
     "//build": "The root `.next` is Hostinger's configured output_directory. A symlink is fine — the host follows it (it populates the document root from it). Do NOT copy the build here instead: that duplicates ~200MB of output on a quota-limited shared host.",
-    "build": "npm run build:packages && npm run build:hub && ln -sfn apps/grow/.next .next",
+    "build": "npm run build:packages && npm run build:hub && ln -sfn apps/grow/.next .next && node scripts/deploy-doctor.mjs",
     "build:packages": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core && npm run build --workspace=@growengine/worker",
     "build:hub": "npm run build --workspace=grow",
     "build:engine": "npm run build --workspace=@growengine/web",
