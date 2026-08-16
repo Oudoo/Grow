@@ -16,8 +16,8 @@
     "dev:worker": "npm run dev --workspace=@growengine/worker",
     "dev:producer": "npm run dev --workspace=the-growees-producer",
 
-    "//build": "Hostinger's configured output_directory is the repo-root `.next`. It must be a REAL directory: when it was a symlink to apps/grow/.next the host's post-build copy never populated the Passenger app root, so every deploy 'succeeded' while the site kept serving a months-old build. Copy, do not link.",
-    "build": "npm run build:packages && npm run build:hub && rm -rf .next && cp -R apps/grow/.next .next",
+    "//build": "The root `.next` is Hostinger's configured output_directory. A symlink is fine — the host follows it (it populates the document root from it). Do NOT copy the build here instead: that duplicates ~200MB of output on a quota-limited shared host.",
+    "build": "npm run build:packages && npm run build:hub && ln -sfn apps/grow/.next .next",
     "build:packages": "npm run build --workspace=@growengine/db && npm run build --workspace=@growengine/core && npm run build --workspace=@growengine/worker",
     "build:hub": "npm run build --workspace=grow",
     "build:engine": "npm run build --workspace=@growengine/web",

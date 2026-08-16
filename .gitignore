@@ -28,6 +28,13 @@ coverage
 # Local MCP config (contains API token — never commit)
 .mcp.json
 
+# Generated Prisma clients — `prisma generate` runs at the start of every
+# build, and the schema declares six binaryTargets, so these engine binaries
+# are rebuilt on the server every time. Committed, they were 244MB of the
+# repo's 260MB: every deploy dragged a quarter-gigabyte of regenerable
+# binaries onto a shared host before it could even start installing.
+**/src/generated/
+
 # Build output is never tracked. Hostinger DOES run `npm run build` on the
 # server — its build logs show `next build` completing and emitting every
 # route. Committing apps/grow/.next was the cause of, not the cure for, the
