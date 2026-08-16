@@ -1,3 +1,0 @@
-module.exports=[293716,a=>{"use strict";a.s(["default",()=>b]);let b=(0,a.i(211857).registerClientReference)(function(){throw Error("Attempted to call the default export of [project]/apps/grow/src/app/admin/layout.tsx from the server, but it's on the client. It's not possible to invoke a client function from the server, it can only be rendered as a Component or passed to props of a Client Component.")},"[project]/apps/grow/src/app/admin/layout.tsx","default")},656153,a=>{"use strict";var b=a.i(293716);a.n(b)},252839,function(a){a.n(a.i(656153))}];
-
-//# sourceMappingURL=apps_grow_src_app_admin_layout_tsx_1jtzpeq._.js.map

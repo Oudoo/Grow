@@ -1,3 +1,0 @@
-(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["chunks/_02krnvb._.js",102484,e=>{"use strict";async function t(){}e.s(["register",0,t])},659579,(e,t,n)=>{self._ENTRIES||={};let s=Promise.resolve().then(()=>e.i(102484));s.catch(()=>{}),self._ENTRIES.middleware_instrumentation=new Proxy(s,{get(e,t){if("then"===t)return(t,n)=>e.then(t,n);let n=(...n)=>e.then(e=>(0,e[t])(...n));return n.then=(n,s)=>e.then(e=>e[t]).then(n,s),n}})}]);
-
-//# sourceMappingURL=_02krnvb._.js.map
