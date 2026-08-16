@@ -1,5 +1,39 @@
 # GROW — Hostinger Deployment Guide (free tier, $0)
 
+## Production today: growcdx.com
+
+`growcdx.com` is a Hostinger **Node.js** website connected to this monorepo
+(`Oudoo/Grow`). **Pushing to `main` is the deploy.** Hostinger clones the repo, runs
+`npm install`, then `npm run build`, then boots it with `npm start`.
+
+| Setting | Value |
+| :-- | :-- |
+| Source | git — `Oudoo/Grow`, branch `main` |
+| Node | 20 |
+| Build script | `npm run build` |
+| Output directory | `.next` (root symlink → `apps/grow/.next`, created by the build) |
+| Start | `npm start` → `apps/grow/scripts/start.mjs` |
+| Secrets | `.grow.env`, kept **outside** the deploy directory so redeploys preserve it |
+
+> **Never commit `.next`.** Hostinger genuinely runs `next build` on the server — its
+> build logs show it emitting all 68 routes. A committed build was checked out and then
+> built over, leaving the app serving a mix of two builds: `/portfolio` and `/engine`
+> 404'd while the homepage loaded chunks that existed in no build in the repo. Build
+> output is ignored in `.gitignore` and must stay that way.
+
+Useful checks: `hosting_listJsDeployments` for status, `hosting_getNodeJSBuildLogsV1`
+for build output, `hosting_restartNode_jsApplicationV1` to reboot the process. Note the
+`dawak.growcdx.com` subdomain lives at `growcdx.com/public_html/dawak` — deleting the
+growcdx.com website in hPanel would take it with it.
+
+---
+
+## The multi-repo split (historical / other apps)
+
+> The layout below describes splitting each app into its own deploy repo. `growcdx.com`
+> does **not** use it — it deploys the monorepo root as described above. Kept for the
+> Producer and Engine apps, which are still deployed as separate sites.
+
 Hostinger Node.js hosting deploys **one app per website**, from a **repository root**. This
 monorepo is your development source of truth; each app also lives in its own **deploy repo**
 (the app at the root) so Hostinger auto-detects it. You create one Hostinger Node.js website
