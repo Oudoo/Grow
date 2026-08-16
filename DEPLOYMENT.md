@@ -15,6 +15,18 @@
 | Start | **`server.js` at the repo root** — Passenger's pinned startup file |
 | Secrets | `.grow.env`, kept **outside** the deploy directory so redeploys preserve it |
 
+> **The host stopped syncing the app root — the build does it.** Hostinger builds in
+> `<domain>/hbuilds/source/repository` and copies the output into `public_html`, but
+> nothing writes to `<domain>/nodejs`, which is what Passenger actually runs. That
+> directory was last written **2026-06-24** by a one-off archive upload, so roughly
+> twenty "successful" git deploys never reached the live site. `scripts/publish-to-passenger.mjs`
+> runs at the end of every build: it points `nodejs/server.js` at the freshly built
+> repo and touches `nodejs/tmp/restart.txt` so Passenger restarts onto it. The
+> previous file is preserved once as `nodejs/server.js.pre-publish.bak`.
+> The proper long-term fix is to have the Node.js app re-provisioned in hPanel so the
+> platform owns that sync again; until then this step is what makes a deploy real.
+> `scripts/deploy-doctor.mjs` prints the server-side layout if this needs re-diagnosing.
+
 > **Never delete or rename `server.js`.** The document root's `.htaccess` pins
 > `PassengerAppRoot .../nodejs` and `PassengerStartupFile server.js`. The repo had no
 > such file, so Passenger kept booting a leftover `server.js` from an old deployment —
