@@ -2,7 +2,7 @@
 node_modules
 
 # Build output
-# .next
+.next
 dist
 build
 out
@@ -28,12 +28,9 @@ coverage
 # Local MCP config (contains API token — never commit)
 .mcp.json
 
-# Build output is not tracked — EXCEPT the hub's production build.
-# Hostinger deploys straight from git and does not run `next build` on the
-# server, so the built app has to ship in the repo or the site serves nothing.
-# The webpack cache and source maps are excluded: they are the bulk of the
-# size (91MB of .map alone) and neither is needed to serve the app.
+# Build output is never tracked. Hostinger DOES run `npm run build` on the
+# server — its build logs show `next build` completing and emitting every
+# route. Committing apps/grow/.next was the cause of, not the cure for, the
+# stale deploys: the checked-in build layered over the server's fresh one and
+# the app ended up serving a mix of two builds.
 **/.next/
-!apps/grow/.next/
-apps/grow/.next/cache/
-apps/grow/.next/**/*.map

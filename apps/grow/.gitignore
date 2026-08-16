@@ -13,11 +13,9 @@
 # testing
 /coverage
 
-# next.js — the production build IS tracked (see root .gitignore): Hostinger
-# serves the app straight from the repo and never runs `next build` there, so
-# dropping .next takes the site down. Cache and source maps stay out.
-/.next/cache/
-/.next/**/*.map
+# next.js — build output is not tracked. Hostinger runs `next build` on the
+# server as part of `npm run build`; the app is built there, not shipped built.
+/.next/
 /out/
 
 # production
