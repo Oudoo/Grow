@@ -12,8 +12,17 @@
 | Node | 20 |
 | Build script | `npm run build` |
 | Output directory | `.next` (root symlink → `apps/grow/.next`, created by the build) |
-| Start | `npm start` → `apps/grow/scripts/start.mjs` |
+| Start | **`server.js` at the repo root** — Passenger's pinned startup file |
 | Secrets | `.grow.env`, kept **outside** the deploy directory so redeploys preserve it |
+
+> **Never delete or rename `server.js`.** The document root's `.htaccess` pins
+> `PassengerAppRoot .../nodejs` and `PassengerStartupFile server.js`. The repo had no
+> such file, so Passenger kept booting a leftover `server.js` from an old deployment —
+> builds published fine while the process serving traffic never changed. That is the
+> bug behind "the deploy worked but the site didn't update". `apps/grow/scripts/start.mjs`
+> is still the entry for hosts that run `npm start`; `server.js` is the one Passenger uses
+> and it serves Next in-process (Passenger owns the socket, so it must not spawn
+> `next start`).
 
 > **Never commit `.next`.** Hostinger genuinely runs `next build` on the server — its
 > build logs show it emitting all 68 routes. A committed build was checked out and then
