@@ -32,7 +32,7 @@ export function BrandingConsole() {
             <RefreshCw className="w-4 h-4" /> Reload
           </button>
           <a
-            href="/branding/index.html"
+            href="/admin/branding/asset/index.html"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan text-white text-sm font-bold hover:bg-cyan/90 transition-colors"
@@ -45,7 +45,7 @@ export function BrandingConsole() {
       <div className="flex-1 min-h-[700px] rounded-2xl overflow-hidden border border-fg/10 bg-void">
         <iframe
           key={frameKey}
-          src="/branding/index.html"
+          src="/admin/branding/asset/index.html"
           title="GROW Living Brand Canvas"
           className="w-full h-full min-h-[700px] border-0"
         />

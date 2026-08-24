@@ -66,7 +66,7 @@ export async function createCreativeAsset(formData: FormData) {
     entityType: "creative_asset",
     entityId: asset.id,
   });
-  revalidatePath(`/clients/${client.id}`);
+  revalidatePath(`/engine/clients/${client.id}`);
   return { ok: true, assetId: asset.id };
 }
 
@@ -110,7 +110,7 @@ export async function requestCatApproval(assetId: string) {
     entityId: approval.id,
     payload: { clientId: asset.clientId, assetName: asset.name },
   });
-  revalidatePath(`/clients/${asset.clientId}`);
+  revalidatePath(`/engine/clients/${asset.clientId}`);
   return { ok: true };
 }
 
@@ -188,8 +188,8 @@ export async function decideCatApproval(approvalId: string, formData: FormData) 
     changes: { decision: parsed.data.decision },
   });
 
-  revalidatePath(`/client`);
-  revalidatePath(`/clients/${approval.clientId}`);
+  revalidatePath(`/engine/client`);
+  revalidatePath(`/engine/clients/${approval.clientId}`);
   return { ok: true };
 }
 
@@ -239,7 +239,7 @@ export async function createPilot(assetId: string, formData: FormData) {
     .update(creativeAssets)
     .set({ status: "in_pilot", updatedAt: new Date() })
     .where(eq(creativeAssets.id, asset.id));
-  revalidatePath(`/clients/${asset.clientId}`);
+  revalidatePath(`/engine/clients/${asset.clientId}`);
   return { ok: true };
 }
 
@@ -266,6 +266,6 @@ export async function concludePilot(pilotId: string, promote: boolean) {
     entityId: pilotId,
     payload: { clientId: pilot.clientId, promoted: promote },
   });
-  revalidatePath(`/clients/${pilot.clientId}`);
+  revalidatePath(`/engine/clients/${pilot.clientId}`);
   return { ok: true };
 }

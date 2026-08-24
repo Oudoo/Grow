@@ -45,7 +45,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
           <h1 className="text-2xl font-bold">{meeting.title}</h1>
           <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant={statusVariant(meeting.status)}>{meeting.status.replace(/_/g, " ")}</Badge>
-            <Link href={`/clients/${meeting.clientId}`} className="text-primary underline">{client?.name}</Link>
+            <Link href={`/engine/clients/${meeting.clientId}`} className="text-primary underline">{client?.name}</Link>
             {meeting.analysisConfidence && (
               <ConfidenceBadge score={meeting.analysisConfidence} />
             )}

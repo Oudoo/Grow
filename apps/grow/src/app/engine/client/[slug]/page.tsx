@@ -396,7 +396,7 @@ export default async function ClientPortalPage({
         {!user.clientId && (
           <p className="text-center text-xs text-muted-foreground">
             You are viewing this portal as an internal team member.{" "}
-            <Link href={`/clients/${client.id}`} className="text-primary underline">Back to workspace</Link>
+            <Link href={`/engine/clients/${client.id}`} className="text-primary underline">Back to workspace</Link>
           </p>
         )}
       </main>

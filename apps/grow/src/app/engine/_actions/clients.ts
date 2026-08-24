@@ -62,7 +62,7 @@ export async function createClient(formData: FormData) {
     payload: { clientId: client.id, name: client.name },
   });
 
-  revalidatePath("/clients");
+  revalidatePath("/engine/clients");
   return { ok: true, clientId: client.id };
 }
 
@@ -82,7 +82,7 @@ export async function updateClientStatus(clientId: string, status: string) {
     entityId: clientId,
     changes: { status },
   });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -113,7 +113,7 @@ export async function addMilestoneTarget(clientId: string, formData: FormData) {
     .update(clients)
     .set({ milestoneTargets: targets, updatedAt: new Date() })
     .where(eq(clients.id, clientId));
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -134,6 +134,6 @@ export async function createProject(clientId: string, formData: FormData) {
     description: String(formData.get("description") ?? "") || null,
     ownerId: user.id,
   });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }

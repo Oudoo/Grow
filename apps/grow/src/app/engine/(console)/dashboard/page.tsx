@@ -184,7 +184,7 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={client.id}
-                  href={`/clients/${client.id}`}
+                  href={`/engine/clients/${client.id}`}
                   className="flex items-center justify-between rounded-md border px-3 py-2 hover:bg-muted/50"
                 >
                   <div>
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
             })}
             {clientRows.length === 0 && (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No clients yet — <Link className="text-primary underline" href="/clients">add your first client</Link>.
+                No clients yet — <Link className="text-primary underline" href="/engine/clients">add your first client</Link>.
               </p>
             )}
           </CardContent>

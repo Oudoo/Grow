@@ -27,7 +27,7 @@ export default async function ScorecardsPage() {
       periodStart: start.toISOString().slice(0, 10),
       periodEnd: end.toISOString().slice(0, 10),
     });
-    revalidatePath("/scorecards");
+    revalidatePath("/engine/scorecards");
   }
 
   return (

@@ -71,7 +71,9 @@ export interface ProductDef {
 export const PRODUCTS: ProductDef[] = [
   { key: "engine", label: "Grow Engine", path: "/engine", description: "Live KPIs, intelligence, approvals, reports and your agency memory." },
   { key: "producer", label: "Growees Producer", path: "/producer", description: "AI-assisted recruitment — vacancies, candidates and scorecards." },
-  { key: "chatbot", label: "Grow Chatbot", path: "/chatbot", description: "Build and run bilingual AI chat assistants for your channels." },
+  // "chatbot" is intentionally omitted until the /chatbot route exists — a
+  // launcher card for it would 404. The ModuleKey stays defined so entitlements
+  // and IAM can reference it; re-add the product here when it ships.
 ];
 
 /** Products this user may open (≥view), in canonical order. */

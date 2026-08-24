@@ -108,7 +108,7 @@ export default async function AomPage({
         <div className="space-y-2 lg:col-span-2">
           <h2 className="font-semibold">Recent knowledge documents</h2>
           {docs.map((doc) => (
-            <Link key={doc.id} href={`/aom/doc/${doc.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-2.5 hover:bg-muted/50">
+            <Link key={doc.id} href={`/engine/aom/doc/${doc.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-2.5 hover:bg-muted/50">
               <div>
                 <div className="text-sm font-medium">{doc.title}</div>
                 <div className="text-xs text-muted-foreground">{doc.createdAt.toISOString().slice(0, 10)}</div>
