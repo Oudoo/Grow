@@ -1,19 +1,48 @@
 # GROW — Hostinger Deployment Guide (free tier, $0)
 
-## Production today: growcdx.com
+## Production today: growcdx.com — deploy by ARCHIVE, not git
 
-`growcdx.com` is a Hostinger **Node.js** website connected to this monorepo
-(`Oudoo/Grow`). **Pushing to `main` is the deploy.** Hostinger clones the repo, runs
-`npm install`, then `npm run build`, then boots it with `npm start`.
+> **Do not deploy by pushing to `main`. It builds and then fails.** As of
+> 2026-08-24 Hostinger's post-build validator rejects this app with
+> `ERROR: Next.js build produced no standalone server or static output`, because
+> the site is registered as framework `next` while the app boots through our own
+> root `server.js` rather than Next's standalone output. The build compiles fine
+> and `publish-to-passenger.mjs` still copies it into the app root, but Hostinger
+> marks the deploy **failed** and never restarts, so the new build does not go
+> live. Pushes to `main` are safe (the site stays up on the old build) — they just
+> don't deploy.
+
+**The working deploy is an archive upload**, which auto-detects the app correctly:
+`app_type: other`, `entry_file: server.js` — matching what Passenger actually
+boots — so the Next-standalone validator never runs.
+
+```bash
+# from the repo root: build a source-only archive (tracked files, ~8MB)
+git archive HEAD | tar -x -C /tmp/grow-pkg
+rm -rf /tmp/grow-pkg/{Fonts,docs} "/tmp/grow-pkg/apps/grow/User Assets" \
+       /tmp/grow-pkg/apps/{engine-web,producer}
+( cd /tmp/grow-pkg && zip -rq /tmp/grow-deploy.zip . -x '*.DS_Store' )
+```
+
+Then upload it with the Hostinger MCP tool `hosting_deployJsApplication`
+(`domain: growcdx.com`, `archivePath: /tmp/grow-deploy.zip`). It installs, runs
+`npm run build` server-side, runs our publish step, and restarts Passenger. Watch
+with `hosting_listJsDeployments`; ~3 min. Never include `.next`, `node_modules`,
+or `src/generated` — the server rebuilds them, and the 50MB cap is real.
 
 | Setting | Value |
 | :-- | :-- |
-| Source | git — `Oudoo/Grow`, branch `main` |
+| Source | **archive upload** (git auto-deploy is broken — see above) |
 | Node | 20 |
+| Detected type | `other`, entry `server.js` |
 | Build script | `npm run build` |
-| Output directory | `.next` (root symlink → `apps/grow/.next`, created by the build) |
 | Start | **`server.js` at the repo root** — Passenger's pinned startup file |
 | Secrets | `.grow.env`, kept **outside** the deploy directory so redeploys preserve it |
+
+To restore git push-to-deploy, the website's Node.js app has to be re-provisioned
+in hPanel with the entry file set to `server.js` (or the app switched to
+`output: 'standalone'` in `next.config.ts`, which would also mean reworking
+`server.js`).
 
 > **The host stopped syncing the app root — the build does it.** Hostinger builds in
 > `<domain>/hbuilds/source/repository` and copies the output into `public_html`, but
