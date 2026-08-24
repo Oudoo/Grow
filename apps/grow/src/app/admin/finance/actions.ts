@@ -1,11 +1,11 @@
 "use server";
 
-import { assertAuthenticated } from "@/lib/auth";
+import { assertAccess } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function createInvoiceAction(data: { clientName: string, amount: number, dueDate?: Date | null }) {
-  await assertAuthenticated();
+  await assertAccess("finance", "manage");
   // Find highest invoice number
   const lastInvoice = await prisma.invoice.findFirst({
     orderBy: { createdAt: 'desc' }
@@ -31,7 +31,7 @@ export async function createInvoiceAction(data: { clientName: string, amount: nu
 }
 
 export async function updateInvoiceStatusAction(id: string, status: string) {
-  await assertAuthenticated();
+  await assertAccess("finance", "manage");
   await prisma.invoice.update({
     where: { id },
     data: { status },
@@ -40,7 +40,7 @@ export async function updateInvoiceStatusAction(id: string, status: string) {
 }
 
 export async function deleteInvoiceAction(id: string) {
-  await assertAuthenticated();
+  await assertAccess("finance", "manage");
   await prisma.invoice.delete({
     where: { id },
   });

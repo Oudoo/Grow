@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardProducer } from "@/lib/producer/route-auth";
 import { prisma } from "@/lib/db";
 
 /**
  * POST /api/offers — Create an offer for a passed candidate.
  */
 export async function POST(request: NextRequest) {
+  const denied = await guardProducer("manage");
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const {

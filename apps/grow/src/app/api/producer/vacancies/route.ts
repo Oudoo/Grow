@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardProducer } from "@/lib/producer/route-auth";
 import { prisma } from "@/lib/db";
 import { parseBlueprint } from "@/lib/producer/parsers/blueprint-parser";
 import { readUploadedText, UploadError } from "@/lib/producer/security/upload";
@@ -23,6 +24,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await guardProducer("manage");
+  if (denied) return denied;
+
   try {
     let formData: FormData;
     try {

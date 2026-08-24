@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardProducer } from "@/lib/producer/route-auth";
 import { prisma } from "@/lib/db";
 import { parseCV } from "@/lib/producer/parsers/cv-parser";
 import { scrapePortfolio } from "@/lib/producer/scraper/portfolio-scraper";
@@ -6,6 +7,9 @@ import { readUploadedText, UploadError } from "@/lib/producer/security/upload";
 import { assertSafePublicUrl, UnsafeUrlError } from "@/lib/producer/security/url-guard";
 
 export async function POST(request: NextRequest) {
+  const denied = await guardProducer("manage");
+  if (denied) return denied;
+
   try {
     let formData: FormData;
     try {

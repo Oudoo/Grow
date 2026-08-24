@@ -1,11 +1,11 @@
 "use server";
 
-import { assertAuthenticated } from "@/lib/auth";
+import { assertAccess } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function createTicketAction(data: { title: string, description: string, clientName: string, priority: string }) {
-  await assertAuthenticated();
+  await assertAccess("support", "manage");
   await prisma.ticket.create({
     data: {
       title: data.title,
@@ -18,7 +18,7 @@ export async function createTicketAction(data: { title: string, description: str
 }
 
 export async function updateTicketStatusAction(id: string, status: string) {
-  await assertAuthenticated();
+  await assertAccess("support", "manage");
   await prisma.ticket.update({
     where: { id },
     data: { status },
@@ -27,7 +27,7 @@ export async function updateTicketStatusAction(id: string, status: string) {
 }
 
 export async function deleteTicketAction(id: string) {
-  await assertAuthenticated();
+  await assertAccess("support", "manage");
   await prisma.ticket.delete({
     where: { id },
   });

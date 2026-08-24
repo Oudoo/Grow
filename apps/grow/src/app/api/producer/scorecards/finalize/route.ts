@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardProducer } from "@/lib/producer/route-auth";
 import { prisma } from "@/lib/db";
 import {
   calculateWeightedAverage,
@@ -10,6 +11,9 @@ import {
  * Finalize scoring: apply consensus values, calculate composite, auto-set status.
  */
 export async function POST(request: NextRequest) {
+  const denied = await guardProducer("manage");
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { candidateId, consensusScores } = body;
@@ -36,6 +40,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Candidate not found" },
         { status: 404 }
+      );
+    }
+
+    // Never finalize a candidate with no scorecards — the averages would be
+    // empty and the composite would collapse to 0, silently auto-rejecting a
+    // candidate no one actually scored.
+    if (candidate.scorecards.length === 0) {
+      return NextResponse.json(
+        { error: "Cannot finalize: this candidate has no scorecards yet." },
+        { status: 400 }
       );
     }
 

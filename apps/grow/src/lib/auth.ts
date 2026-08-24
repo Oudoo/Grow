@@ -13,7 +13,10 @@ import { can } from './access';
  */
 
 const SESSION_COOKIE = 'grow_session_id';
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 1 week
+// 24h: sessions are stateless HMAC cookies with no server-side revocation, so a
+// shorter lifetime bounds how long a deactivated account or a revoked
+// entitlement can linger. Was 7 days — too long for a console with finance/IAM.
+const SESSION_TTL_SECONDS = 60 * 60 * 24;
 
 export interface SessionPayload {
   /** AdminUser id */
@@ -36,9 +39,11 @@ function getSecret(): string {
   const secret = process.env.AUTH_SECRET;
   if (secret && secret.length >= 16) return secret;
   if (process.env.NODE_ENV === 'production') {
-    console.warn(
-      'SECURITY WARNING: AUTH_SECRET is missing or too short (<16 chars). ' +
-        'Set a strong, random AUTH_SECRET in the environment to secure sessions.'
+    // Fail closed: a predictable fallback secret would let anyone forge a
+    // session cookie. Refuse to sign/verify rather than run insecure.
+    throw new Error(
+      'AUTH_SECRET must be set to a strong value (>=16 chars) in production. ' +
+        'Refusing to fall back to an insecure signing key.'
     );
   }
   return secret || 'grow-dev-insecure-secret-change-me';
