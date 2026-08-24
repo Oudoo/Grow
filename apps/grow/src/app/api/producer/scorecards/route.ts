@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { guardProducer } from "@/lib/producer/route-auth";
 import { prisma } from "@/lib/db";
 import { checkVariance } from "@/lib/producer/scoring/variance-check";
 import {
@@ -7,6 +8,9 @@ import {
 } from "@/lib/producer/scoring/weighted-average";
 
 export async function POST(request: NextRequest) {
+  const denied = await guardProducer("manage");
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { candidateId, managerName, scores } = body;

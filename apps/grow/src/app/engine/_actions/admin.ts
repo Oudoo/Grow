@@ -85,7 +85,7 @@ export async function inviteUser(formData: FormData) {
     action: "user.invite",
     changes: { email: parsed.data.email, role: role.name },
   });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true, inviteUrl };
 }
 
@@ -104,7 +104,7 @@ export async function createApiKey(formData: FormData) {
     createdBy: user.id,
   });
   await audit({ tenantId: user.tenantId, actorId: user.id, action: "api_key.create", changes: { name } });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   // Raw key shown exactly once
   return { ok: true, apiKey: raw };
 }
@@ -116,7 +116,7 @@ export async function revokeApiKey(keyId: string) {
     .set({ revokedAt: new Date() })
     .where(and(eq(apiKeys.id, keyId), eq(apiKeys.tenantId, user.tenantId)));
   await audit({ tenantId: user.tenantId, actorId: user.id, action: "api_key.revoke", entityId: keyId });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -134,7 +134,7 @@ export async function updateRetentionPolicy(policyId: string, retentionDays: num
     entityId: policyId,
     changes: { retentionDays },
   });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -158,7 +158,7 @@ export async function toggleFeatureFlag(featureKey: string, enabled: boolean) {
     action: "feature_flag.toggle",
     changes: { featureKey, enabled },
   });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -190,7 +190,7 @@ export async function upsertNotificationTemplate(formData: FormData) {
         updatedAt: new Date(),
       },
     });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -220,7 +220,7 @@ export async function createNotificationRule(formData: FormData) {
       ? { roles: parsed.data.roleNames.split(",").map((r) => r.trim()) }
       : {},
   });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -237,7 +237,7 @@ export async function createWebhookEndpoint(formData: FormData) {
     eventTypes: eventTypes.split(",").map((e) => e.trim()),
     encryptedSecret: secret ? encryptSecret(secret) : null,
   });
-  revalidatePath("/settings");
+  revalidatePath("/engine/settings");
   return { ok: true };
 }
 
@@ -296,7 +296,7 @@ export async function generateInvoice() {
     entityType: "invoice",
     entityId: invoice.id,
   });
-  revalidatePath("/billing");
+  revalidatePath("/engine/billing");
   return { ok: true };
 }
 
@@ -312,7 +312,7 @@ export async function submitFeatureRequest(formData: FormData) {
     description,
     submittedBy: user.id,
   });
-  revalidatePath("/features");
+  revalidatePath("/engine/features");
   return { ok: true };
 }
 
@@ -332,7 +332,7 @@ export async function voteFeatureRequest(featureRequestId: string) {
     .update(featureRequests)
     .set({ voteCount: dsql`${featureRequests.voteCount} + 1` })
     .where(and(eq(featureRequests.id, featureRequestId), eq(featureRequests.tenantId, user.tenantId)));
-  revalidatePath("/features");
+  revalidatePath("/engine/features");
   return { ok: true };
 }
 

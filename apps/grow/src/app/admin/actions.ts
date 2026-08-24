@@ -1,6 +1,6 @@
 "use server";
 
-import { assertAuthenticated, logout } from "@/lib/auth";
+import { assertAccess, logout } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,7 +16,7 @@ export async function logoutAction() {
 }
 
 export async function deleteSubmissionAction(id: string) {
-  await assertAuthenticated();
+  await assertAccess("crm", "manage");
   await prisma.submission.delete({
     where: { id },
   });
@@ -24,7 +24,7 @@ export async function deleteSubmissionAction(id: string) {
 }
 
 export async function updateSubmissionAction(id: string, field: string, value: string) {
-  await assertAuthenticated();
+  await assertAccess("crm", "manage");
   if (!EDITABLE_SUBMISSION_FIELDS.includes(field as EditableSubmissionField)) {
     throw new Error(`Field "${field}" is not editable`);
   }
@@ -36,7 +36,7 @@ export async function updateSubmissionAction(id: string, field: string, value: s
 }
 
 export async function updateSubmissionDealValueAction(id: string, dealValue: number) {
-  await assertAuthenticated();
+  await assertAccess("crm", "manage");
   await prisma.submission.update({
     where: { id },
     data: { dealValue },
@@ -45,7 +45,7 @@ export async function updateSubmissionDealValueAction(id: string, dealValue: num
 }
 
 export async function updateSubmissionFollowUpAction(id: string, nextFollowUp: Date | null) {
-  await assertAuthenticated();
+  await assertAccess("crm", "manage");
   await prisma.submission.update({
     where: { id },
     data: { nextFollowUp },
@@ -54,7 +54,7 @@ export async function updateSubmissionFollowUpAction(id: string, nextFollowUp: D
 }
 
 export async function addProductAction(suiteSlug: string, newProduct: ProductInput) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   const suite = await prisma.suite.findUnique({
     where: { slug: suiteSlug },
   });
@@ -80,7 +80,7 @@ export async function addProductAction(suiteSlug: string, newProduct: ProductInp
 }
 
 export async function deleteProductAction(suiteSlug: string, productSlug: string) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   await prisma.product.delete({
     where: { slug: productSlug },
   });
@@ -92,7 +92,7 @@ export async function deleteProductAction(suiteSlug: string, productSlug: string
 }
 
 export async function editProductAction(suiteSlug: string, productSlug: string, data: ProductInput) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   await prisma.product.update({
     where: { slug: productSlug },
     data: {
@@ -113,7 +113,7 @@ export async function editProductAction(suiteSlug: string, productSlug: string, 
 }
 
 export async function toggleProductStatusAction(productSlug: string, currentStatus: string) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   const newStatus = currentStatus === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
   await prisma.product.update({
     where: { slug: productSlug },
@@ -127,7 +127,7 @@ export async function toggleProductStatusAction(productSlug: string, currentStat
 }
 
 export async function addSuiteAction(data: SuiteInput) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   await prisma.suite.create({
     data: {
       suite: data.suite,
@@ -143,7 +143,7 @@ export async function addSuiteAction(data: SuiteInput) {
 }
 
 export async function editSuiteAction(originalSlug: string, data: SuiteInput) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   await prisma.suite.update({
     where: { slug: originalSlug },
     data: {
@@ -160,7 +160,7 @@ export async function editSuiteAction(originalSlug: string, data: SuiteInput) {
 }
 
 export async function deleteSuiteAction(suiteSlug: string) {
-  await assertAuthenticated();
+  await assertAccess("products", "manage");
   await prisma.suite.delete({
     where: { slug: suiteSlug },
   });
@@ -173,7 +173,7 @@ export async function deleteSuiteAction(suiteSlug: string) {
 
 export async function seedEcosystemAction(): Promise<{ success: boolean; error?: string }> {
   try {
-    await assertAuthenticated();
+    await assertAccess("products", "manage");
   } catch {
     return { success: false, error: "Not authenticated. Please log in and try again." };
   }

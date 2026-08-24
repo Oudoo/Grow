@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { getClientIp, rateLimit } from "@/lib/rateLimit";
 
 interface LeadPayload {
   name?: string;
@@ -7,7 +9,22 @@ interface LeadPayload {
   message?: string;
 }
 
+// This endpoint is public (called by the marketing contact form) and triggers a
+// paid outbound WhatsApp message. Cap per-IP volume and clamp field lengths so
+// it cannot be turned into a spam/cost-amplification vector.
+const MAX_LEADS_PER_WINDOW = 5;
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const clamp = (s: string, n: number) => s.slice(0, n).replace(/[\r\n]+/g, " ").trim();
+
 export async function POST(request: Request) {
+  const ip = getClientIp(await headers());
+  if (!rateLimit(`whatsapp:${ip}`, MAX_LEADS_PER_WINDOW, WINDOW_MS).allowed) {
+    return NextResponse.json(
+      { success: false, error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   let data: LeadPayload;
   try {
     data = await request.json();
@@ -15,7 +32,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { name, company, email, message } = data;
+  const name = typeof data.name === "string" ? clamp(data.name, 120) : "";
+  const company = typeof data.company === "string" ? clamp(data.company, 120) : "";
+  const email = typeof data.email === "string" ? clamp(data.email, 160) : "";
+  const message = typeof data.message === "string" ? data.message.slice(0, 1000).trim() : "";
   if (!name || !company) {
     return NextResponse.json(
       { success: false, error: "Missing required fields: name, company" },
@@ -26,7 +46,7 @@ export async function POST(request: Request) {
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_WHATSAPP_FROM;
-  const to = process.env.GROW_SALES_WHATSAPP_TO || process.env.GROW_SALES_WHATSAPP_TO;
+  const to = process.env.GROW_SALES_WHATSAPP_TO;
 
   const body =
     `*NEW GROW LEAD*\n` +

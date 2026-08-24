@@ -63,7 +63,7 @@ export async function createMeeting(formData: FormData) {
     entityType: "meeting",
     entityId: meeting.id,
   });
-  revalidatePath("/meetings");
+  revalidatePath("/engine/meetings");
   return { ok: true, meetingId: meeting.id };
 }
 
@@ -83,7 +83,7 @@ export async function savePrerequisiteResponses(meetingId: string, formData: For
     .update(meetings)
     .set({ prerequisiteResponses: responses, status: "scheduled", updatedAt: new Date() })
     .where(eq(meetings.id, meetingId));
-  revalidatePath(`/meetings/${meetingId}`);
+  revalidatePath(`/engine/meetings/${meetingId}`);
   return { ok: true };
 }
 
@@ -126,7 +126,7 @@ export async function uploadRecording(meetingId: string, formData: FormData) {
   // Queue the full pipeline: transcribe → extract → baseline
   await createAiJob(user.tenantId, meeting.clientId, "meeting_analysis", { meetingId });
 
-  revalidatePath(`/meetings/${meetingId}`);
+  revalidatePath(`/engine/meetings/${meetingId}`);
   return { ok: true };
 }
 
@@ -138,7 +138,7 @@ export async function reanalyzeMeeting(meetingId: string) {
     .where(and(eq(meetings.id, meetingId), eq(meetings.tenantId, user.tenantId)));
   if (!meeting) return { error: "Meeting not found" };
   await createAiJob(user.tenantId, meeting.clientId, "meeting_analysis", { meetingId });
-  revalidatePath(`/meetings/${meetingId}`);
+  revalidatePath(`/engine/meetings/${meetingId}`);
   return { ok: true };
 }
 
@@ -167,7 +167,7 @@ export async function generateSow(meetingId: string) {
   const [sow] = await db.select().from(sowDocuments).where(eq(sowDocuments.id, __sowId));
 
   await createAiJob(user.tenantId, meeting.clientId, "sow", { meetingId, sowId: sow.id });
-  revalidatePath(`/meetings/${meetingId}`);
+  revalidatePath(`/engine/meetings/${meetingId}`);
   return { ok: true, sowId: sow.id };
 }
 
@@ -200,6 +200,6 @@ export async function createPrerequisiteForm(formData: FormData) {
     name: parsed.data.name,
     fields,
   });
-  revalidatePath("/meetings");
+  revalidatePath("/engine/meetings");
   return { ok: true };
 }

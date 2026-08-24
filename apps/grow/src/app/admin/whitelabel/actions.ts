@@ -1,11 +1,11 @@
 "use server";
 
-import { assertAuthenticated } from "@/lib/auth";
+import { assertAccess } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function saveTenantConfigAction(formData: FormData) {
-  await assertAuthenticated();
+  await assertAccess("branding", "manage");
 
   const data = {
     companyName: (formData.get("companyName") as string).trim() || "Grow",

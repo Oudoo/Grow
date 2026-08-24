@@ -30,7 +30,7 @@ export default async function MeetingsPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-2 lg:col-span-2">
           {rows.map(({ meeting: m, clientName }) => (
-            <Link key={m.id} href={`/meetings/${m.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-3 hover:bg-muted/50">
+            <Link key={m.id} href={`/engine/meetings/${m.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-3 hover:bg-muted/50">
               <div>
                 <div className="text-sm font-medium">{m.title}</div>
                 <div className="text-xs text-muted-foreground">

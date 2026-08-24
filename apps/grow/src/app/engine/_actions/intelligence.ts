@@ -77,7 +77,7 @@ export async function createRecommendation(formData: FormData) {
     recommendationId: rec.id,
   });
 
-  revalidatePath(`/clients/${rec.clientId}`);
+  revalidatePath(`/engine/clients/${rec.clientId}`);
   return { ok: true, recommendationId: rec.id };
 }
 
@@ -166,7 +166,7 @@ export async function decideRecommendation(recommendationId: string, formData: F
     changes: { outcome: parsed.data.outcome },
   });
 
-  revalidatePath(`/clients/${rec.clientId}`);
+  revalidatePath(`/engine/clients/${rec.clientId}`);
   return { ok: true };
 }
 
@@ -201,7 +201,7 @@ export async function createDmaicProject(formData: FormData) {
   const [project] = await db.select().from(dmaicProjects).where(eq(dmaicProjects.id, __projectId));
 
   await createAiJob(user.tenantId, project.clientId, "dmaic", { dmaicProjectId: project.id });
-  revalidatePath(`/clients/${project.clientId}`);
+  revalidatePath(`/engine/clients/${project.clientId}`);
   return { ok: true, dmaicProjectId: project.id };
 }
 
@@ -233,7 +233,7 @@ export async function advanceDmaicPhase(dmaicProjectId: string) {
     entityId: dmaicProjectId,
     payload: { clientId: project.clientId, phase: next },
   });
-  revalidatePath(`/clients/${project.clientId}`);
+  revalidatePath(`/engine/clients/${project.clientId}`);
   return { ok: true };
 }
 
@@ -260,7 +260,7 @@ export async function requestForecast(clientId: string, metric: string, horizonD
     horizonDays: forecast.horizonDays,
     forecastId: forecast.id,
   });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true, forecastId: forecast.id };
 }
 
@@ -269,7 +269,7 @@ export async function requestSeasonalityAndLostOpportunity(clientId: string, met
   if (!(await ownedClient(user.tenantId, clientId))) return { error: "Client not found" };
   await createAiJob(user.tenantId, clientId, "seasonality", { clientId, metric });
   await createAiJob(user.tenantId, clientId, "lost_opportunity", { clientId, metric });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -285,7 +285,7 @@ export async function requestAeoAudit(clientId: string, targetUrl: string) {
     .values({ id: __auditRowId, tenantId: user.tenantId, clientId, targetUrl: parsedUrl.data, status: "queued" });
   const [auditRow] = await db.select().from(aeoAudits).where(eq(aeoAudits.id, __auditRowId));
   await createAiJob(user.tenantId, clientId, "aeo_audit", { aeoAuditId: auditRow.id });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true, aeoAuditId: auditRow.id };
 }
 
@@ -305,7 +305,7 @@ export async function requestCompetitorAnalysis(
     operation: "competitor_analysis",
     input: { competitorName, competitorUrl: parsedUrl.data },
   });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -313,7 +313,7 @@ export async function requestQbr(clientId: string) {
   const user = await requirePermission("intelligence:manage");
   if (!(await ownedClient(user.tenantId, clientId))) return { error: "Client not found" };
   await createAiJob(user.tenantId, clientId, "qbr", { clientId });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -322,7 +322,7 @@ export async function requestReport(clientId: string, title: string, focus?: str
   if (!(await ownedClient(user.tenantId, clientId))) return { error: "Client not found" };
   if (!title || title.length < 4) return { error: "Report title required" };
   await createAiJob(user.tenantId, clientId, "report", { clientId, title, focus });
-  revalidatePath(`/clients/${clientId}`);
+  revalidatePath(`/engine/clients/${clientId}`);
   return { ok: true };
 }
 
@@ -371,6 +371,6 @@ export async function createKnowledgeNote(formData: FormData) {
     entityId: doc.id,
     clientId,
   });
-  revalidatePath("/aom");
+  revalidatePath("/engine/aom");
   return { ok: true };
 }

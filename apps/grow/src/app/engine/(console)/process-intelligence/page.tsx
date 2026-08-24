@@ -23,7 +23,7 @@ export default async function ProcessIntelligencePage() {
     "use server";
     const u = await requireTeamUser();
     await createAiJob(u.tenantId, null, "process_intelligence", {});
-    revalidatePath("/process-intelligence");
+    revalidatePath("/engine/process-intelligence");
   }
 
   return (

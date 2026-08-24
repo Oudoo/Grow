@@ -47,7 +47,7 @@ export default async function ClientsPage() {
                 {rows.map((client) => (
                   <TableRow key={client.id}>
                     <TableCell>
-                      <Link href={`/clients/${client.id}`} className="font-medium text-primary hover:underline">
+                      <Link href={`/engine/clients/${client.id}`} className="font-medium text-primary hover:underline">
                         {client.name}
                       </Link>
                       <div className="text-xs text-muted-foreground">{client.industry ?? "—"}</div>
@@ -62,7 +62,7 @@ export default async function ClientsPage() {
                       {client.monthlyRetainer ? formatCurrency(client.monthlyRetainer) : "—"}
                     </TableCell>
                     <TableCell>
-                      <Link href={`/client/${client.slug}`} className="text-xs text-primary underline">
+                      <Link href={`/engine/client/${client.slug}`} className="text-xs text-primary underline">
                         /client/{client.slug}
                       </Link>
                     </TableCell>

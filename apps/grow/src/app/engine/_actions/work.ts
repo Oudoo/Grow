@@ -75,7 +75,7 @@ export async function createTicket(formData: FormData) {
       clientId,
     });
   }
-  revalidatePath("/tickets");
+  revalidatePath("/engine/tickets");
   return { ok: true, ticketId: ticket.id };
 }
 
@@ -110,7 +110,7 @@ export async function updateTicketStatus(ticketId: string, status: string) {
       payload: { subject: ticket.subject, clientId: ticket.clientId },
     });
   }
-  revalidatePath("/tickets");
+  revalidatePath("/engine/tickets");
   return { ok: true };
 }
 
@@ -135,7 +135,7 @@ export async function addComment(entityType: string, entityId: string, formData:
       .set({ firstResponseAt: dsql`COALESCE(${tickets.firstResponseAt}, NOW())` })
       .where(and(eq(tickets.id, entityId), eq(tickets.tenantId, user.tenantId)));
   }
-  revalidatePath("/tickets");
+  revalidatePath("/engine/tickets");
   return { ok: true };
 }
 
@@ -170,7 +170,7 @@ export async function createTask(formData: FormData) {
     dueDate: parsed.data.dueDate || null,
     estimateHours: parsed.data.estimateHours?.toString(),
   });
-  revalidatePath("/tasks");
+  revalidatePath("/engine/tasks");
   return { ok: true };
 }
 
@@ -206,7 +206,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
       payload: { title: task.title, clientId: task.clientId },
     });
   }
-  revalidatePath("/tasks");
+  revalidatePath("/engine/tasks");
   return { ok: true };
 }
 
@@ -220,7 +220,7 @@ export async function addSubTask(taskId: string, formData: FormData) {
     .where(and(eq(tasks.id, taskId), eq(tasks.tenantId, user.tenantId)));
   if (!task) return { error: "Task not found" };
   await db.insert(subTasks).values({ tenantId: user.tenantId, taskId, title });
-  revalidatePath("/tasks");
+  revalidatePath("/engine/tasks");
   return { ok: true };
 }
 
@@ -291,6 +291,6 @@ export async function publishShowcase(formData: FormData) {
     entityType: "sprint_showcase",
     entityId: showcase.id,
   });
-  revalidatePath(`/clients/${client.id}`);
+  revalidatePath(`/engine/clients/${client.id}`);
   return { ok: true };
 }

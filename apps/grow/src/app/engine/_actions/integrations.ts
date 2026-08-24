@@ -97,8 +97,8 @@ export async function createIntegration(formData: FormData) {
     operation: "sync",
   });
 
-  revalidatePath("/integrations");
-  revalidatePath(`/clients/${client.id}`);
+  revalidatePath("/engine/integrations");
+  revalidatePath(`/engine/clients/${client.id}`);
   return { ok: true, integrationId: integration.id };
 }
 
@@ -122,7 +122,7 @@ export async function triggerSync(integrationId: string) {
     entityType: "integration",
     entityId: integrationId,
   });
-  revalidatePath("/integrations");
+  revalidatePath("/engine/integrations");
   return { ok: true };
 }
 
@@ -143,7 +143,7 @@ export async function triggerBackfill(integrationId: string, days: number) {
     operation: "backfill",
     options: { since },
   });
-  revalidatePath("/integrations");
+  revalidatePath("/engine/integrations");
   return { ok: true };
 }
 
@@ -160,6 +160,6 @@ export async function disconnectIntegration(integrationId: string) {
     entityType: "integration",
     entityId: integrationId,
   });
-  revalidatePath("/integrations");
+  revalidatePath("/engine/integrations");
   return { ok: true };
 }

@@ -160,7 +160,7 @@ export default async function ClientDetailPage({
                 {client.websiteUrl}
               </a>
             )}
-            <Link href={`/client/${client.slug}`} className="text-primary underline">
+            <Link href={`/engine/client/${client.slug}`} className="text-primary underline">
               Client portal →
             </Link>
           </div>
@@ -781,7 +781,7 @@ export default async function ClientDetailPage({
                 <CompetitorForm clientId={client.id} />
                 <div className="mt-3 space-y-1.5">
                   {docs.filter((d) => d.type === "research").slice(0, 6).map((d) => (
-                    <Link key={d.id} href={`/aom/doc/${d.id}`} className="block rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
+                    <Link key={d.id} href={`/engine/aom/doc/${d.id}`} className="block rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
                       {d.title}
                     </Link>
                   ))}
@@ -794,14 +794,14 @@ export default async function ClientDetailPage({
             <CardHeader><CardTitle>Meetings</CardTitle></CardHeader>
             <CardContent className="space-y-1.5">
               {meetingRows.map((m) => (
-                <Link key={m.id} href={`/meetings/${m.id}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
+                <Link key={m.id} href={`/engine/meetings/${m.id}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
                   <span>{m.title}</span>
                   <Badge variant={statusVariant(m.status)}>{m.status.replace(/_/g, " ")}</Badge>
                 </Link>
               ))}
               {meetingRows.length === 0 && (
                 <p className="py-4 text-center text-sm text-muted-foreground">
-                  No meetings — create one under <Link href="/meetings" className="text-primary underline">Meetings</Link>.
+                  No meetings — create one under <Link href="/engine/meetings" className="text-primary underline">Meetings</Link>.
                 </p>
               )}
             </CardContent>
@@ -811,7 +811,7 @@ export default async function ClientDetailPage({
         {/* ───────────── DOCUMENTS ───────────── */}
         <TabsContent value="documents" className="space-y-3">
           {docs.map((doc) => (
-            <Link key={doc.id} href={`/aom/doc/${doc.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-3 hover:bg-muted/50">
+            <Link key={doc.id} href={`/engine/aom/doc/${doc.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-3 hover:bg-muted/50">
               <div>
                 <div className="text-sm font-medium">{doc.title}</div>
                 <div className="text-xs text-muted-foreground">{doc.createdAt.toISOString().slice(0, 10)}</div>
