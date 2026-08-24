@@ -76,13 +76,20 @@ export default async function RootLayout({
   // The navbar mega-menu needs the ecosystem, but a DB hiccup must never take
   // down the entire site (this layout wraps every page, including static ones).
   // Fall back to the bundled ecosystem data so navigation still renders.
+  //
+  // The fallback alone is not enough: without a deadline, a database that is
+  // reachable-but-slow (or a saturated connection pool on shared hosting) makes
+  // the driver wait out its own ~30s timeout on EVERY dynamically rendered page
+  // before this catch runs. Measured 31.5s on / and /admin/login in production.
+  // Race the query against a short deadline so a slow DB costs ~1.5s, not 30.
   let ecosystemData: EcosystemSuite[] = fallbackEcosystem;
   try {
-    ecosystemData = await prisma.suite.findMany({
-      include: {
-        products: true,
-      },
-    });
+    ecosystemData = await Promise.race([
+      prisma.suite.findMany({ include: { products: true } }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("ecosystem query timed out")), 1500)
+      ),
+    ]);
   } catch (e) {
     console.error("Layout: failed to load ecosystem from DB, using static fallback:", e);
   }
