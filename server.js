@@ -96,6 +96,30 @@ try {
   console.warn("[server] Could not read .grow.env:", err.message);
 }
 
+// ── 1a. DATABASE_URL host normalisation ────────────────────────────────────
+// MySQL accounts are per-host: `user@localhost` and `user@<ip>` are DIFFERENT
+// accounts with DIFFERENT passwords. On this host the `@localhost` account still
+// carries an old password that cannot be changed from the panel or over SQL
+// (ALTER USER is not permitted to this user), so connecting via `localhost`
+// fails with "Authentication failed against database server" even though the
+// credentials are correct for the account we CAN manage.
+//
+// Point at the real database hostname instead, whose account matches the
+// panel-set password. Override with DATABASE_HOST if the host ever changes.
+try {
+  const raw = process.env.DATABASE_URL;
+  if (raw) {
+    const u = new URL(raw);
+    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
+      u.hostname = process.env.DATABASE_HOST || "srv1808.hstgr.io";
+      process.env.DATABASE_URL = u.toString();
+      console.log(`[server] DATABASE_URL host normalised to ${u.hostname} (per-host MySQL accounts)`);
+    }
+  }
+} catch (err) {
+  console.warn("[server] could not normalise DATABASE_URL host:", err.message);
+}
+
 // ── 1b. AUTH_SECRET must exist, and must not be a shared/guessable default ──
 // Sessions are signed with AUTH_SECRET. src/lib/auth.ts deliberately refuses to
 // fall back to a hardcoded key in production (a known key = forgeable sessions),
