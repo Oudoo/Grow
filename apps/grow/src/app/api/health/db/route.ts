@@ -24,14 +24,39 @@ export async function GET() {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e: unknown) {
-    const err = e as { code?: string; errorCode?: string; message?: string };
+    const err = e as { name?: string; code?: string; errorCode?: string; message?: string };
+    // Prisma puts the actual cause several lines in, after blank lines, so drop
+    // the empties before trimming — an earlier version sliced the first 4 raw
+    // lines and cut the real error off entirely.
+    const detail = (err.message ?? "")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .slice(0, 6)
+      .join(" | ")
+      .slice(0, 500);
+
+    // Describe the configured datasource WITHOUT credentials, so a wrong host or
+    // database name is visible while the password never is.
+    let datasource = "unset";
+    const raw = process.env.DATABASE_URL;
+    if (raw) {
+      try {
+        const u = new URL(raw);
+        datasource = `${u.protocol.replace(":", "")}://<user>:<redacted>@${u.hostname}:${u.port || "default"}${u.pathname}`;
+      } catch {
+        datasource = "set-but-unparseable";
+      }
+    }
+
     return Response.json(
       {
         ok: false,
         ms: Date.now() - started,
+        name: err.name ?? "unknown",
         code: err.code ?? err.errorCode ?? "unknown",
-        // Prisma messages name the failing operation/host but not the password.
-        message: (err.message ?? "").split("\n").slice(0, 4).join(" ").slice(0, 400),
+        datasource,
+        message: detail,
       },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
