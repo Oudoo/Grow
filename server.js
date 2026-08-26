@@ -51,16 +51,51 @@ function findPersistentEnv() {
   return fs.existsSync(home) ? home : null;
 }
 
+let resolvedEnvPath = null;
 try {
-  const envPath = findPersistentEnv();
-  if (envPath) {
-    require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] })).config({ path: envPath });
-    console.log(`[server] Loaded persistent secrets from ${envPath}`);
+  resolvedEnvPath = findPersistentEnv();
+  if (resolvedEnvPath) {
+    require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] })).config({ path: resolvedEnvPath });
+    console.log(`[server] Loaded persistent secrets from ${resolvedEnvPath}`);
   } else {
     console.warn("[server] No .grow.env found — starting without it (front end still serves).");
   }
 } catch (err) {
   console.warn("[server] Could not read .grow.env:", err.message);
+}
+
+// ── 1b. AUTH_SECRET must exist, and must not be a shared/guessable default ──
+// Sessions are signed with AUTH_SECRET. src/lib/auth.ts deliberately refuses to
+// fall back to a hardcoded key in production (a known key = forgeable sessions),
+// which means a missing AUTH_SECRET makes every login throw. Rather than fail the
+// whole console, generate a strong secret once and persist it to .grow.env — that
+// file lives OUTSIDE the deploy directory, so it survives redeploys and never
+// enters git. Existing sessions are invalidated once, on the boot that creates it.
+try {
+  const current = process.env.AUTH_SECRET;
+  if (!current || current.length < 16) {
+    const generated = require("node:crypto").randomBytes(32).toString("base64");
+    process.env.AUTH_SECRET = generated;
+
+    const target = resolvedEnvPath || path.join(path.dirname(__dirname), ".grow.env");
+    try {
+      const line = `\n# Generated automatically on first boot — do not share or commit.\nAUTH_SECRET=${generated}\n`;
+      fs.appendFileSync(target, line, { mode: 0o600 });
+      console.warn(
+        `[server] AUTH_SECRET was missing/too short — generated a new one and saved it to ${target}. ` +
+          `Existing sessions are invalidated; everyone signs in again once.`
+      );
+    } catch (writeErr) {
+      // Could not persist (read-only FS/permissions): keep the in-memory secret so
+      // logins work now, but warn loudly — it will differ on the next boot.
+      console.error(
+        `[server] AUTH_SECRET missing and could not be persisted to ${target}: ${writeErr.message}. ` +
+          `Using an in-memory secret — sessions will not survive a restart. Set AUTH_SECRET manually.`
+      );
+    }
+  }
+} catch (err) {
+  console.error("[server] AUTH_SECRET bootstrap failed:", err.message);
 }
 
 // ── 2. Web server — first, and unconditional ──────────────────────────────

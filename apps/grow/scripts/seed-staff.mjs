@@ -36,6 +36,36 @@ const TEAM = [
   { email: "hana.mohamed@growcdx.com", name: "Hana" },
 ];
 
+/**
+ * Every business module at `manage`, with `iam` deliberately absent (= none).
+ * Mirrors ModuleKey in src/lib/access.ts, minus `iam` (user administration) and
+ * minus `chatbot` (no route exists yet).
+ */
+const EXEC_ACCESS = {
+  analytics: "manage",
+  crm: "manage",
+  finance: "manage",
+  support: "manage",
+  products: "manage",
+  projects: "manage",
+  branding: "manage",
+  playbook: "manage",
+  engine: "manage",
+  producer: "manage",
+};
+
+const EXECUTIVES = [
+  {
+    email: "basem.341@gmail.com",
+    name: "Basem",
+    // Shares STAFF_PASSWORD by request; set only when the account is created.
+    get password() {
+      return process.env.STAFF_PASSWORD;
+    },
+    access: EXEC_ACCESS,
+  },
+];
+
 async function main() {
   const staffPassword = process.env.STAFF_PASSWORD;
 
@@ -78,6 +108,37 @@ async function main() {
           },
         });
         console.log(`[seed-staff] created super admin: ${u.email}`);
+      }
+    }
+    // ── Executive (CEO) account ────────────────────────────────────────────
+    // Highest END-USER access: `manage` on every business module, and NO `iam`
+    // grant — so this account runs the whole business but cannot create, edit,
+    // delete or re-permission users, and cannot grant itself more access.
+    // Role is ADMIN, not SUPER_ADMIN: SUPER_ADMIN implicitly gets `manage`
+    // everywhere (including iam), which would defeat the exclusion.
+    // Password is set only on creation, so later changes are never clobbered.
+    for (const exec of EXECUTIVES) {
+      if (!exec.password) continue;
+      const existing = await prisma.adminUser.findUnique({ where: { email: exec.email } }).catch(() => null);
+      const access = JSON.stringify(exec.access);
+      if (existing) {
+        await prisma.adminUser.update({
+          where: { email: exec.email },
+          data: { role: "ADMIN", isActive: true, access },
+        });
+        console.log(`[seed-staff] ensured executive (no IAM): ${exec.email}`);
+      } else {
+        await prisma.adminUser.create({
+          data: {
+            email: exec.email,
+            name: exec.name,
+            role: "ADMIN",
+            isActive: true,
+            access,
+            passwordHash: hashPassword(exec.password),
+          },
+        });
+        console.log(`[seed-staff] created executive (no IAM): ${exec.email}`);
       }
     }
   } catch (e) {
