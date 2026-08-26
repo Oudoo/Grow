@@ -73,7 +73,21 @@ export async function login(email: string, password: string): Promise<LoginResul
     }
   }
 
-  const user = await prisma.adminUser.findUnique({ where: { email: normEmail } });
+  // Distinguish "wrong credentials" from "we cannot reach the database". This
+  // lookup used to be unguarded, so any DB error threw out of the server action
+  // and the form showed its generic catch-all ("Something went wrong"), which is
+  // indistinguishable from a bug and sent us chasing the wrong cause. Report the
+  // infrastructure failure as itself — without leaking connection details.
+  let user;
+  try {
+    user = await prisma.adminUser.findUnique({ where: { email: normEmail } });
+  } catch (e) {
+    console.error("[login] database unreachable during user lookup:", e);
+    return {
+      ok: false,
+      error: "Cannot reach the accounts database. This is a server problem, not your password.",
+    };
+  }
   if (!user || !user.isActive) return { ok: false, error: "Invalid email or password." };
 
   const valid = await verifyPasswordHash(password, user.passwordHash);
