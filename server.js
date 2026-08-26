@@ -73,8 +73,22 @@ let resolvedEnvPath = null;
 try {
   resolvedEnvPath = findPersistentEnv();
   if (resolvedEnvPath) {
-    require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] })).config({ path: resolvedEnvPath });
-    console.log(`[server] Loaded persistent secrets from ${resolvedEnvPath}`);
+    // override: true — .grow.env is the AUTHORITATIVE production secret store.
+    //
+    // The host also injects environment variables from its control panel, and
+    // those are set before this process starts, so plain dotenv (which never
+    // replaces an existing value) silently loses to them. That is how a stale
+    // panel-configured DATABASE_URL kept its old password and made every query
+    // fail with "Authentication failed against database server" — while the
+    // correct value sat in this file, ignored.
+    //
+    // This file lives outside the deploy directory, survives redeploys, is not
+    // in git, and is the documented place for production secrets. It should win.
+    require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] })).config({
+      path: resolvedEnvPath,
+      override: true,
+    });
+    console.log(`[server] Loaded persistent secrets from ${resolvedEnvPath} (authoritative)`);
   } else {
     console.warn("[server] No .grow.env found — starting without it (front end still serves).");
   }
