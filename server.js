@@ -30,6 +30,24 @@ const { spawn } = require("node:child_process");
 const APP_DIR = path.join(__dirname, "apps", "grow");
 const PORT = process.env.PORT || 3000;
 
+// Run FROM the Next app directory, the way `next start` would.
+//
+// Passenger sets cwd to PassengerAppRoot (<domain>/nodejs), but the app itself
+// lives at <root>/apps/grow because we deploy the monorepo. Prisma resolves its
+// query-engine binary relative to cwd, so it looked for
+//   <nodejs>/src/generated/prisma/libquery_engine-debian-openssl-1.1.x.so.node
+// and failed with PrismaClientInitializationError ("could not locate the Query
+// Engine"), while the real file sits under apps/grow/src/generated/prisma.
+// Every database call then threw — which surfaced only as a failed login,
+// because the marketing pages fall back to bundled data on a DB error.
+// This used to work by accident: the previous app root was a FLAT copy of
+// apps/grow, so cwd-relative lookups happened to land correctly.
+try {
+  if (fs.existsSync(APP_DIR)) process.chdir(APP_DIR);
+} catch (err) {
+  console.error("[server] could not chdir to the app directory:", err.message);
+}
+
 // Passenger restarts the app on an uncaught error. Bootstrap problems must
 // degrade the admin modules, never take the front end down.
 process.on("unhandledRejection", (err) => console.error("[server] unhandled rejection:", err));
