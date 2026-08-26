@@ -41,24 +41,11 @@ export async function GET() {
     // Describe the configured datasource WITHOUT credentials, so a wrong host or
     // database name is visible while the password never is.
     let datasource = "unset";
-    let pwFingerprint = "n/a";
     const raw = process.env.DATABASE_URL;
     if (raw) {
       try {
         const u = new URL(raw);
         datasource = `${u.protocol.replace(":", "")}://<user>:<redacted>@${u.hostname}:${u.port || "default"}${u.pathname}`;
-        // A short one-way fingerprint of the configured password. This is NOT the
-        // password and cannot be reversed; it exists so a stale credential can be
-        // identified by comparing against known candidates offline, instead of
-        // guessing which of several passwords the deployment is actually using.
-        // Remove once the credential is confirmed correct.
-        if (u.password) {
-          pwFingerprint = require("node:crypto")
-            .createHash("md5")
-            .update(decodeURIComponent(u.password))
-            .digest("hex")
-            .slice(0, 12);
-        }
       } catch {
         datasource = "set-but-unparseable";
       }
@@ -89,7 +76,6 @@ export async function GET() {
         name: err.name ?? "unknown",
         code: err.code ?? err.errorCode ?? "unknown",
         datasource,
-        pwFingerprint,
         envSource: process.env.DATABASE_URL ? "process-env" : "absent",
         cwd: process.cwd(),
         engines,
