@@ -241,3 +241,76 @@ The Engine repos are vendored (core+db copied in); re-run `scripts/stage-engine.
 to regenerate them after changing engine packages, then push. Hostinger redeploys on push.
 
 **Total monthly cost: $0** (Hostinger plan + Supabase free + Upstash free).
+
+---
+
+## Email notifications — one-time setup
+
+The project board sends email on @mentions, task assignment, comments on your
+tasks, and due-date reminders. **The app runs fine without any of this**:
+notifications appear in-app under `/admin/notifications`, and each one is queued
+for email. The queue drains automatically the moment SMTP credentials exist —
+nothing is lost while it is unconfigured.
+
+Check the current state at `/api/health/mail` (needs an admin session). It
+reports whether SMTP is configured, whether the credentials actually work, and
+how many messages are sitting in the outbox.
+
+### 1. Create the mailbox
+
+hPanel → **Emails** → your `growcdx.com` mail account → create
+`notifications@growcdx.com`. Keep the password it gives you.
+
+### 2. Add the settings to `.grow.env`
+
+`.grow.env` lives **outside** the deploy directory so redeploys preserve it, and
+`server.js` loads it authoritatively (it overrides anything set in the hPanel
+environment panel). Append:
+
+```
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=notifications@growcdx.com
+SMTP_PASS=<the mailbox password>
+MAIL_FROM=GROW <notifications@growcdx.com>
+APP_URL=https://growcdx.com
+CRON_SECRET=<a long random string>
+```
+
+Generate `CRON_SECRET` with:
+
+```
+node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
+```
+
+Then restart the Node app (hPanel → Website → Node.js → Restart) so the new
+values are read.
+
+### 3. Schedule the dispatcher
+
+The dispatcher does two things on each run: sweeps due dates (queueing reminders
+for tasks that are due soon or already late) and drains the email outbox.
+Without it, mentions and assignments still email — those trigger an immediate
+background send — but **due-date reminders never fire**, and any message that
+failed its first send is never retried.
+
+hPanel → **Advanced** → **Cron Jobs**, every 15 minutes (`*/15 * * * *`):
+
+```
+curl -fsS -H "x-cron-secret: $(grep -m1 '^CRON_SECRET=' /home/u454713534/.grow.env | cut -d= -f2-)" https://growcdx.com/api/notifications/dispatch > /dev/null
+```
+
+Adjust the `.grow.env` path if it lives elsewhere — `server.js` logs the path it
+loaded at boot (`Loaded persistent secrets from …`).
+
+### Verifying
+
+| Check | What it tells you |
+| :-- | :-- |
+| `/api/health/mail` | SMTP configured? credentials valid? outbox depth? |
+| `/api/health/db` | database reachable, and whether the notification tables exist |
+| `/admin/notifications` | your own inbox; warns inline when SMTP is unset |
+
+An admin with `projects:manage` can also trigger a dispatch run from the browser
+by opening `/api/notifications/dispatch` — the session is accepted in place of
+the cron secret, and the JSON response reports exactly what was swept and sent.

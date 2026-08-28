@@ -435,12 +435,11 @@ export async function addCommentAction(taskId: string, projectId: string, formDa
   });
   if (!task) return;
 
-  const mentioned = await notifyMentions(
-    actor,
-    content,
-    { id: taskId, title: task.title, projectId, assigneeId: task.assigneeId },
-    { alsoOwner: true, kind: "comment", title: "commented on" },
-  );
+  // Resolve mentions first so they can be stored with the comment, but notify
+  // only AFTER the write succeeds — telling someone they were mentioned in a
+  // comment that failed to save would be a lie.
+  const directory = await directoryFor("projects", "view");
+  const mentioned = mentionedUserIds(content, directory);
 
   await prisma.comment.create({
     data: {
@@ -452,6 +451,13 @@ export async function addCommentAction(taskId: string, projectId: string, formDa
       taskId,
     },
   });
+
+  await notifyMentions(
+    actor,
+    content,
+    { id: taskId, title: task.title, projectId, assigneeId: task.assigneeId },
+    { alsoOwner: true, kind: "comment", title: "commented on" },
+  );
 
   await recordActivity({
     taskId, actorId: actor.uid, actorName: actor.name, kind: "comment",

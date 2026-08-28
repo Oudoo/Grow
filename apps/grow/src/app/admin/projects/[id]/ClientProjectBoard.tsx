@@ -296,8 +296,10 @@ export function ClientProjectBoard({
                     {directory.map((m) => (
                       <option key={m.id || "unassigned"} value={m.id}>{m.name}</option>
                     ))}
-                    {/* Preserve an owner who has since lost access, so opening
-                        the panel cannot silently reassign the task on save. */}
+                    {/* An owner who has since lost access is not in the picker
+                        list, so without this the select would fall back to
+                        showing the first option and misreport who owns the
+                        task. Choosing anyone else still reassigns normally. */}
                     {activeTask.assigneeId &&
                       !directory.some((d) => d.id === activeTask.assigneeId) && (
                         <option value={activeTask.assigneeId}>{activeTask.assignee} (no access)</option>

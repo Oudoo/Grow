@@ -188,13 +188,21 @@ function step(label, cmd, args, timeoutMs = 120_000) {
       console.warn(`[bootstrap] ${label} could not start: ${err.message}`);
       return resolve(false);
     }
+    // Outcomes go to STDOUT, deliberately — including the failures.
+    //
+    // These used to be console.warn, which lands in nodejs/stderr.log. That
+    // file grew large enough to be unreadable (ERR_STRING_TOO_LONG), so three
+    // consecutive deploys logged "schema sync (prisma db push)…" and then
+    // silently moved on with no visible outcome, while the schema never
+    // applied. A bootstrap step's result is exactly the thing you need to read
+    // after a deploy; it belongs in the log you can actually open.
     child.on("error", (err) => {
-      console.warn(`[bootstrap] ${label} could not run: ${err.message}`);
+      console.log(`[bootstrap] ${label} could not run: ${err.message}`);
       resolve(false);
     });
     child.on("exit", (code, signal) => {
-      if (signal) console.warn(`[bootstrap] ${label} timed out — skipped.`);
-      else if (code !== 0) console.warn(`[bootstrap] ${label} exited ${code} — continuing.`);
+      if (signal) console.log(`[bootstrap] ${label} timed out — skipped.`);
+      else if (code !== 0) console.log(`[bootstrap] ${label} exited ${code} — continuing.`);
       else console.log(`[bootstrap] ${label} ok.`);
       resolve(code === 0);
     });
@@ -216,9 +224,19 @@ async function bootstrapDatabase() {
     return;
   }
   try {
+    // Hub schema first, over mysql2 — see scripts/migrate-hub.mjs for why this
+    // does not use `prisma db push`. The CLI needs Prisma's schema-engine
+    // binary, which is not usable on this host: the push step failed on every
+    // boot while the app's own queries worked fine.
+    await step("hub schema", process.execPath, ["scripts/migrate-hub.mjs"]);
+
+    // Still attempt the CLI push afterwards. It is a no-op when migrate-hub has
+    // already applied everything, and if the CLI ever becomes usable here it
+    // catches anything the hand-written DDL missed. Its failure is now logged
+    // visibly rather than swallowed into an unreadable stderr.log.
     const prismaBin = resolveBin("prisma");
     if (prismaBin) await step("schema sync (prisma db push)", prismaBin, ["db", "push", "--skip-generate"]);
-    else console.warn("[bootstrap] prisma CLI not found — skipping schema sync.");
+    else console.log("[bootstrap] prisma CLI not found — skipping schema sync.");
 
     await step("engine schema", process.execPath, ["scripts/migrate-engine.mjs"]);
     await step("staff IAM accounts", process.execPath, ["scripts/seed-staff.mjs"]);
