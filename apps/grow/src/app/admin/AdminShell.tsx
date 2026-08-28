@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2 } from "lucide-react";
+import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound } from "lucide-react";
 import { logoutAction } from "./actions";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -24,6 +24,7 @@ const LINKS: NavLink[] = [
   { name: "Help Desk", href: "/admin/support", icon: LifeBuoy, module: "support" },
   { name: "Content Management", href: "/admin/products", icon: Package, module: "products" },
   { name: "Project Management", href: "/admin/projects", icon: Briefcase, module: "projects" },
+  { name: "My Work", href: "/admin/projects/my-work", icon: UserRound, module: "projects" },
   { name: "IAM Portal", href: "/admin/iam", icon: Shield, module: "iam" },
   // Client Access + White-Label write client/tenant config — gate on manage.
   { name: "Client Access", href: "/admin/clients", icon: Building2, module: "iam", need: "manage" },
@@ -41,10 +42,13 @@ export default function AdminShell({
   children,
   role,
   access,
+  unread = 0,
 }: {
   children: React.ReactNode;
   role: UserRole;
   access: AccessMap;
+  /** Unread notification count, for the sidebar bell badge. */
+  unread?: number;
 }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -118,6 +122,27 @@ export default function AdminShell({
         </nav>
 
         <div className="p-4 border-t border-fg/5 space-y-2">
+          {/* Notifications — every account has an inbox, so this is not gated
+              on a module: a mention can reach anyone with a Grow account. */}
+          <Link
+            href="/admin/notifications"
+            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors ${
+              pathname === "/admin/notifications"
+                ? "bg-cyan/10 text-cyan font-bold"
+                : "text-slate hover:bg-fg/5 hover:text-platinum"
+            }`}
+          >
+            <span className="relative">
+              <Bell className="w-5 h-5" />
+              {unread > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-cyan text-void text-[9px] font-bold min-w-[15px] h-[15px] px-1 rounded-full flex items-center justify-center">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
+            </span>
+            <span>Notifications</span>
+          </Link>
+
           {/* Theme toggle */}
           {mounted && (
             <button
