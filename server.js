@@ -240,6 +240,16 @@ async function bootstrapDatabase() {
 
     await step("engine schema", process.execPath, ["scripts/migrate-engine.mjs"]);
     await step("staff IAM accounts", process.execPath, ["scripts/seed-staff.mjs"]);
+
+    // AFTER the staff seed — it can only match owners against accounts that
+    // already exist. Idempotent: a no-op once every task is linked.
+    await step("link task owners", process.execPath, ["scripts/link-task-owners.mjs"]);
+
+    // Client knowledge bases: content/clients/**.md is the source of truth, and
+    // this pushes it into the engine so an edited dossier ships with a deploy.
+    // Idempotent — no writes when nothing changed.
+    await step("client knowledge bases", process.execPath, ["scripts/seed-client-knowledge.mjs"]);
+
     console.log("[bootstrap] Done.");
   } catch (err) {
     console.warn("[bootstrap] Failed (site unaffected):", err.message);

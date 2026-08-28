@@ -23,6 +23,31 @@ import {
   processInsights,
 } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
+
+/**
+ * Knowledge-base sections, in reading order: strategy first, then evidence,
+ * then correspondence. Any type not listed falls into the final catch-all, so
+ * adding a new document type can never make its documents invisible.
+ */
+const KNOWLEDGE_GROUPS: { types: string[]; label: string; blurb: string }[] = [
+  { types: ["research"], label: "Strategy & intelligence", blurb: "Framework, positioning and what we still need to learn." },
+  { types: ["report", "qbr"], label: "Audits & reports", blurb: "Verified findings and reviews." },
+  { types: ["sow", "expectation_baseline"], label: "Scope & baselines", blurb: "What was agreed, and what was promised." },
+  { types: ["digest", "email", "note", "other"], label: "Notes & correspondence", blurb: "Working notes and day-to-day record." },
+];
+
+/** First meaningful line of a markdown body, for a list preview. */
+function excerpt(markdown: string, max = 180): string {
+  const line = markdown
+    .split("\n")
+    .map((l) => l.trim())
+    // Skip headings, quotes, table rows and horizontal rules — none of them
+    // read as a summary on their own.
+    .find((l) => l.length > 0 && !/^([#>|]|-{3,}|\*{3,})/.test(l));
+  if (!line) return "";
+  const plain = line.replace(/[*_`]/g, "");
+  return plain.length > max ? plain.slice(0, max).trimEnd() + "…" : plain;
+}
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/engine/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/engine/ui/card";
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
@@ -182,7 +207,7 @@ export default async function ClientDetailPage({
           <TabsTrigger value="dmaic">DMAIC</TabsTrigger>
           <TabsTrigger value="creative">Creative & CAT</TabsTrigger>
           <TabsTrigger value="aeo">AEO & Research</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="documents">Knowledge</TabsTrigger>
         </TabsList>
 
         {/* ───────────── OVERVIEW ───────────── */}
@@ -808,21 +833,59 @@ export default async function ClientDetailPage({
           </Card>
         </TabsContent>
 
-        {/* ───────────── DOCUMENTS ───────────── */}
-        <TabsContent value="documents" className="space-y-3">
-          {docs.map((doc) => (
-            <Link key={doc.id} href={`/engine/aom/doc/${doc.id}`} className="flex items-center justify-between rounded-md border bg-card px-4 py-3 hover:bg-muted/50">
-              <div>
-                <div className="text-sm font-medium">{doc.title}</div>
-                <div className="text-xs text-muted-foreground">{doc.createdAt.toISOString().slice(0, 10)}</div>
-              </div>
-              <Badge variant="outline">{doc.type}</Badge>
-            </Link>
-          ))}
-          {docs.length === 0 && (
+        {/* ───────────── KNOWLEDGE BASE ───────────── */}
+        {/*
+          This client's knowledge base. Grouped by document type rather than
+          listed flat: a dossier is read by kind ("what did the audit say?"),
+          not by date, and a single reverse-chronological list buries the
+          strategic documents under whatever note was written most recently.
+        */}
+        <TabsContent value="documents" className="space-y-6">
+          {docs.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              Reports, QBRs, digests, baselines and research will appear here as they are generated.
+              No knowledge documents yet. Durable dossiers live in
+              <code className="mx-1 rounded bg-muted px-1 py-0.5 text-xs">content/clients/{client.slug}/</code>
+              and are imported on deploy; ad-hoc notes can be added from Agency Operating Memory.
             </p>
+          ) : (
+            KNOWLEDGE_GROUPS.map(({ types, label, blurb }) => {
+              const group = docs.filter((d) => types.includes(d.type));
+              if (group.length === 0) return null;
+              return (
+                <section key={label}>
+                  <h3 className="text-sm font-semibold">{label}</h3>
+                  <p className="mb-2 text-xs text-muted-foreground">{blurb}</p>
+                  <div className="space-y-2">
+                    {group.map((doc) => {
+                      const tags = Array.isArray(doc.tags) ? (doc.tags as string[]) : [];
+                      return (
+                        <Link
+                          key={doc.id}
+                          href={`/engine/aom/doc/${doc.id}`}
+                          className="block rounded-md border bg-card px-4 py-3 hover:bg-muted/50"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-medium">{doc.title}</span>
+                            <Badge variant="outline">{doc.type}</Badge>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                            {excerpt(doc.contentMarkdown)}
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span className="text-[11px] text-muted-foreground">
+                              {doc.createdAt.toISOString().slice(0, 10)}
+                            </span>
+                            {tags.slice(0, 5).map((t) => (
+                              <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
+                            ))}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })
           )}
         </TabsContent>
       </Tabs>
