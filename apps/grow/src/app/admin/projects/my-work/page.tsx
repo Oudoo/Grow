@@ -10,7 +10,7 @@ import { can } from "@/lib/access";
 import { unreadCount } from "@/lib/notify";
 import {
   PRIORITY_LABEL, PRIORITY_STYLE, PRIORITY_RANK,
-  dueLabel, isOverdue, daysUntilDue, type Priority,
+  dueLabel, isOverdue, daysUntilDue, normalisePriority,
 } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
@@ -162,7 +162,7 @@ function Group({ title, tasks, tone }: { title: string; tasks: Row[]; tone?: "da
       </h2>
       <ul className="space-y-2">
         {tasks.map((t) => {
-          const priority = (t.priority as Priority) ?? "MEDIUM";
+          const priority = normalisePriority(t.priority);
           const due = dueLabel(t.dueDate, t.status);
           const overdue = isOverdue(t.dueDate, t.status);
           const subDone = t.subTasks.filter((s) => s.isCompleted).length;

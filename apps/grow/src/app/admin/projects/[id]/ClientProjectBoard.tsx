@@ -26,7 +26,7 @@ import type { Project, Task, SubTask, Comment, Attachment } from "@/generated/pr
 import type { DirectoryOption } from "@/lib/directory";
 import {
   PRIORITIES, PRIORITY_LABEL, PRIORITY_STYLE, PRIORITY_RANK,
-  dueLabel, formatDueDate, isOverdue, type Priority,
+  dueLabel, formatDueDate, isOverdue, normalisePriority, type Priority,
 } from "@/lib/projects";
 import { MentionTextarea } from "@/components/mentions/MentionTextarea";
 import { MentionText } from "@/components/mentions/MentionText";
@@ -499,7 +499,9 @@ function TaskCard({ task, onClick }: { task: TaskWithRelations; onClick: () => v
   const subProg = subTotal === 0 ? 0 : Math.round((subDone / subTotal) * 100);
   const overdue = isOverdue(task.dueDate, task.status);
   const due = dueLabel(task.dueDate, task.status);
-  const priority = (task.priority as Priority) ?? "MEDIUM";
+  // Validate rather than cast: a stray value would otherwise index
+  // PRIORITY_STYLE to undefined and render className="undefined".
+  const priority = normalisePriority(task.priority);
 
   return (
     <div
