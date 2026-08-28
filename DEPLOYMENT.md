@@ -314,3 +314,26 @@ loaded at boot (`Loaded persistent secrets from …`).
 An admin with `projects:manage` can also trigger a dispatch run from the browser
 by opening `/api/notifications/dispatch` — the session is accepted in place of
 the cron secret, and the JSON response reports exactly what was swept and sent.
+
+---
+
+## Database remote access
+
+The app reaches MySQL from the web node over **IPv6**, at
+`2a02:4780:3f:1234::39`. Grants are per-host, which is why adding IPv4
+addresses never helped and a `%` (any-host) grant was the only thing that
+worked. As of 2026-08-28 the grants are that IPv6 address plus `2.57.91.212`;
+the `%` wildcard has been removed.
+
+**If the console ever fails to log in** and `/api/health/db` reports an
+authentication error, the node's address has probably changed. To recover:
+
+1. hPanel → **Databases** → **Remote MySQL** → temporarily add `%`.
+2. From a laptop, connect with the repo's gitignored `apps/grow/.env`
+   credentials, rewriting the host to `srv1808.hstgr.io`, and run
+   `SHOW PROCESSLIST` — the host with ~10 pooled connections is the web node.
+3. Grant that address, then remove `%` again.
+
+The marketing site keeps working throughout: public pages fall back to bundled
+data on any database error. Only the admin console and the engine/producer
+modules go down, which is exactly why a database fault used to be invisible.
