@@ -19,33 +19,33 @@ model Suite {
 }
 
 model Product {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   nameAr      String
-  slug        String @unique
+  slug        String  @unique
   description String
   descAr      String
-  status      String @default("PUBLISHED") // PUBLISHED, DRAFT
-  order       Int    @default(0)
+  status      String  @default("PUBLISHED") // PUBLISHED, DRAFT
+  order       Int     @default(0)
   features    String? @db.Text
   suiteId     String
-  suite       Suite  @relation(fields: [suiteId], references: [id], onDelete: Cascade)
+  suite       Suite   @relation(fields: [suiteId], references: [id], onDelete: Cascade)
 }
 
 model Submission {
-  id      String   @id @default(uuid())
-  name    String
-  email   String
-  company String
-  message String   @db.Text
-  date    DateTime @default(now())
-  status        String    @default("new")
-  called        String    @default("no")
-  notes         String?   @db.Text
-  priority      String    @default("MEDIUM") // HOT, WARM, COLD, MEDIUM
-  dealValue     Int       @default(0)
-  source        String    @default("Website") // Website, Referral, LinkedIn, WhatsApp, Direct
-  nextFollowUp  DateTime?
+  id           String    @id @default(uuid())
+  name         String
+  email        String
+  company      String
+  message      String    @db.Text
+  date         DateTime  @default(now())
+  status       String    @default("new")
+  called       String    @default("no")
+  notes        String?   @db.Text
+  priority     String    @default("MEDIUM") // HOT, WARM, COLD, MEDIUM
+  dealValue    Int       @default(0)
+  source       String    @default("Website") // Website, Referral, LinkedIn, WhatsApp, Direct
+  nextFollowUp DateTime?
 }
 
 // Project Management Models
@@ -62,15 +62,32 @@ model Task {
   id          String       @id @default(uuid())
   title       String
   description String?      @db.Text
+  // Display name of the owner, denormalised so the board renders without a
+  // join and historical tasks keep a readable owner even if the account goes.
   assignee    String       @default("Unassigned")
+  // The IAM account that owns this task. Nullable because "Unassigned" is a
+  // real state and because tasks predate the IAM link. `assignee` is kept in
+  // sync on every write — treat assigneeId as the source of truth.
+  assigneeId  String?
   status      String       @default("PENDING") // PENDING, IN_PROGRESS, DONE
+  priority    String       @default("MEDIUM") // URGENT, HIGH, MEDIUM, LOW
+  dueDate     DateTime?
+  /// Set when status first becomes DONE; cleared if the task is reopened.
+  completedAt DateTime?
   projectId   String
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   subTasks    SubTask[]
   comments    Comment[]
   attachments Attachment[]
+  activities  Activity[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  // "My Work" queries every task for one person across all projects; the
+  // due-date reminder sweep scans upcoming/overdue dates across the table.
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([projectId, status])
 }
 
 model SubTask {
@@ -87,9 +104,17 @@ model Comment {
   id        String   @id @default(uuid())
   content   String   @db.Text
   author    String
+  /// IAM account that wrote this. Nullable for comments made before the link.
+  authorId  String?
+  /// Resolved @mentions as a JSON array of AdminUser ids, captured at write
+  /// time. Storing the resolution (rather than re-parsing on render) keeps
+  /// highlighting stable when someone is later renamed or deactivated.
+  mentions  String?  @db.Text
   taskId    String
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
 }
 
 model Attachment {
@@ -101,18 +126,73 @@ model Attachment {
   createdAt DateTime @default(now())
 }
 
+/// Per-task audit trail: who changed what, when. Written by the projects
+/// actions on every mutation so accountability does not depend on memory.
+/// `field`/`from`/`to` are free-form so new tracked fields need no migration.
+model Activity {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  /// IAM account that performed the action (null for system/automated events).
+  actorId   String?
+  actorName String   @default("System")
+  /// created | status | assignee | priority | due | title | comment | subtask | attachment
+  kind      String
+  field     String?
+  fromValue String?  @db.Text
+  toValue   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+/// In-app notification, and the outbox for its email copy.
+///
+/// Delivery is deliberately decoupled from the action that created it: a
+/// mention or an assignment writes a row and returns immediately, so a slow or
+/// misconfigured SMTP server can never make saving a comment fail or hang.
+/// `emailedAt` marks a successful send, `emailAttempts` bounds the retries.
+model Notification {
+  id        String    @id @default(uuid())
+  /// Recipient AdminUser id.
+  userId    String
+  /// mention | assigned | due_soon | overdue | comment | status
+  kind      String
+  title     String
+  body      String?   @db.Text
+  /// Deep link into the app, e.g. /admin/projects/<id>?task=<taskId>
+  url       String?   @db.Text
+  taskId    String?
+  /// Who triggered it — for "X mentioned you" without a join.
+  actorName String?
+  readAt    DateTime?
+
+  // ── email outbox ──
+  /// Null while queued; set on a successful send. Skipped entirely when the
+  /// recipient has no email or notifications are disabled.
+  emailedAt     DateTime?
+  emailAttempts Int       @default(0)
+  emailError    String?   @db.Text
+
+  createdAt DateTime @default(now())
+
+  // The bell queries unread-by-user; the dispatcher scans the unsent outbox.
+  @@index([userId, readAt])
+  @@index([emailedAt, emailAttempts])
+}
+
 // Finance & Invoicing
 model Invoice {
-  id          String   @id @default(uuid())
-  invoiceNo   String   @unique
-  clientName  String
-  amount      Float
-  status      String   @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
-  issueDate   DateTime @default(now())
-  dueDate     DateTime?
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(uuid())
+  invoiceNo  String    @unique
+  clientName String
+  amount     Float
+  status     String    @default("DRAFT") // DRAFT, SENT, PAID, OVERDUE
+  issueDate  DateTime  @default(now())
+  dueDate    DateTime?
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 // Support & Ticketing

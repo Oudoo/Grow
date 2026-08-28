@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // nodemailer opens raw TCP/TLS sockets and resolves its own transports at
+  // runtime. Bundling it breaks those dynamic requires, so keep it external and
+  // let Node require it from node_modules on the server.
+  serverExternalPackages: ["nodemailer"],
   images: {
     // Self-hosted (Hostinger): skip the built-in image optimizer so we don't
     // depend on optimizer infrastructure. Images are served as-is.

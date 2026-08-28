@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import type { AccessMap, UserRole } from "@/lib/access";
+import { unreadCount } from "@/lib/notify";
 import AdminShell from "./AdminShell";
 
 /**
@@ -12,9 +13,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await getSession();
   const role = (session?.role ?? "VIEWER") as UserRole;
   const access = (session?.access ?? {}) as AccessMap;
+  // Rendered as a badge on the sidebar bell. unreadCount() returns 0 rather
+  // than throwing on a database error, so the shell always renders.
+  const unread = session ? await unreadCount(session.uid) : 0;
 
   return (
-    <AdminShell role={role} access={access}>
+    <AdminShell role={role} access={access} unread={unread}>
       {children}
     </AdminShell>
   );

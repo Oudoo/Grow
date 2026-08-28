@@ -21,8 +21,21 @@ export async function GET() {
     // Cheapest possible round-trip that proves auth + reachability + schema:
     // counting a table login depends on.
     const users = await prisma.adminUser.count();
+
+    // Schema drift check. `prisma db push` runs in the background on boot
+    // (see server.js), so a deploy that adds tables can land before the schema
+    // does — and the only symptom would be a module throwing at runtime.
+    // Touch the newest tables here so a missed migration is visible from
+    // outside instead of being discovered by a user.
+    let notifications: number | string;
+    try {
+      notifications = await prisma.notification.count();
+    } catch {
+      notifications = "table-missing — run `prisma db push`";
+    }
+
     return Response.json(
-      { ok: true, adminUsers: users, ms: Date.now() - started },
+      { ok: true, adminUsers: users, notifications, ms: Date.now() - started },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e: unknown) {
