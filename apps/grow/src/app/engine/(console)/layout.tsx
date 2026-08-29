@@ -18,9 +18,12 @@ import {
   Workflow,
   Lightbulb,
   BookOpen,
+  ArrowLeft,
 } from "lucide-react";
 import { db, notifications } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
+import { getSession } from "@/lib/auth";
+import { defaultLanding } from "@/lib/access";
 import { SignOutButton } from "@/components/engine/signout";
 
 const NAV = [
@@ -43,6 +46,17 @@ const NAV = [
 
 export default async function InternalLayout({ children }: { children: React.ReactNode }) {
   const user = await requireTeamUser();
+
+  // Way back to the hub. The engine is reached from the admin sidebar but
+  // replaces it entirely, so without this there is no route back to Project
+  // Management, CRM or anything else — only the browser's back button.
+  //
+  // Points at defaultLanding() rather than a hardcoded /admin so it lands on a
+  // module this account can actually open, and is hidden for someone whose only
+  // access IS the engine (for them there is nowhere to go back to).
+  const hub = await getSession();
+  const backHref = hub ? defaultLanding(hub.role, hub.access) : null;
+  const showBack = Boolean(backHref && !backHref.startsWith("/engine"));
 
   const unread = await db
     .select()
@@ -75,7 +89,22 @@ export default async function InternalLayout({ children }: { children: React.Rea
             <div className="text-[11px] text-muted-foreground leading-tight">{user.tenantSlug}</div>
           </div>
         </div>
-        <nav className="space-y-0.5 p-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 7.5rem)" }}>
+        {showBack && (
+          <div className="border-b px-2 py-2">
+            <Link
+              href={backHref!}
+              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Grow Admin
+            </Link>
+          </div>
+        )}
+        <nav
+          className="space-y-0.5 p-2 overflow-y-auto"
+          // Leave room for the header, the footer, and the back link when shown.
+          style={{ maxHeight: showBack ? "calc(100vh - 11rem)" : "calc(100vh - 7.5rem)" }}
+        >
           {NAV.map((item) => (
             <Link
               key={item.href}
