@@ -99,6 +99,28 @@ site itself. No booking system, calendar, or CRM integration is visible in the
 markup. Submissions presumably land in WordPress and/or an email address —
 which needs confirming, given finding #2.
 
+### 9. The Contact page is entirely template demo content — CRITICAL
+
+Re-checked 2026-08-29, across `/contact-us`, `/booking` and `/about-us`. The
+Contact page is worse than the homepage. Verbatim:
+
+- **"Call Us Directly: +1 123 456 789"** — the same placeholder.
+- **"Clinic Location: 100 S Main St, New York, NY"** — the template's demo
+  address. The contact page states the clinic is in **New York**.
+- **"Send a Message: contact@dentiacare.com"** — vendor domain again (note
+  `.com` here, `.co` elsewhere; both are the vendor's).
+- Footer body copy: *"At **Dentia**, we're dedicated to…"* — the site refers to
+  itself by the **template's brand name**, not 180.
+- **"Monday – Friday 08.00 – 18.00"**, which contradicts the homepage's
+  "Mon to Sat 08:00 - 20:00". A patient cannot tell when the clinic is open.
+
+The vendor email appears on **every page checked**, and the site contains **no
+`tel:` and no `mailto:` links anywhere at all**.
+
+**There is no correct contact information published anywhere on 180.clinic.**
+Nothing can be recovered from the site itself — the real phone number, email,
+address and opening hours have to come from the clinic.
+
 ## Recommended order of work
 
 The first three are not marketing improvements; they are **a broken front door**,
