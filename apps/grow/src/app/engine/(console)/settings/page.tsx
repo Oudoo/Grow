@@ -31,6 +31,7 @@ import { Badge } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { ApiKeyForm, RetentionRow } from "./client-widgets";
+import { jsonArray } from "@/lib/engine/json";
 
 const PLATFORM_FEATURES = [
   "dmaic", "aeo_auditor", "process_intelligence", "lead_magnet", "forecasting",
@@ -280,7 +281,7 @@ export default async function SettingsPage() {
                 {rules.map((r) => (
                   <div key={r.id} className="rounded-md border px-3 py-1.5 text-xs">
                     <span className="font-mono">{r.eventType}</span> → {r.templateKey} via{" "}
-                    {(r.channels as string[]).join(", ")}
+                    {jsonArray<string>(r.channels).join(", ")}
                   </div>
                 ))}
               </div>
@@ -315,7 +316,7 @@ export default async function SettingsPage() {
               <div className="mt-3 space-y-1">
                 {webhooks.map((w) => (
                   <div key={w.id} className="rounded-md border px-3 py-1.5 text-xs">
-                    {w.url} → {(w.eventTypes as string[]).join(", ")}
+                    {w.url} → {jsonArray<string>(w.eventTypes).join(", ")}
                   </div>
                 ))}
               </div>

@@ -16,6 +16,7 @@ import { TimeSeriesChart, DonutChart } from "@/components/engine/charts/presets"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/engine/ui/card";
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { formatCurrency, formatNumber } from "@/lib/engine/utils";
+import { jsonArray } from "@/lib/engine/json";
 
 export default async function DashboardPage() {
   const user = await requireTeamUser();
@@ -225,7 +226,7 @@ export default async function DashboardPage() {
                 {rec.confidenceScore && (
                   <div className="mt-1 text-xs text-muted-foreground">
                     {Number(rec.confidenceScore).toFixed(0)}% confidence · {rec.evidenceCount} evidence
-                    items · {(rec.dataSources as string[]).join(", ") || "no sources"}
+                    items · {jsonArray<string>(rec.dataSources).join(", ") || "no sources"}
                   </div>
                 )}
               </div>

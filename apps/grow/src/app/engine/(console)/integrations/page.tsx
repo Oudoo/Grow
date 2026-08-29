@@ -9,6 +9,7 @@ import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/engine/ui/table";
+import { jsonArray } from "@/lib/engine/json";
 
 /**
  * Integration Health Center — last sync, failures, token expiry and quota
@@ -165,7 +166,7 @@ export default async function IntegrationsPage() {
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
                   {log.recordsStored}/{log.recordsFetched} records stored ·{" "}
-                  {(log.apiRequestIds as string[]).length} API request ids captured ·{" "}
+                  {jsonArray<string>(log.apiRequestIds).length} API request ids captured ·{" "}
                   {(log.sanityFindings as unknown[]).length} sanity findings
                 </div>
                 {log.error && <div className="mt-1 text-xs text-destructive">{log.error}</div>}

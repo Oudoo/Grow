@@ -29,6 +29,7 @@ import { Markdown } from "@/components/engine/markdown";
 import { SignOutButton } from "@/components/engine/signout";
 import { formatCurrency, formatNumber , formAction } from "@/lib/engine/utils";
 import Link from "next/link";
+import { jsonArray } from "@/lib/engine/json";
 
 /**
  * Client Portal — external transparency: live KPIs with trace links,
@@ -86,12 +87,12 @@ export default async function ClientPortalPage({
   const kpiMap = new Map(kpis.map((k) => [k.metric, k]));
   const seriesFor = (metric: string): [string, number][] =>
     daily.filter((d) => d.metric === metric).map((d) => [d.date, Number(d.value)]);
-  const milestones = (client.milestoneTargets ?? []) as {
+  const milestones = jsonArray<{
     label: string;
     metric: string;
     target: number;
     achievedAt?: string;
-  }[];
+  }>(client.milestoneTargets);
   const pendingApprovals = approvals.filter((a) => a.status === "pending");
   const assetById = new Map(assets.map((a) => [a.id, a]));
 
@@ -245,7 +246,7 @@ export default async function ClientPortalPage({
                       <form action={formAction(decideCatApproval.bind(null, approval.id))} className="mt-3 space-y-2">
                         <div className="space-y-1 text-sm">
                           <div className="text-xs font-semibold uppercase text-muted-foreground">Sign-off checklist</div>
-                          {(approval.checklist as { key: string; label: string }[]).map((item) => (
+                          {jsonArray<{ key: string; label: string }>(approval.checklist).map((item) => (
                             <label key={item.key} className="flex items-center gap-2">
                               <input type="checkbox" required /> {item.label}
                             </label>

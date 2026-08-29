@@ -11,6 +11,7 @@ import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Textarea } from "@/components/engine/ui/input";
 import { Markdown } from "@/components/engine/markdown";
 import { ConfidenceBadge } from "@/components/engine/ui/progress";
+import { jsonArray } from "@/lib/engine/json";
 
 export default async function MeetingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,7 +74,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
           </CardHeader>
           <CardContent>
             <form action={formAction(savePrerequisiteResponses.bind(null, meeting.id))} className="space-y-3">
-              {(form.fields as { key: string; label: string; type: string; required?: boolean }[]).map((f) => (
+              {jsonArray<{ key: string; label: string; type: string; required?: boolean }>(form.fields).map((f) => (
                 <div key={f.key}>
                   <Label>{f.label}</Label>
                   {f.type === "textarea" ? (
@@ -203,7 +204,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
           </CardHeader>
           <CardContent>
             <div className="max-h-96 space-y-1.5 overflow-y-auto text-sm">
-              {(transcript.segments as { start: number; end: number; text: string }[]).map((s, i) => (
+              {jsonArray<{ start: number; end: number; text: string }>(transcript.segments).map((s, i) => (
                 <div key={i} className="flex gap-3">
                   <span className="shrink-0 font-mono text-xs text-muted-foreground">
                     {Math.floor(s.start / 60)}:{String(Math.floor(s.start % 60)).padStart(2, "0")}

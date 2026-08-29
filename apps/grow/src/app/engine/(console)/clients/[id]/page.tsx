@@ -23,31 +23,11 @@ import {
   processInsights,
 } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
+import { jsonArray, jsonNumberMap } from "@/lib/engine/json";
 
-/**
- * Knowledge-base sections, in reading order: strategy first, then evidence,
- * then correspondence. Any type not listed falls into the final catch-all, so
- * adding a new document type can never make its documents invisible.
- */
-const KNOWLEDGE_GROUPS: { types: string[]; label: string; blurb: string }[] = [
-  { types: ["research"], label: "Strategy & intelligence", blurb: "Framework, positioning and what we still need to learn." },
-  { types: ["report", "qbr"], label: "Audits & reports", blurb: "Verified findings and reviews." },
-  { types: ["sow", "expectation_baseline"], label: "Scope & baselines", blurb: "What was agreed, and what was promised." },
-  { types: ["digest", "email", "note", "other"], label: "Notes & correspondence", blurb: "Working notes and day-to-day record." },
-];
+/** Shape of a recommendation's verification evidence (a json column). */
+type Evidence = { claim: string; verdict: string; evidence: string; sourceRequestIds?: string[] };
 
-/** First meaningful line of a markdown body, for a list preview. */
-function excerpt(markdown: string, max = 180): string {
-  const line = markdown
-    .split("\n")
-    .map((l) => l.trim())
-    // Skip headings, quotes, table rows and horizontal rules — none of them
-    // read as a summary on their own.
-    .find((l) => l.length > 0 && !/^([#>|]|-{3,}|\*{3,})/.test(l));
-  if (!line) return "";
-  const plain = line.replace(/[*_`]/g, "");
-  return plain.length > max ? plain.slice(0, max).trimEnd() + "…" : plain;
-}
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/engine/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/engine/ui/card";
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
@@ -82,6 +62,31 @@ import {
 } from "@/app/engine/_actions/creative";
 import { addMilestoneTarget } from "@/app/engine/_actions/clients";
 import { publishShowcase } from "@/app/engine/_actions/work";
+
+/**
+ * Knowledge-base sections, in reading order: strategy first, then evidence,
+ * then correspondence. Any type not listed falls into the final catch-all, so
+ * adding a new document type can never make its documents invisible.
+ */
+const KNOWLEDGE_GROUPS: { types: string[]; label: string; blurb: string }[] = [
+  { types: ["research"], label: "Strategy & intelligence", blurb: "Framework, positioning and what we still need to learn." },
+  { types: ["report", "qbr"], label: "Audits & reports", blurb: "Verified findings and reviews." },
+  { types: ["sow", "expectation_baseline"], label: "Scope & baselines", blurb: "What was agreed, and what was promised." },
+  { types: ["digest", "email", "note", "other"], label: "Notes & correspondence", blurb: "Working notes and day-to-day record." },
+];
+
+/** First meaningful line of a markdown body, for a list preview. */
+function excerpt(markdown: string, max = 180): string {
+  const line = markdown
+    .split("\n")
+    .map((l) => l.trim())
+    // Skip headings, quotes, table rows and horizontal rules — none of them
+    // read as a summary on their own.
+    .find((l) => l.length > 0 && !/^([#>|]|-{3,}|\*{3,})/.test(l));
+  if (!line) return "";
+  const plain = line.replace(/[*_`]/g, "");
+  return plain.length > max ? plain.slice(0, max).trimEnd() + "…" : plain;
+}
 
 export default async function ClientDetailPage({
   params,
@@ -165,12 +170,12 @@ export default async function ClientDetailPage({
   const decisionByRec = new Map(
     decisionRows.filter((d) => d.sourceEntityType === "recommendation").map((d) => [d.sourceEntityId, d])
   );
-  const milestones = (client.milestoneTargets ?? []) as {
+  const milestones = jsonArray<{
     label: string;
     metric: string;
     target: number;
     achievedAt?: string;
-  }[];
+  }>(client.milestoneTargets);
 
   return (
     <div className="space-y-5">
@@ -254,7 +259,7 @@ export default async function ClientDetailPage({
                   <>
                     <GaugeChart value={Number(score[0].score)} />
                     <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
-                      {(score[0].drivers as { name: string; detail: string }[]).slice(0, 3).map((d, i) => (
+                      {jsonArray<{ name: string; detail: string }>(score[0].drivers).slice(0, 3).map((d, i) => (
                         <li key={i}>• {d.name}: {d.detail}</li>
                       ))}
                     </ul>
@@ -446,10 +451,10 @@ export default async function ClientDetailPage({
                         />
                         <Badge variant="outline">{rec.category}</Badge>
                       </div>
-                      {(rec.evidence as { claim: string; verdict: string; evidence: string; sourceRequestIds?: string[] }[]).length > 0 && (
+                      {jsonArray<Evidence>(rec.evidence).length > 0 && (
                         <div className="mt-3 space-y-1.5 rounded-md bg-muted/60 p-3">
                           <div className="text-xs font-semibold uppercase text-muted-foreground">Verification evidence</div>
-                          {(rec.evidence as { claim: string; verdict: string; evidence: string; sourceRequestIds?: string[] }[]).map((e, i) => (
+                          {jsonArray<Evidence>(rec.evidence).map((e, i) => (
                             <div key={i} className="text-xs">
                               <span className={e.verdict === "supported" ? "text-emerald-700" : e.verdict === "unsupported" ? "text-red-700" : "text-amber-700"}>
                                 [{e.verdict}]
@@ -657,7 +662,7 @@ export default async function ClientDetailPage({
                         <div>
                           <span className="font-medium">{asset.name}</span>
                           <span className="ml-2 text-xs text-muted-foreground">
-                            {asset.assetType} · {(asset.platforms as string[]).join(", ")}
+                            {asset.assetType} · {jsonArray<string>(asset.platforms).join(", ")}
                           </span>
                         </div>
                         <Badge variant={statusVariant(asset.status)}>{asset.status.replace(/_/g, " ")}</Badge>
@@ -678,7 +683,7 @@ export default async function ClientDetailPage({
                           <form action={formAction(createPilot.bind(null, asset.id))} className="flex items-end gap-2">
                             <Input name="name" placeholder="Pilot name" required className="w-36" />
                             <Select name="platform" className="w-28">
-                              {(asset.platforms as string[]).map((p) => <option key={p}>{p}</option>)}
+                              {jsonArray<string>(asset.platforms).map((p) => <option key={p}>{p}</option>)}
                             </Select>
                             <Input name="dailyBudget" type="number" step="0.01" placeholder="$/day" required className="w-24" />
                             <Input name="externalCampaignId" placeholder="Campaign id (optional)" className="w-40" />
@@ -771,7 +776,7 @@ export default async function ClientDetailPage({
                       <>
                         <div className="mt-2 text-2xl font-bold">{Number(a.overallScore).toFixed(0)}/100</div>
                         <div className="mt-1 grid grid-cols-5 gap-1 text-center text-xs">
-                          {Object.entries(a.dimensionScores as Record<string, number>).map(([k, v]) => (
+                          {Object.entries(jsonNumberMap(a.dimensionScores)).map(([k, v]) => (
                             <div key={k} className="rounded bg-muted p-1">
                               <div className="font-semibold">{v}</div>
                               <div className="text-[10px] text-muted-foreground">{k}</div>
@@ -779,7 +784,7 @@ export default async function ClientDetailPage({
                           ))}
                         </div>
                         <div className="mt-2 space-y-1">
-                          {(a.recommendations as { priority: string; recommendation: string }[]).slice(0, 4).map((r, i) => (
+                          {jsonArray<{ priority: string; recommendation: string }>(a.recommendations).slice(0, 4).map((r, i) => (
                             <div key={i} className="text-xs">
                               <Badge variant={r.priority === "high" ? "destructive" : r.priority === "medium" ? "warning" : "secondary"}>{r.priority}</Badge>{" "}
                               {r.recommendation}
@@ -857,7 +862,7 @@ export default async function ClientDetailPage({
                   <p className="mb-2 text-xs text-muted-foreground">{blurb}</p>
                   <div className="space-y-2">
                     {group.map((doc) => {
-                      const tags = Array.isArray(doc.tags) ? (doc.tags as string[]) : [];
+                      const tags = jsonArray<string>(doc.tags);
                       return (
                         <Link
                           key={doc.id}
