@@ -1,5 +1,7 @@
 "use server";
 
+import { dmKeyFor, dmSlug } from "@/lib/dm-slug";
+
 import { assertAccess } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
@@ -398,31 +400,53 @@ export async function openDmAction(otherUserId: string): Promise<ChatResult & { 
   const other = directory.find((u) => u.id === otherUserId);
   if (!other) return { ok: false, error: "That person does not have chat access." };
 
-  const dmKey = [actor.uid, otherUserId].sort().join("|");
+  const dmKey = dmKeyFor(actor.uid, otherUserId);
   const existing = await prisma.channel.findUnique({ where: { dmKey }, select: { slug: true } });
   if (existing) return { ok: true, slug: existing.slug };
 
-  // Slug is derived from the key's hash, not from names: names change, and a
-  // slug containing two people's names leaks who talks to whom in a URL.
-  const slug = `dm-${Buffer.from(dmKey).toString("base64url").slice(0, 20).toLowerCase()}`;
+  // Slug from a HASH of the whole key, not an encoding of its prefix.
+  //
+  // The first version was `base64url(dmKey).slice(0, 20).toLowerCase()`. Twenty
+  // base64 characters encode only the first fifteen bytes of the key, which sit
+  // entirely inside the first sorted uuid — so every DM started by the same
+  // person collapsed to one slug, and the second one failed on the unique index
+  // with a raw P2002. Lowercasing threw away more entropy on top. A digest of
+  // the full key cannot collide this way, and still avoids putting two people's
+  // ids in a URL.
+  const slug = dmSlug(dmKey);
 
-  await prisma.channel.create({
-    data: {
-      slug,
-      // Display name is resolved from members at render time; this is a fallback.
-      name: other.name,
-      isPrivate: true,
-      isDm: true,
-      dmKey,
-      createdById: actor.uid,
-      members: {
-        create: [
-          { userId: actor.uid, lastReadAt: new Date() },
-          { userId: otherUserId },
-        ],
+  try {
+    await prisma.channel.create({
+      data: {
+        slug,
+        // Display name is resolved from members at render time; this is a fallback.
+        name: other.name,
+        isPrivate: true,
+        isDm: true,
+        dmKey,
+        createdById: actor.uid,
+        members: {
+          create: [
+            { userId: actor.uid, lastReadAt: new Date() },
+            { userId: otherUserId },
+          ],
+        },
       },
-    },
-  });
+    });
+  } catch (e) {
+    // A unique violation here means two requests raced for the same pair; the
+    // other one won, so use its conversation rather than reporting a failure.
+    const code = (e as { code?: string }).code;
+    if (code === "P2002") {
+      const raced = await prisma.channel.findUnique({ where: { dmKey }, select: { slug: true } });
+      if (raced) return { ok: true, slug: raced.slug };
+    }
+    // Anything else is reported, not thrown. A server action that throws in
+    // production surfaces as an opaque React #441 with the message stripped,
+    // which is what made this bug so slow to identify.
+    console.error("[chat] could not open a direct conversation:", e);
+    return { ok: false, error: "Could not open that conversation. Please try again." };
+  }
 
   revalidatePath("/admin/chat");
   return { ok: true, slug };
