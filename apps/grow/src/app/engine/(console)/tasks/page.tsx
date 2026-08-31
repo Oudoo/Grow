@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, tasks, subTasks, clients } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/engine/ui
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
+import { ActionForm } from "@/components/engine/action-form";
 
 const COLUMNS = ["todo", "in_progress", "in_review", "blocked", "done"] as const;
 
@@ -29,7 +29,7 @@ export default async function TasksPage() {
       <Card>
         <CardHeader><CardTitle>New task</CardTitle></CardHeader>
         <CardContent>
-          <form action={formAction(createTask)} className="grid items-end gap-3 md:grid-cols-6">
+          <ActionForm action={createTask} className="grid items-end gap-3 md:grid-cols-6">
             <div className="md:col-span-2">
               <Label>Title</Label>
               <Input name="title" required />
@@ -58,7 +58,7 @@ export default async function TasksPage() {
             <div className="md:col-span-6">
               <Textarea name="description" placeholder="Description (optional)" rows={2} />
             </div>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
 
@@ -99,18 +99,18 @@ export default async function TasksPage() {
                       )}
                       <div className="mt-2 flex items-center gap-1.5">
                         {nextStatus && (
-                          <form action={formAction(updateTaskStatus.bind(null, t.id, nextStatus))}>
+                          <ActionForm action={updateTaskStatus.bind(null, t.id, nextStatus)}>
                             <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]">
                               → {nextStatus.replace(/_/g, " ")}
                             </Button>
-                          </form>
+                          </ActionForm>
                         )}
                         <Badge variant={statusVariant(t.priority)} className="text-[10px]">{t.priority}</Badge>
                       </div>
-                      <form action={formAction(addSubTask.bind(null, t.id))} className="mt-2 flex gap-1">
+                      <ActionForm action={addSubTask.bind(null, t.id)} className="mt-2 flex gap-1">
                         <Input name="title" placeholder="+ subtask" className="h-6 text-xs" />
                         <Button type="submit" size="sm" variant="ghost" className="h-6 px-1.5 text-[11px]">Add</Button>
-                      </form>
+                      </ActionForm>
                     </CardContent>
                   </Card>
                 );

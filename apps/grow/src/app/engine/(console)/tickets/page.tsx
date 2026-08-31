@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, tickets, clients, comments } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/engine/ui
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function TicketsPage() {
   const user = await requireTeamUser();
@@ -54,11 +54,11 @@ export default async function TicketsPage() {
                     <div className="flex items-center gap-2">
                       <Badge variant={statusVariant(t.status)}>{t.status.replace(/_/g, " ")}</Badge>
                       {t.status !== "closed" && (
-                        <form action={formAction(updateTicketStatus.bind(null, t.id, t.status === "resolved" ? "closed" : t.status === "open" ? "in_progress" : "resolved"))}>
+                        <ActionForm action={updateTicketStatus.bind(null, t.id, t.status === "resolved" ? "closed" : t.status === "open" ? "in_progress" : "resolved")}>
                           <Button size="sm" variant="outline">
                             {t.status === "resolved" ? "Close" : t.status === "open" ? "Start" : "Resolve"}
                           </Button>
-                        </form>
+                        </ActionForm>
                       )}
                     </div>
                   </div>
@@ -73,13 +73,13 @@ export default async function TicketsPage() {
                       ))}
                     </div>
                   )}
-                  <form action={formAction(addComment.bind(null, "ticket", t.id))} className="mt-2 flex gap-2">
+                  <ActionForm action={addComment.bind(null, "ticket", t.id)} className="mt-2 flex gap-2">
                     <Input name="body" placeholder="Reply…" className="flex-1" />
                     <label className="flex items-center gap-1 text-xs text-muted-foreground">
                       <input type="checkbox" name="internal" /> internal
                     </label>
                     <Button type="submit" size="sm" variant="outline">Send</Button>
-                  </form>
+                  </ActionForm>
                 </CardContent>
               </Card>
             );
@@ -89,7 +89,7 @@ export default async function TicketsPage() {
         <Card className="h-fit">
           <CardHeader><CardTitle>New ticket</CardTitle></CardHeader>
           <CardContent>
-            <form action={formAction(createTicket)} className="space-y-3">
+            <ActionForm action={createTicket} className="space-y-3">
               <div>
                 <Label>Client</Label>
                 <Select name="clientId">
@@ -115,7 +115,7 @@ export default async function TicketsPage() {
                 <Textarea name="description" rows={4} />
               </div>
               <Button type="submit" className="w-full">Create ticket</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
       </div>

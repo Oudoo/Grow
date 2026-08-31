@@ -8,7 +8,8 @@ import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label } from "@/components/engine/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/engine/ui/table";
-import { formatCurrency , formAction } from "@/lib/engine/utils";
+import { formatCurrency } from "@/lib/engine/utils";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function ClientsPage() {
   const user = await requireTeamUser();
@@ -85,7 +86,7 @@ export default async function ClientsPage() {
             <CardTitle>Add client</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={formAction(createClient)} className="space-y-3">
+            <ActionForm action={createClient} className="space-y-3">
               <div>
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" name="name" required />
@@ -103,7 +104,7 @@ export default async function ClientsPage() {
                 <Input id="monthlyRetainer" name="monthlyRetainer" type="number" min="0" />
               </div>
               <Button type="submit" className="w-full">Create client</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
       </div>

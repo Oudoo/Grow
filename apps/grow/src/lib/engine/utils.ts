@@ -38,8 +38,3 @@ export function slugify(value: string) {
  * direct form usage (React ignores the return value at runtime).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function formAction<A extends any[]>(
-  action: (...args: A) => Promise<unknown>
-): (...args: A) => Promise<void> {
-  return action as unknown as (...args: A) => Promise<void>;
-}

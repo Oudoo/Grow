@@ -41,7 +41,7 @@ import {
   SeasonalityHeatmap,
   GaugeChart,
 } from "@/components/engine/charts/presets";
-import { formatCurrency, formatNumber , formAction } from "@/lib/engine/utils";
+import { formatCurrency, formatNumber } from "@/lib/engine/utils";
 import {
   createRecommendation,
   decideRecommendation,
@@ -62,6 +62,7 @@ import {
 } from "@/app/engine/_actions/creative";
 import { addMilestoneTarget } from "@/app/engine/_actions/clients";
 import { publishShowcase } from "@/app/engine/_actions/work";
+import { ActionForm } from "@/components/engine/action-form";
 
 /**
  * Knowledge-base sections, in reading order: strategy first, then evidence,
@@ -196,12 +197,12 @@ export default async function ClientDetailPage({
           </div>
         </div>
         <div className="flex gap-2">
-          <form action={formAction(requestQbr.bind(null, client.id))}>
+          <ActionForm action={requestQbr.bind(null, client.id)}>
             <Button variant="outline" size="sm">Generate QBR</Button>
-          </form>
-          <form action={formAction(requestReport.bind(null, client.id, `Performance Report — ${new Date().toISOString().slice(0, 10)}`, undefined))}>
+          </ActionForm>
+          <ActionForm action={requestReport.bind(null, client.id, `Performance Report — ${new Date().toISOString().slice(0, 10)}`, undefined)}>
             <Button variant="outline" size="sm">Generate report</Button>
-          </form>
+          </ActionForm>
         </div>
       </div>
 
@@ -277,9 +278,9 @@ export default async function ClientDetailPage({
                 <CardTitle>Forecasts</CardTitle>
                 <div className="flex gap-1.5">
                   {["revenue", "conversions", "spend"].map((m) => (
-                    <form key={m} action={formAction(requestForecast.bind(null, client.id, m, 30))}>
+                    <ActionForm key={m} action={requestForecast.bind(null, client.id, m, 30)}>
                       <Button variant="outline" size="sm">+ {m}</Button>
-                    </form>
+                    </ActionForm>
                   ))}
                 </div>
               </CardHeader>
@@ -316,9 +317,9 @@ export default async function ClientDetailPage({
             <Card>
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle>Seasonality & lost opportunity</CardTitle>
-                <form action={formAction(requestSeasonalityAndLostOpportunity.bind(null, client.id, "revenue"))}>
+                <ActionForm action={requestSeasonalityAndLostOpportunity.bind(null, client.id, "revenue")}>
                   <Button variant="outline" size="sm">Analyze revenue</Button>
-                </form>
+                </ActionForm>
               </CardHeader>
               <CardContent>
                 {seasonality[0] ? (
@@ -368,7 +369,7 @@ export default async function ClientDetailPage({
                     </div>
                   );
                 })}
-                <form action={formAction(addMilestoneTarget.bind(null, client.id))} className="grid grid-cols-4 gap-2 border-t pt-3">
+                <ActionForm action={addMilestoneTarget.bind(null, client.id)} className="grid grid-cols-4 gap-2 border-t pt-3">
                   <Input name="label" placeholder="Label" required className="col-span-2" />
                   <Select name="metric" required>
                     <option value="revenue">revenue</option>
@@ -377,7 +378,7 @@ export default async function ClientDetailPage({
                   </Select>
                   <Input name="target" type="number" placeholder="Target" required />
                   <Button type="submit" size="sm" className="col-span-4">Add milestone</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
 
@@ -392,7 +393,7 @@ export default async function ClientDetailPage({
                     </div>
                   </div>
                 ))}
-                <form action={formAction(publishShowcase)} className="space-y-2 border-t pt-3">
+                <ActionForm action={publishShowcase} className="space-y-2 border-t pt-3">
                   <input type="hidden" name="clientId" value={client.id} />
                   <Input name="title" placeholder="Showcase title" required />
                   <div className="grid grid-cols-2 gap-2">
@@ -402,7 +403,7 @@ export default async function ClientDetailPage({
                   <Textarea name="summary" placeholder="What shipped this sprint…" rows={2} />
                   <input type="file" name="video" accept="video/*" className="text-xs" />
                   <Button type="submit" size="sm">Publish to portal</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
           </div>
@@ -475,7 +476,7 @@ export default async function ClientDetailPage({
                         </div>
                       ) : (
                         ["verified", "presented", "proposed"].includes(rec.status) && (
-                          <form action={formAction(decideRecommendation.bind(null, rec.id))} className="mt-3 flex items-end gap-2">
+                          <ActionForm action={decideRecommendation.bind(null, rec.id)} className="mt-3 flex items-end gap-2">
                             <div className="flex-1">
                               <Label>Record decision</Label>
                               <Input name="reason" placeholder="Reason (e.g. budget constraints)" />
@@ -487,7 +488,7 @@ export default async function ClientDetailPage({
                               <option value="modified">Modify</option>
                             </Select>
                             <Button type="submit" size="sm">Save</Button>
-                          </form>
+                          </ActionForm>
                         )
                       )}
                     </CardContent>
@@ -508,7 +509,7 @@ export default async function ClientDetailPage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form action={formAction(createRecommendation)} className="space-y-3">
+                <ActionForm action={createRecommendation} className="space-y-3">
                   <input type="hidden" name="clientId" value={client.id} />
                   <div>
                     <Label htmlFor="rec-title">Title</Label>
@@ -529,7 +530,7 @@ export default async function ClientDetailPage({
                     <Textarea id="rec-body" name="body" rows={6} required />
                   </div>
                   <Button type="submit" className="w-full">Create & verify</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
           </div>
@@ -568,9 +569,9 @@ export default async function ClientDetailPage({
                         <div className="flex items-center gap-2">
                           <Badge variant="info">phase: {project.currentPhase}</Badge>
                           {project.currentPhase !== "completed" && (
-                            <form action={formAction(advanceDmaicPhase.bind(null, project.id))}>
+                            <ActionForm action={advanceDmaicPhase.bind(null, project.id)}>
                               <Button variant="outline" size="sm">Advance phase →</Button>
-                            </form>
+                            </ActionForm>
                           )}
                         </div>
                       </div>
@@ -630,7 +631,7 @@ export default async function ClientDetailPage({
                 <CardDescription>Generated from real metric baselines by the AI worker.</CardDescription>
               </CardHeader>
               <CardContent>
-                <form action={formAction(createDmaicProject)} className="space-y-3">
+                <ActionForm action={createDmaicProject} className="space-y-3">
                   <input type="hidden" name="clientId" value={client.id} />
                   <div>
                     <Label htmlFor="dmaic-title">Title</Label>
@@ -642,7 +643,7 @@ export default async function ClientDetailPage({
                       placeholder="e.g. CPA increased 40% over 60 days while lead quality dropped…" />
                   </div>
                   <Button type="submit" className="w-full">Generate DMAIC plan</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
           </div>
@@ -672,15 +673,15 @@ export default async function ClientDetailPage({
                       )}
                       <div className="mt-3 flex flex-wrap items-center gap-2">
                         {asset.status === "internal_review" && (
-                          <form action={formAction(requestCatApproval.bind(null, asset.id))}>
+                          <ActionForm action={requestCatApproval.bind(null, asset.id)}>
                             <Button size="sm">Send for client sign-off (CAT)</Button>
-                          </form>
+                          </ActionForm>
                         )}
                         {approval && approval.status === "pending" && (
                           <span className="text-xs text-amber-700">Awaiting client approval in the portal…</span>
                         )}
                         {approval?.status === "approved" && asset.status === "approved" && (
-                          <form action={formAction(createPilot.bind(null, asset.id))} className="flex items-end gap-2">
+                          <ActionForm action={createPilot.bind(null, asset.id)} className="flex items-end gap-2">
                             <Input name="name" placeholder="Pilot name" required className="w-36" />
                             <Select name="platform" className="w-28">
                               {jsonArray<string>(asset.platforms).map((p) => <option key={p}>{p}</option>)}
@@ -688,17 +689,17 @@ export default async function ClientDetailPage({
                             <Input name="dailyBudget" type="number" step="0.01" placeholder="$/day" required className="w-24" />
                             <Input name="externalCampaignId" placeholder="Campaign id (optional)" className="w-40" />
                             <Button type="submit" size="sm">Launch 7-day pilot</Button>
-                          </form>
+                          </ActionForm>
                         )}
                         {pilot && pilot.status === "running" && (
                           <div className="flex items-center gap-2 text-sm">
                             <Badge variant="warning">pilot running {pilot.startDate} → {pilot.endDate}</Badge>
-                            <form action={formAction(concludePilot.bind(null, pilot.id, true))}>
+                            <ActionForm action={concludePilot.bind(null, pilot.id, true)}>
                               <Button size="sm" variant="outline">Promote & scale</Button>
-                            </form>
-                            <form action={formAction(concludePilot.bind(null, pilot.id, false))}>
+                            </ActionForm>
+                            <ActionForm action={concludePilot.bind(null, pilot.id, false)}>
                               <Button size="sm" variant="ghost">Stop</Button>
-                            </form>
+                            </ActionForm>
                           </div>
                         )}
                         {approval?.decisionNote && (
@@ -718,7 +719,7 @@ export default async function ClientDetailPage({
             <Card className="h-fit">
               <CardHeader><CardTitle>New creative asset</CardTitle></CardHeader>
               <CardContent>
-                <form action={formAction(createCreativeAsset)} className="space-y-3">
+                <ActionForm action={createCreativeAsset} className="space-y-3">
                   <input type="hidden" name="clientId" value={client.id} />
                   <div>
                     <Label>Name</Label>
@@ -747,7 +748,7 @@ export default async function ClientDetailPage({
                     <input type="file" name="file" className="text-xs" />
                   </div>
                   <Button type="submit" className="w-full">Create asset</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
           </div>
@@ -759,11 +760,11 @@ export default async function ClientDetailPage({
             <Card>
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle>AEO/GEO content audits</CardTitle>
-                <form action={formAction(requestAeoAudit.bind(null, client.id, client.websiteUrl ?? ""))}>
+                <ActionForm action={requestAeoAudit.bind(null, client.id, client.websiteUrl ?? "")}>
                   <Button variant="outline" size="sm" disabled={!client.websiteUrl}>
                     Audit {client.websiteUrl ? new URL(client.websiteUrl).hostname : "site"}
                   </Button>
-                </form>
+                </ActionForm>
               </CardHeader>
               <CardContent className="space-y-3">
                 {aeoRows.map((a) => (
@@ -908,7 +909,7 @@ function CompetitorForm({ clientId }: { clientId: string }) {
     );
   }
   return (
-    <form action={formAction(action)} className="flex items-end gap-2">
+    <ActionForm action={action} className="flex items-end gap-2">
       <div className="flex-1">
         <Label>Competitor name</Label>
         <Input name="competitorName" required />
@@ -918,6 +919,6 @@ function CompetitorForm({ clientId }: { clientId: string }) {
         <Input name="competitorUrl" type="url" placeholder="https://" required />
       </div>
       <Button type="submit" size="sm">Analyze</Button>
-    </form>
+    </ActionForm>
   );
 }

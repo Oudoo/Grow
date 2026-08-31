@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/engine/ui/table";
-import { formatCurrency, formatNumber , formAction } from "@/lib/engine/utils";
+import { formatCurrency, formatNumber } from "@/lib/engine/utils";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function BillingPage() {
   const user = await requirePermission("billing:read");
@@ -90,9 +91,9 @@ export default async function BillingPage() {
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle>Invoices</CardTitle>
-          <form action={formAction(generateInvoice)}>
+          <ActionForm action={generateInvoice}>
             <Button variant="outline">Generate period invoice</Button>
-          </form>
+          </ActionForm>
         </CardHeader>
         <CardContent>
           <Table>

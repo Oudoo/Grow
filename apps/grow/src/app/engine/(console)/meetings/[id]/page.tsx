@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
@@ -12,6 +11,7 @@ import { Input, Label, Textarea } from "@/components/engine/ui/input";
 import { Markdown } from "@/components/engine/markdown";
 import { ConfidenceBadge } from "@/components/engine/ui/progress";
 import { jsonArray } from "@/lib/engine/json";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function MeetingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -55,12 +55,12 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
         <div className="flex gap-2">
           {meeting.status === "analyzed" && (
             <>
-              <form action={formAction(generateSow.bind(null, meeting.id))}>
+              <ActionForm action={generateSow.bind(null, meeting.id)}>
                 <Button size="sm">Generate SOW</Button>
-              </form>
-              <form action={formAction(reanalyzeMeeting.bind(null, meeting.id))}>
+              </ActionForm>
+              <ActionForm action={reanalyzeMeeting.bind(null, meeting.id)}>
                 <Button size="sm" variant="outline">Re-analyze</Button>
-              </form>
+              </ActionForm>
             </>
           )}
         </div>
@@ -73,7 +73,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
             <CardDescription>Captured before the meeting; feeds the AI analysis.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={formAction(savePrerequisiteResponses.bind(null, meeting.id))} className="space-y-3">
+            <ActionForm action={savePrerequisiteResponses.bind(null, meeting.id)} className="space-y-3">
               {jsonArray<{ key: string; label: string; type: string; required?: boolean }>(form.fields).map((f) => (
                 <div key={f.key}>
                   <Label>{f.label}</Label>
@@ -85,7 +85,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
                 </div>
               ))}
               <Button type="submit">Save responses</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
       )}
@@ -114,10 +114,10 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={formAction(uploadRecording.bind(null, meeting.id))} className="flex items-center gap-3">
+            <ActionForm action={uploadRecording.bind(null, meeting.id)} className="flex items-center gap-3">
               <input type="file" name="recording" accept="audio/*,video/*" required className="text-sm" />
               <Button type="submit">Upload & analyze</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
       )}

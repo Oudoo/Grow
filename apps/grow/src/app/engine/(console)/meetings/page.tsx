@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, meetings, clients, prerequisiteForms } from "@growengine/db";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function MeetingsPage() {
   const user = await requireTeamUser();
@@ -51,7 +51,7 @@ export default async function MeetingsPage() {
           <Card>
             <CardHeader><CardTitle>Schedule meeting</CardTitle></CardHeader>
             <CardContent>
-              <form action={formAction(createMeeting)} className="space-y-3">
+              <ActionForm action={createMeeting} className="space-y-3">
                 <div>
                   <Label>Client</Label>
                   <Select name="clientId" required>
@@ -71,7 +71,7 @@ export default async function MeetingsPage() {
                   <Textarea name="agenda" rows={3} />
                 </div>
                 <Button type="submit" className="w-full">Create meeting</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
           <Card>
@@ -80,7 +80,7 @@ export default async function MeetingsPage() {
               <CardDescription>{forms.length} active template(s) — global or client-specific.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction(createPrerequisiteForm)} className="space-y-3">
+              <ActionForm action={createPrerequisiteForm} className="space-y-3">
                 <div>
                   <Label>Form name</Label>
                   <Input name="name" placeholder="Discovery prerequisites" required />
@@ -101,7 +101,7 @@ export default async function MeetingsPage() {
                   />
                 </div>
                 <Button type="submit" variant="outline" className="w-full">Save template</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
         </div>

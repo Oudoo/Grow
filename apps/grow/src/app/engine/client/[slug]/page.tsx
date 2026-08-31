@@ -27,9 +27,10 @@ import { KpiCard } from "@/components/engine/kpi-card";
 import { TimeSeriesChart } from "@/components/engine/charts/presets";
 import { Markdown } from "@/components/engine/markdown";
 import { SignOutButton } from "@/components/engine/signout";
-import { formatCurrency, formatNumber , formAction } from "@/lib/engine/utils";
+import { formatCurrency, formatNumber } from "@/lib/engine/utils";
 import Link from "next/link";
 import { jsonArray } from "@/lib/engine/json";
+import { ActionForm } from "@/components/engine/action-form";
 
 /**
  * Client Portal — external transparency: live KPIs with trace links,
@@ -243,7 +244,7 @@ export default async function ClientPortalPage({
                       <div className="mt-2 rounded-md bg-muted/60 p-3 text-sm">{asset.copyText}</div>
                     )}
                     {approval.status === "pending" && (
-                      <form action={formAction(decideCatApproval.bind(null, approval.id))} className="mt-3 space-y-2">
+                      <ActionForm action={decideCatApproval.bind(null, approval.id)} className="mt-3 space-y-2">
                         <div className="space-y-1 text-sm">
                           <div className="text-xs font-semibold uppercase text-muted-foreground">Sign-off checklist</div>
                           {jsonArray<{ key: string; label: string }>(approval.checklist).map((item) => (
@@ -258,7 +259,7 @@ export default async function ClientPortalPage({
                           <Button type="submit" name="decision" value="changes_requested" variant="outline">Request changes</Button>
                           <Button type="submit" name="decision" value="rejected" variant="ghost" className="text-destructive">Reject</Button>
                         </div>
-                      </form>
+                      </ActionForm>
                     )}
                     {approval.decisionNote && (
                       <p className="mt-2 text-sm text-muted-foreground">Your note: {approval.decisionNote}</p>
@@ -328,7 +329,7 @@ export default async function ClientPortalPage({
                     />
                   </div>
                   {["verified", "presented"].includes(rec.status) && (
-                    <form action={formAction(decideRecommendation.bind(null, rec.id))} className="mt-3 flex items-end gap-2">
+                    <ActionForm action={decideRecommendation.bind(null, rec.id)} className="mt-3 flex items-end gap-2">
                       <div className="flex-1">
                         <Label>Your decision</Label>
                         <Input name="reason" placeholder="Reason (optional)" />
@@ -339,7 +340,7 @@ export default async function ClientPortalPage({
                         <option value="deferred">Defer</option>
                       </Select>
                       <Button type="submit" size="sm">Submit</Button>
-                    </form>
+                    </ActionForm>
                   )}
                 </CardContent>
               </Card>
@@ -369,7 +370,7 @@ export default async function ClientPortalPage({
             <Card className="h-fit">
               <CardHeader><CardTitle>New request</CardTitle></CardHeader>
               <CardContent>
-                <form action={formAction(createTicket)} className="space-y-3">
+                <ActionForm action={createTicket} className="space-y-3">
                   <div>
                     <Label>Subject</Label>
                     <Input name="subject" required />
@@ -388,7 +389,7 @@ export default async function ClientPortalPage({
                     <Textarea name="description" rows={4} />
                   </div>
                   <Button type="submit" className="w-full">Submit</Button>
-                </form>
+                </ActionForm>
               </CardContent>
             </Card>
           </TabsContent>

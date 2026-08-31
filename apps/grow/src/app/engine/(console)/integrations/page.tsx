@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, integrations, integrationLogs, clients } from "@growengine/db";
 import { listProviders } from "@growengine/core";
@@ -10,6 +9,7 @@ import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/engine/ui/table";
 import { jsonArray } from "@/lib/engine/json";
+import { ActionForm } from "@/components/engine/action-form";
 
 /**
  * Integration Health Center — last sync, failures, token expiry and quota
@@ -82,15 +82,15 @@ export default async function IntegrationsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1.5">
-                      <form action={formAction(triggerSync.bind(null, i.id))}>
+                      <ActionForm action={triggerSync.bind(null, i.id)}>
                         <Button size="sm" variant="outline">Sync now</Button>
-                      </form>
-                      <form action={formAction(triggerBackfill.bind(null, i.id, 90))}>
+                      </ActionForm>
+                      <ActionForm action={triggerBackfill.bind(null, i.id, 90)}>
                         <Button size="sm" variant="ghost">Backfill 90d</Button>
-                      </form>
-                      <form action={formAction(disconnectIntegration.bind(null, i.id))}>
+                      </ActionForm>
+                      <ActionForm action={disconnectIntegration.bind(null, i.id)}>
                         <Button size="sm" variant="ghost" className="text-destructive">Disconnect</Button>
-                      </form>
+                      </ActionForm>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -117,7 +117,7 @@ export default async function IntegrationsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={formAction(createIntegration)} className="space-y-3">
+            <ActionForm action={createIntegration} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Client</Label>
@@ -149,7 +149,7 @@ export default async function IntegrationsPage() {
                 <Input name="syncFrequencyMinutes" type="number" defaultValue={360} min={15} />
               </div>
               <Button type="submit" className="w-full">Connect & sync</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
 

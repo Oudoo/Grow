@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, featureRequests } from "@growengine/db";
 import { requireUser } from "@/lib/engine/session";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/engine/ui
 import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Textarea } from "@/components/engine/ui/input";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function FeaturesPage() {
   const user = await requireUser();
@@ -30,9 +30,9 @@ export default async function FeaturesPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={statusVariant(fr.status)}>{fr.status}</Badge>
-                <form action={formAction(voteFeatureRequest.bind(null, fr.id))}>
+                <ActionForm action={voteFeatureRequest.bind(null, fr.id)}>
                   <Button size="sm" variant="outline">▲ {fr.voteCount}</Button>
-                </form>
+                </ActionForm>
               </div>
             </div>
           ))}
@@ -41,7 +41,7 @@ export default async function FeaturesPage() {
         <Card className="h-fit">
           <CardHeader><CardTitle>Request a feature</CardTitle></CardHeader>
           <CardContent>
-            <form action={formAction(submitFeatureRequest)} className="space-y-3">
+            <ActionForm action={submitFeatureRequest} className="space-y-3">
               <div>
                 <Label>Title</Label>
                 <Input name="title" required />
@@ -51,7 +51,7 @@ export default async function FeaturesPage() {
                 <Textarea name="description" rows={4} />
               </div>
               <Button type="submit" className="w-full">Submit</Button>
-            </form>
+            </ActionForm>
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import {
   db,
@@ -32,6 +31,7 @@ import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { ApiKeyForm, RetentionRow } from "./client-widgets";
 import { jsonArray } from "@/lib/engine/json";
+import { ActionForm } from "@/components/engine/action-form";
 
 const PLATFORM_FEATURES = [
   "dmaic", "aeo_auditor", "process_intelligence", "lead_magnet", "forecasting",
@@ -113,7 +113,7 @@ export default async function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction(inviteUser)} className="space-y-3">
+              <ActionForm action={inviteUser} className="space-y-3">
                 <div>
                   <Label>Email</Label>
                   <Input name="email" type="email" required />
@@ -132,7 +132,7 @@ export default async function SettingsPage() {
                   </Select>
                 </div>
                 <Button type="submit" className="w-full">Send invitation</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
         </TabsContent>
@@ -154,9 +154,9 @@ export default async function SettingsPage() {
                     {k.revokedAt ? (
                       <Badge variant="destructive">revoked</Badge>
                     ) : (
-                      <form action={formAction(revokeApiKey.bind(null, k.id))}>
+                      <ActionForm action={revokeApiKey.bind(null, k.id)}>
                         <Button size="sm" variant="ghost" className="text-destructive">Revoke</Button>
-                      </form>
+                      </ActionForm>
                     )}
                   </div>
                 </div>
@@ -201,11 +201,11 @@ export default async function SettingsPage() {
                 return (
                   <div key={key} className="flex items-center justify-between rounded-md border px-3 py-2">
                     <span className="text-sm font-medium">{key.replace(/_/g, " ")}</span>
-                    <form action={formAction(toggleFeatureFlag.bind(null, key, !enabled))}>
+                    <ActionForm action={toggleFeatureFlag.bind(null, key, !enabled)}>
                       <Button size="sm" variant={enabled ? "default" : "outline"}>
                         {enabled ? "Enabled" : "Disabled"}
                       </Button>
-                    </form>
+                    </ActionForm>
                   </div>
                 );
               })}
@@ -220,7 +220,7 @@ export default async function SettingsPage() {
               <CardDescription>Handlebars-style {"{{placeholders}}"} from event payloads.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction(upsertNotificationTemplate)} className="space-y-3">
+              <ActionForm action={upsertNotificationTemplate} className="space-y-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label>Key</Label>
@@ -240,7 +240,7 @@ export default async function SettingsPage() {
                   <Textarea name="bodyTemplate" rows={3} placeholder="Error: {{error}}" required />
                 </div>
                 <Button type="submit">Save template</Button>
-              </form>
+              </ActionForm>
               <div className="mt-3 space-y-1">
                 {templates.map((t) => (
                   <div key={t.id} className="rounded-md border px-3 py-1.5 text-xs">
@@ -256,7 +256,7 @@ export default async function SettingsPage() {
               <CardDescription>Map domain events → audiences → channels.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction(createNotificationRule)} className="space-y-3">
+              <ActionForm action={createNotificationRule} className="space-y-3">
                 <div>
                   <Label>Event type</Label>
                   <Input name="eventType" placeholder="integration.failed" required />
@@ -276,7 +276,7 @@ export default async function SettingsPage() {
                   </div>
                 </div>
                 <Button type="submit">Create rule</Button>
-              </form>
+              </ActionForm>
               <div className="mt-3 space-y-1">
                 {rules.map((r) => (
                   <div key={r.id} className="rounded-md border px-3 py-1.5 text-xs">
@@ -298,7 +298,7 @@ export default async function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={formAction(createWebhookEndpoint)} className="grid items-end gap-3 md:grid-cols-4">
+              <ActionForm action={createWebhookEndpoint} className="grid items-end gap-3 md:grid-cols-4">
                 <div className="md:col-span-2">
                   <Label>URL</Label>
                   <Input name="url" type="url" placeholder="https://" required />
@@ -312,7 +312,7 @@ export default async function SettingsPage() {
                   <Input name="secret" type="password" />
                 </div>
                 <Button type="submit" className="md:col-span-4">Add endpoint</Button>
-              </form>
+              </ActionForm>
               <div className="mt-3 space-y-1">
                 {webhooks.map((w) => (
                   <div key={w.id} className="rounded-md border px-3 py-1.5 text-xs">

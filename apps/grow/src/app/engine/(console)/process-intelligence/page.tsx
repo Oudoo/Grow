@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, processInsights, clients } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { ConfidenceBadge } from "@/components/engine/ui/progress";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function ProcessIntelligencePage() {
   const user = await requireTeamUser();
@@ -36,9 +36,9 @@ export default async function ProcessIntelligencePage() {
             the non-marketing advisory layer. Runs automatically every day.
           </p>
         </div>
-        <form action={formAction(runNow)}>
+        <ActionForm action={runNow}>
           <Button variant="outline">Run analysis now</Button>
-        </form>
+        </ActionForm>
       </div>
 
       <div className="space-y-3">

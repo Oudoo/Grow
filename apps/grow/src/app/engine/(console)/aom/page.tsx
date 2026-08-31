@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { db, knowledgeDocuments, decisions, clients } from "@growengine/db";
@@ -10,6 +9,7 @@ import { Badge, statusVariant } from "@/components/engine/ui/badge";
 import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { AomSearch } from "./search";
+import { ActionForm } from "@/components/engine/action-form";
 
 /**
  * Agency Operating Memory — semantic search over everything, the decision
@@ -121,7 +121,7 @@ export default async function AomPage({
           <Card>
             <CardHeader><CardTitle>Add note to memory</CardTitle></CardHeader>
             <CardContent>
-              <form action={formAction(createKnowledgeNote)} className="space-y-3">
+              <ActionForm action={createKnowledgeNote} className="space-y-3">
                 <div>
                   <Label>Client</Label>
                   <Select name="clientId">
@@ -138,7 +138,7 @@ export default async function AomPage({
                   <Textarea name="content" rows={5} required />
                 </div>
                 <Button type="submit" className="w-full">Save & index</Button>
-              </form>
+              </ActionForm>
             </CardContent>
           </Card>
           <Card>

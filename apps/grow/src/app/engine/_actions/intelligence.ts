@@ -20,6 +20,7 @@ import {
   enqueueResearchJob,
   semanticSearch,
   linkEntities,
+  env,
 } from "@growengine/core";
 import { requirePermission, requireUser } from "@/lib/engine/session";
 import { createAiJob } from "@/lib/engine/jobs";
@@ -299,6 +300,9 @@ export async function requestCompetitorAnalysis(
   const parsedUrl = z.string().url().safeParse(competitorUrl);
   if (!parsedUrl.success) return { error: "A valid competitor URL is required" };
 
+  const blockedResearch = aiUnavailable();
+  if (blockedResearch) return { error: blockedResearch };
+
   await enqueueResearchJob({
     tenantId: user.tenantId,
     clientId,
@@ -309,8 +313,29 @@ export async function requestCompetitorAnalysis(
   return { ok: true };
 }
 
+/**
+ * Every AI feature here queues a background job that an in-process worker runs
+ * through the shared provider. That provider throws
+ * "ANTHROPIC_API_KEY is not configured" when no key is set — but it throws
+ * inside the *worker*, minutes later and out of sight, so the button appeared to
+ * work and nothing ever arrived.
+ *
+ * Check before queueing and say so plainly instead. Returning the message means
+ * the form can show it (see components/engine/action-form.tsx).
+ */
+function aiUnavailable(): string | null {
+  if (env.anthropicApiKey || env.openaiApiKey) return null;
+  return (
+    "AI generation is not configured yet, so this would never complete. " +
+    "Add ANTHROPIC_API_KEY (or OPENAI_API_KEY) to .grow.env and restart the app. " +
+    "Everything else on this page works without it."
+  );
+}
+
 export async function requestQbr(clientId: string) {
   const user = await requirePermission("intelligence:manage");
+  const blocked = aiUnavailable();
+  if (blocked) return { error: blocked };
   if (!(await ownedClient(user.tenantId, clientId))) return { error: "Client not found" };
   await createAiJob(user.tenantId, clientId, "qbr", { clientId });
   revalidatePath(`/engine/clients/${clientId}`);
@@ -319,6 +344,8 @@ export async function requestQbr(clientId: string) {
 
 export async function requestReport(clientId: string, title: string, focus?: string) {
   const user = await requirePermission("intelligence:manage");
+  const blocked = aiUnavailable();
+  if (blocked) return { error: blocked };
   if (!(await ownedClient(user.tenantId, clientId))) return { error: "Client not found" };
   if (!title || title.length < 4) return { error: "Report title required" };
   await createAiJob(user.tenantId, clientId, "report", { clientId, title, focus });

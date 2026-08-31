@@ -1,4 +1,3 @@
-import { formAction } from "@/lib/engine/utils";
 import { desc, eq } from "drizzle-orm";
 import { db, teamScorecards, users } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
@@ -7,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/engine/ui/card";
 import { Button } from "@/components/engine/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/engine/ui/table";
+import { ActionForm } from "@/components/engine/action-form";
 
 export default async function ScorecardsPage() {
   const user = await requireTeamUser();
@@ -40,9 +40,9 @@ export default async function ScorecardsPage() {
             compliance, rework frequency. Never hand-edited.
           </p>
         </div>
-        <form action={formAction(computeNow)}>
+        <ActionForm action={computeNow}>
           <Button variant="outline">Compute trailing 30 days</Button>
-        </form>
+        </ActionForm>
       </div>
 
       <Card>
