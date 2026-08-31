@@ -26,7 +26,8 @@ export type ModuleKey =
   | "playbook"
   | "producer"
   | "engine"
-  | "chatbot";
+  | "chatbot"
+  | "settings";
 
 export type AccessMap = Partial<Record<ModuleKey, AccessLevel>>;
 
@@ -48,6 +49,10 @@ export const MODULES: ModuleDef[] = [
   { key: "products", label: "Content Management", path: "/admin/products" },
   { key: "projects", label: "Project Management", path: "/admin/projects" },
   { key: "iam", label: "IAM Portal", path: "/admin/iam" },
+  // System configuration — option lists and defaults an admin can edit without
+  // a developer. Separate from `iam` on purpose: changing task statuses is not
+  // the same trust level as creating accounts, so it can be delegated alone.
+  { key: "settings", label: "Configuration", path: "/admin/configuration" },
   { key: "branding", label: "Branding", path: "/admin/branding" },
   { key: "playbook", label: "Grow Playbook", path: "/admin/playbook" },
   { key: "engine", label: "Grow Engine", path: "/engine" },

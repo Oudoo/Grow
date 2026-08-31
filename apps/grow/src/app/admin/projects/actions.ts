@@ -10,7 +10,8 @@ import { dispatchInBackground, notifyUsers } from "@/lib/notify";
 import { recordActivity, taskActivity } from "@/lib/activity";
 import type { ActivityRow } from "@/lib/activity-format";
 import type { SessionPayload } from "@/lib/auth";
-import { normalisePriority, normaliseStatus, STATUS_LABEL } from "@/lib/projects";
+import { getProjectConfig } from "@/lib/settings";
+import { isCompleteStatus, statusLabel } from "@/lib/config-types";
 
 /**
  * Project board server actions.
@@ -47,6 +48,17 @@ function parseDueDate(raw: FormDataEntryValue | null): Date | null {
 function formatDue(d: Date | null): string | null {
   if (!d) return null;
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Resolve a submitted priority against the configured list, falling back to the
+ * middle of the list rather than a hardcoded "MEDIUM" — a custom scheme may not
+ * have one.
+ */
+function normalisePriorityFor(priorities: { id: string }[], raw: unknown): string {
+  const id = typeof raw === "string" ? raw : "";
+  if (priorities.some((p) => p.id === id)) return id;
+  return priorities[Math.floor(priorities.length / 2)]?.id ?? priorities[0]?.id ?? "MEDIUM";
 }
 
 function taskUrl(projectId: string, taskId: string): string {
@@ -190,7 +202,8 @@ export async function createTaskAction(projectId: string, formData: FormData) {
 
   const description = ((formData.get("description") as string) ?? "").trim();
   const assignee = await resolveAssignee(formData.get("assigneeId"));
-  const priority = normalisePriority(formData.get("priority"));
+  const { priorities } = await getProjectConfig();
+  const priority = normalisePriorityFor(priorities, formData.get("priority"));
   const dueDate = parseDueDate(formData.get("dueDate"));
 
   const task = await prisma.task.create({
@@ -220,7 +233,11 @@ export async function createTaskAction(projectId: string, formData: FormData) {
 
 export async function updateTaskStatusAction(id: string, projectId: string, status: string) {
   const actor = await assertAccess("projects", "manage");
-  const next = normaliseStatus(status);
+
+  // Statuses are admin-configurable, so the allowed set comes from the
+  // configuration rather than a constant. An unknown value is dropped.
+  const { statuses } = await getProjectConfig();
+  const next = statuses.some((s) => s.id === status) ? status : null;
   if (!next) return;
 
   const before = await prisma.task.findUnique({
@@ -233,16 +250,17 @@ export async function updateTaskStatusAction(id: string, projectId: string, stat
     where: { id },
     data: {
       status: next,
-      // Stamp the completion time on the transition into DONE, and clear it
-      // when a task is reopened so cycle-time reporting stays truthful.
-      completedAt: next === "DONE" ? new Date() : null,
+      // Completion is the configured `isComplete` flag, not the literal id
+      // "DONE" — a workflow may finish in "Shipped" or "Approved". Cleared when
+      // a task moves back to an open status, so cycle-time stays truthful.
+      completedAt: isCompleteStatus(statuses, next) ? new Date() : null,
     },
   });
 
   await recordActivity({
     taskId: id, actorId: actor.uid, actorName: actor.name, kind: "status",
-    from: STATUS_LABEL[before.status] ?? before.status,
-    to: STATUS_LABEL[next] ?? next,
+    from: statusLabel(statuses, before.status),
+    to: statusLabel(statuses, next),
   });
 
   // Tell the owner their task moved — someone else closing your work is
@@ -252,7 +270,7 @@ export async function updateTaskStatusAction(id: string, projectId: string, stat
       [before.assigneeId],
       {
         kind: "status",
-        title: `${actor.name} moved “${before.title}” to ${STATUS_LABEL[next] ?? next}`,
+        title: `${actor.name} moved “${before.title}” to ${statusLabel(statuses, next)}`,
         url: taskUrl(projectId, id),
         taskId: id,
         actorName: actor.name,
@@ -292,7 +310,8 @@ export async function updateTaskAssigneeAction(id: string, projectId: string, as
 
 export async function updateTaskPriorityAction(id: string, projectId: string, priority: string) {
   const actor = await assertAccess("projects", "manage");
-  const next = normalisePriority(priority);
+  const { priorities } = await getProjectConfig();
+  const next = normalisePriorityFor(priorities, priority);
 
   const before = await prisma.task.findUnique({ where: { id }, select: { priority: true } });
   if (!before || before.priority === next) return;

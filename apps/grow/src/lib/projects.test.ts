@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { daysUntilDue, isOverdue, dueLabel, formatDueDate, normalisePriority, normaliseStatus } from "./projects";
+import { daysUntilDue, isOverdue, dueLabel, formatDueDate } from "./projects";
 
 /** Due dates are written at 12:00 UTC — mirror that in the fixtures. */
 function dueOn(iso: string) {
@@ -98,15 +98,3 @@ describe("formatDueDate", () => {
   });
 });
 
-describe("normalisers", () => {
-  it("falls back to MEDIUM for anything unrecognised", () => {
-    expect(normalisePriority("URGENT")).toBe("URGENT");
-    expect(normalisePriority("bogus")).toBe("MEDIUM");
-    expect(normalisePriority(undefined)).toBe("MEDIUM");
-  });
-
-  it("rejects an unknown status rather than guessing", () => {
-    expect(normaliseStatus("DONE")).toBe("DONE");
-    expect(normaliseStatus("ARCHIVED")).toBeNull();
-  });
-});

@@ -8,6 +8,7 @@ import { BackfillOwnersButton } from "./BackfillOwnersButton";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { isOverdue } from "@/lib/projects";
+import { getTaskStatuses } from "@/lib/settings";
 import { UNASSIGNED } from "@/lib/directory";
 import type { Project, Task } from "@/generated/prisma";
 
@@ -21,6 +22,10 @@ export default async function ProjectsDashboard() {
   if (!can(session.role, session.access, "projects", "view")) redirect("/admin");
 
   const canManage = can(session.role, session.access, "projects", "manage");
+
+  // "Complete" is a configured flag, not the literal id "DONE".
+  const statuses = await getTaskStatuses();
+  const completeIds = statuses.filter((s) => s.isComplete).map((s) => s.id);
 
   let projects: ProjectWithTasks[] = [];
   // Tasks still carrying a free-text owner with no IAM link — surfaces the
@@ -104,8 +109,8 @@ export default async function ProjectsDashboard() {
           ) : (
             projects.map((project) => {
               const totalTasks = project.tasks?.length || 0;
-              const completedTasks = project.tasks?.filter((t) => t.status === "DONE").length || 0;
-              const overdue = project.tasks?.filter((t) => isOverdue(t.dueDate, t.status)).length || 0;
+              const completedTasks = project.tasks?.filter((t) => completeIds.includes(t.status)).length || 0;
+              const overdue = project.tasks?.filter((t) => isOverdue(t.dueDate, t.status, completeIds)).length || 0;
               const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
               return (

@@ -79,6 +79,20 @@ const TABLES = [
   ],
 ];
 
+/** Tables to create (continued) — appended so the list stays chronological. */
+TABLES.push([
+  "SystemSetting",
+  // `key` is a reserved word in MySQL/MariaDB, so it must be back-quoted in the
+  // column definition as well as in the PRIMARY KEY clause.
+  `CREATE TABLE SystemSetting (
+     \`key\`   VARCHAR(191) NOT NULL,
+     value     TEXT NOT NULL,
+     updatedBy VARCHAR(191) NULL,
+     updatedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+     PRIMARY KEY (\`key\`)
+   )`,
+]);
+
 /** Indexes to add: [table, indexName, columns] */
 const INDEXES = [
   ["Task", "Task_assigneeId_idx", "(assigneeId)"],

@@ -58,14 +58,14 @@ const EXEC_ACCESS = {
 };
 
 /**
- * Every module at `manage`, INCLUDING `iam` — user administration and all
- * business modules. Mirrors the canonical MODULES list in src/lib/access.ts
+ * Every module at `manage`, INCLUDING `iam` (user administration) and
+ * `settings` (system configuration) — i.e. genuinely everything. Mirrors the canonical MODULES list in src/lib/access.ts
  * (`chatbot` is omitted only because no route exists for it yet).
  *
  * Distinct from EXEC_ACCESS above, which withholds `iam` on purpose. Anyone
  * granted this can create accounts and change permissions, including their own.
  */
-const FULL_ACCESS = { ...EXEC_ACCESS, iam: "manage" };
+const FULL_ACCESS = { ...EXEC_ACCESS, iam: "manage", settings: "manage" };
 
 /**
  * Accounts granted an explicit per-module map, rather than SUPER_ADMIN.

@@ -181,6 +181,26 @@ model Notification {
   @@index([emailedAt, emailAttempts])
 }
 
+/// Admin-editable system configuration: one row per setting, value as JSON.
+///
+/// Exists so option lists (task statuses, priorities, …) can be changed from the
+/// admin console instead of requiring a code change and a deploy. Deliberately
+/// a key/value store rather than a column per setting: adding a new configurable
+/// list must not need a migration, which is the whole point.
+///
+/// A missing row means "use the built-in default" — see lib/config-types.ts. The
+/// table starting empty is therefore the correct initial state, and deleting a
+/// row is a safe way to reset one setting.
+model SystemSetting {
+  /// Stable identifier, e.g. "projects.statuses". Never shown to users.
+  key       String   @id
+  /// JSON payload. Shape is per-key and validated on write, not by the schema.
+  value     String   @db.Text
+  /// AdminUser id of whoever last changed it — configuration is worth auditing.
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}
+
 // Finance & Invoicing
 model Invoice {
   id         String    @id @default(uuid())

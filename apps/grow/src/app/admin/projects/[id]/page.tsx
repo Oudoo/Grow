@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { pickerOptions } from "@/lib/directory";
 import { canDeleteTasksAction } from "../actions";
+import { getProjectConfig } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function ProjectDetailsPage({
   const { id } = await params;
   const { task: initialTaskId } = await searchParams;
 
-  const [project, directory, canDeleteTasks] = await Promise.all([
+  const [project, directory, canDeleteTasks, config] = await Promise.all([
     prisma.project.findUnique({
       where: { id },
       include: {
@@ -45,6 +46,9 @@ export default async function ProjectDetailsPage({
     // here so the button is simply absent for everyone else, rather than
     // present and then rejected.
     canDeleteTasksAction(),
+    // Admin-editable statuses and priorities. The board renders its columns from
+    // these, so a configuration change is visible here with no code change.
+    getProjectConfig(),
   ]);
 
   if (!project) notFound();
@@ -57,6 +61,8 @@ export default async function ProjectDetailsPage({
         currentUserId={session.uid}
         initialTaskId={initialTaskId ?? null}
         canDeleteTasks={canDeleteTasks}
+        statuses={config.statuses}
+        priorities={config.priorities}
       />
     </div>
   );

@@ -1,59 +1,20 @@
 /**
- * Shared project-board vocabulary.
+ * Due-date arithmetic for the project board.
  *
- * Lives outside the actions file because a "use server" module may only export
- * async functions — a plain const there is a build error. Pure and dependency
- * free, so both server actions and client components can import it.
+ * Pure and dependency-free, so server actions and client components share one
+ * implementation.
+ *
+ * This module used to also hold the status and priority vocabulary
+ * (PRIORITIES, STATUS_LABEL, PRIORITY_STYLE, …). Those are now admin-editable
+ * and live in lib/config-types.ts with the stored values read by lib/settings.ts
+ * — keeping a hardcoded copy here as well would guarantee the two drift apart.
  */
-
-export const PRIORITIES = ["URGENT", "HIGH", "MEDIUM", "LOW"] as const;
-export type Priority = (typeof PRIORITIES)[number];
-
-export const STATUSES = ["PENDING", "IN_PROGRESS", "DONE"] as const;
-export type Status = (typeof STATUSES)[number];
-
-export const STATUS_LABEL: Record<string, string> = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
-  DONE: "Done",
-};
-
-export const PRIORITY_LABEL: Record<Priority, string> = {
-  URGENT: "Urgent",
-  HIGH: "High",
-  MEDIUM: "Medium",
-  LOW: "Low",
-};
-
-/**
- * Tailwind classes per priority. Colours are deliberately reserved for URGENT
- * and HIGH: if every priority is coloured, none of them reads as urgent.
- */
-export const PRIORITY_STYLE: Record<Priority, string> = {
-  URGENT: "bg-red-500/15 text-red-400 border-red-500/30",
-  HIGH: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  MEDIUM: "bg-fg/5 text-slate border-fg/10",
-  LOW: "bg-fg/5 text-slate/70 border-fg/10",
-};
-
-/** Board ordering: most urgent first. */
-export const PRIORITY_RANK: Record<string, number> = {
-  URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3,
-};
-
-export function normalisePriority(raw: unknown): Priority {
-  return PRIORITIES.includes(raw as Priority) ? (raw as Priority) : "MEDIUM";
-}
-
-export function normaliseStatus(raw: unknown): Status | null {
-  return STATUSES.includes(raw as Status) ? (raw as Status) : null;
-}
 
 /**
  * Calendar-day difference between a due date and today, both read in UTC.
  *
- * Due dates are stored at 12:00 UTC (see parseDueDate in the actions), so
- * comparing UTC day numbers gives the same answer in every timezone — a task
+ * Due dates are stored at 12:00 UTC (see parseDueDate in the projects actions),
+ * so comparing UTC day numbers gives the same answer in every timezone — a task
  * due "today" never reads as overdue for a colleague in another country.
  * Negative = overdue, 0 = due today.
  */
@@ -67,18 +28,37 @@ export function daysUntilDue(due: Date | string | null | undefined): number | nu
   return Math.round((dueDay - today) / 86_400_000);
 }
 
+/**
+ * Ids that count as finished when no configuration is supplied.
+ *
+ * Statuses are admin-configurable (see lib/config-types.ts), so "complete" is a
+ * flag on the configured status rather than the literal id "DONE". These
+ * functions still accept the completed-id list as an optional argument, and fall
+ * back to the built-in default, so callers that have no config to hand — and the
+ * unit tests — behave exactly as before.
+ */
+const DEFAULT_COMPLETE_IDS = ["DONE"];
+
 /** A task is overdue only while it is still open — a late-but-done task is done. */
-export function isOverdue(due: Date | string | null | undefined, status: string): boolean {
-  if (status === "DONE") return false;
+export function isOverdue(
+  due: Date | string | null | undefined,
+  status: string,
+  completeIds: string[] = DEFAULT_COMPLETE_IDS,
+): boolean {
+  if (completeIds.includes(status)) return false;
   const days = daysUntilDue(due);
   return days !== null && days < 0;
 }
 
 /** Short human label for a due date: "Overdue by 3d", "Due today", "in 5d". */
-export function dueLabel(due: Date | string | null | undefined, status: string): string | null {
+export function dueLabel(
+  due: Date | string | null | undefined,
+  status: string,
+  completeIds: string[] = DEFAULT_COMPLETE_IDS,
+): string | null {
   const days = daysUntilDue(due);
   if (days === null) return null;
-  if (status === "DONE") return formatDueDate(due);
+  if (completeIds.includes(status)) return formatDueDate(due);
   if (days < 0) return `Overdue by ${Math.abs(days)}d`;
   if (days === 0) return "Due today";
   if (days === 1) return "Due tomorrow";

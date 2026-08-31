@@ -8,10 +8,12 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { unreadCount } from "@/lib/notify";
+import { dueLabel, isOverdue, daysUntilDue } from "@/lib/projects";
+import { getProjectConfig } from "@/lib/settings";
 import {
-  PRIORITY_LABEL, PRIORITY_STYLE, PRIORITY_RANK,
-  dueLabel, isOverdue, daysUntilDue, normalisePriority,
-} from "@/lib/projects";
+  COLOR_BADGE, priorityRank,
+  type PriorityOption, type StatusOption,
+} from "@/lib/config-types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,14 +41,14 @@ type Row = {
  * Split into buckets by urgency. Anything overdue leads, because a list that
  * buries late work under a flat date sort is how deadlines get missed.
  */
-function bucket(tasks: Row[]) {
+function bucket(tasks: Row[], completeIds: string[]) {
   const overdue: Row[] = [];
   const soon: Row[] = [];
   const later: Row[] = [];
   const noDate: Row[] = [];
 
   for (const t of tasks) {
-    if (isOverdue(t.dueDate, t.status)) { overdue.push(t); continue; }
+    if (isOverdue(t.dueDate, t.status, completeIds)) { overdue.push(t); continue; }
     const days = daysUntilDue(t.dueDate);
     if (days === null) noDate.push(t);
     else if (days <= 7) soon.push(t);
@@ -59,6 +61,14 @@ export default async function MyWorkPage() {
   const session = await getSession();
   if (!session) redirect("/admin/login");
   if (!can(session.role, session.access, "projects", "view")) redirect("/admin");
+
+  // Statuses and priorities are admin-editable, so ordering and the definition
+  // of "complete" both come from configuration.
+  const { statuses, priorities } = await getProjectConfig();
+  const completeIds = statuses.filter((s) => s.isComplete).map((s) => s.id);
+  const inProgressIds = statuses
+    .filter((s) => !s.isComplete && s.id !== statuses[0]?.id)
+    .map((s) => s.id);
 
   let tasks: Row[] = [];
   let unread = 0;
@@ -81,10 +91,10 @@ export default async function MyWorkPage() {
   }
 
   const open = tasks
-    .filter((t) => t.status !== "DONE")
-    .sort((a, b) => (PRIORITY_RANK[a.priority] ?? 2) - (PRIORITY_RANK[b.priority] ?? 2));
-  const done = tasks.filter((t) => t.status === "DONE");
-  const { overdue, soon, later, noDate } = bucket(open);
+    .filter((t) => !completeIds.includes(t.status))
+    .sort((a, b) => priorityRank(priorities, a.priority) - priorityRank(priorities, b.priority));
+  const done = tasks.filter((t) => completeIds.includes(t.status));
+  const { overdue, soon, later, noDate } = bucket(open, completeIds);
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto">
@@ -124,10 +134,10 @@ export default async function MyWorkPage() {
         </div>
       )}
 
-      <Group title="Overdue" tone="danger" tasks={overdue} />
-      <Group title="Due this week" tasks={soon} />
-      <Group title="Upcoming" tasks={later} />
-      <Group title="No due date" tasks={noDate} />
+      <Group title="Overdue" tone="danger" tasks={overdue} priorities={priorities} completeIds={completeIds} inProgressIds={inProgressIds} />
+      <Group title="Due this week" tasks={soon} priorities={priorities} completeIds={completeIds} inProgressIds={inProgressIds} />
+      <Group title="Upcoming" tasks={later} priorities={priorities} completeIds={completeIds} inProgressIds={inProgressIds} />
+      <Group title="No due date" tasks={noDate} priorities={priorities} completeIds={completeIds} inProgressIds={inProgressIds} />
     </div>
   );
 }
@@ -151,7 +161,18 @@ function Stat({
   );
 }
 
-function Group({ title, tasks, tone }: { title: string; tasks: Row[]; tone?: "danger" }) {
+function Group({
+  title, tasks, tone, priorities, completeIds, inProgressIds,
+}: {
+  title: string;
+  tasks: Row[];
+  tone?: "danger";
+  priorities: PriorityOption[];
+  completeIds: string[];
+  /** Statuses treated as "in progress" for the inline hint — everything that is
+      neither the first column nor a complete state. */
+  inProgressIds: string[];
+}) {
   if (tasks.length === 0) return null;
   return (
     <section className="mb-8">
@@ -162,9 +183,9 @@ function Group({ title, tasks, tone }: { title: string; tasks: Row[]; tone?: "da
       </h2>
       <ul className="space-y-2">
         {tasks.map((t) => {
-          const priority = normalisePriority(t.priority);
-          const due = dueLabel(t.dueDate, t.status);
-          const overdue = isOverdue(t.dueDate, t.status);
+          const priority = priorities.find((p) => p.id === t.priority);
+          const due = dueLabel(t.dueDate, t.status, completeIds);
+          const overdue = isOverdue(t.dueDate, t.status, completeIds);
           const subDone = t.subTasks.filter((s) => s.isCompleted).length;
 
           return (
@@ -173,10 +194,12 @@ function Group({ title, tasks, tone }: { title: string; tasks: Row[]; tone?: "da
                 href={`/admin/projects/${t.projectId}?task=${t.id}`}
                 className="flex items-center gap-4 bg-obsidian border border-fg/10 hover:border-cyan/40 rounded-xl p-4 transition-colors group"
               >
-                <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border ${PRIORITY_STYLE[priority]}`}>
-                  <Flag className="w-2.5 h-2.5 inline -mt-0.5 mr-0.5" />
-                  {PRIORITY_LABEL[priority]}
-                </span>
+                {priority && (
+                  <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border ${COLOR_BADGE[priority.color]}`}>
+                    <Flag className="w-2.5 h-2.5 inline -mt-0.5 mr-0.5" />
+                    {priority.label}
+                  </span>
+                )}
 
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-platinum group-hover:text-cyan transition-colors truncate">
@@ -186,7 +209,7 @@ function Group({ title, tasks, tone }: { title: string; tasks: Row[]; tone?: "da
                 </div>
 
                 <div className="hidden sm:flex items-center gap-3 text-xs text-slate shrink-0">
-                  {t.status === "IN_PROGRESS" && (
+                  {inProgressIds.includes(t.status) && (
                     <span className="flex items-center gap-1 text-blue-400"><Clock className="w-3 h-3" /> In progress</span>
                   )}
                   {t.subTasks.length > 0 && (
