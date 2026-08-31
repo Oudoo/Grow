@@ -114,8 +114,11 @@ export function ClientFinanceManager({ initialInvoices }: { initialInvoices: Inv
         </Card>
       )}
 
-      <div className="bg-obsidian border border-fg/10 rounded-xl overflow-hidden">
-        <table className="w-full text-left">
+      {/* overflow-x-auto, not overflow-hidden: hidden CLIPS the right-hand
+          columns on a narrow screen with no way to reach them. min-w forces the
+          scroll rather than crushing six columns into 375px. */}
+      <div className="bg-obsidian border border-fg/10 rounded-xl overflow-x-auto">
+        <table className="w-full min-w-[46rem] text-left">
           <thead className="bg-void border-b border-fg/10 text-slate text-xs uppercase tracking-wider">
             <tr>
               <th className="px-6 py-4 font-bold">Invoice</th>

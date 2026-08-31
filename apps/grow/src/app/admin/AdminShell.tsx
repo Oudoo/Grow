@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound } from "lucide-react";
+import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X } from "lucide-react";
 import { logoutAction } from "./actions";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -53,6 +53,11 @@ export default function AdminShell({
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // Mobile drawer. Closed on every navigation, so tapping a link does not leave
+  // the drawer covering the page you just opened.
+  const [navOpen, setNavOpen] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setNavOpen(false); }, [pathname]);
 
   // Hydration guard for theme-dependent rendering.
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -69,8 +74,39 @@ export default function AdminShell({
 
   return (
     <div className="flex h-screen bg-void w-full overflow-hidden absolute inset-0 z-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-obsidian border-r border-fg/5 flex flex-col">
+      {/* Scrim — only on mobile, and only while the drawer is open. Tapping it
+          closes the drawer, which is the gesture people expect. */}
+      {navOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={() => setNavOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+        />
+      )}
+
+      {/*
+        Sidebar. Below lg it is a fixed drawer translated off-screen; from lg up
+        it returns to being an ordinary flex child in the row.
+
+        It used to be a plain 256px flex child at every width, which on a 375px
+        phone left ~119px for content — the reason the admin was unusable on
+        mobile. `shrink-0` keeps it from being squeezed at tablet widths.
+      */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 shrink-0 bg-obsidian border-r border-fg/5 flex flex-col
+          transition-transform duration-200 ease-out lg:static lg:translate-x-0
+          ${navOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        {/* Close control, mobile only — the scrim alone is not discoverable. */}
+        <button
+          type="button"
+          onClick={() => setNavOpen(false)}
+          aria-label="Close navigation"
+          className="absolute right-3 top-3 z-20 rounded-lg p-2 text-slate hover:bg-fg/10 hover:text-platinum lg:hidden"
+        >
+          <X className="w-5 h-5" />
+        </button>
         <div className="h-20 flex items-center justify-center px-6 border-b border-fg/5 relative overflow-hidden">
           <Image src="/logo.svg" alt="" width={96} height={96} className="absolute -left-4 -top-4 h-24 w-auto opacity-10 pointer-events-none" />
           <span className="font-heading font-bold text-xl text-platinum relative z-10 text-glow">GROW ADMIN</span>
@@ -164,9 +200,37 @@ export default function AdminShell({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-void">
-        {children}
-      </main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Mobile top bar — the only way to reach navigation below lg. */}
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-fg/5 bg-obsidian px-4 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setNavOpen(true)}
+            aria-label="Open navigation"
+            aria-expanded={navOpen}
+            className="rounded-lg p-2 text-slate hover:bg-fg/10 hover:text-platinum"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <span className="font-heading font-bold text-platinum">GROW ADMIN</span>
+          <Link
+            href="/admin/notifications"
+            aria-label="Notifications"
+            className="relative ml-auto rounded-lg p-2 text-slate hover:bg-fg/10 hover:text-platinum"
+          >
+            <Bell className="w-5 h-5" />
+            {unread > 0 && (
+              <span className="absolute right-0.5 top-0.5 min-w-[15px] rounded-full bg-cyan px-1 text-[9px] font-bold text-void">
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
+          </Link>
+        </header>
+
+        <main className="flex-1 overflow-y-auto bg-void">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

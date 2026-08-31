@@ -21,6 +21,7 @@ import {
   deleteAttachmentAction,
   updateTaskTitleAction,
   updateSubTaskTitleAction,
+  renameProjectAction,
 } from "../actions";
 import type { Project, Task, SubTask, Comment, Attachment } from "@/generated/prisma";
 import type { DirectoryOption } from "@/lib/directory";
@@ -49,6 +50,7 @@ export function ClientProjectBoard({
   directory,
   currentUserId,
   initialTaskId,
+  canDeleteTasks,
 }: {
   project: ProjectWithTasks;
   /** Everyone in IAM who can open the projects module. */
@@ -56,6 +58,8 @@ export function ClientProjectBoard({
   currentUserId: string;
   /** Task to open on load — set when arriving from a notification link. */
   initialTaskId?: string | null;
+  /** Whether this account may delete tasks; enforced server-side regardless. */
+  canDeleteTasks?: boolean;
 }) {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(initialTaskId ?? null);
   const [search, setSearch] = useState("");
@@ -108,7 +112,21 @@ export function ClientProjectBoard({
       <div className="bg-obsidian border border-fg/10 rounded-2xl p-6">
         <div className="flex justify-between items-start mb-6 gap-6">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-platinum mb-2">{project.title}</h1>
+            {/* Rename in place — blur commits. The action ignores an empty
+                value, so clearing the field cannot leave a nameless project. */}
+            <input
+              key={`ptitle-${project.id}`}
+              defaultValue={project.title}
+              aria-label="Project name"
+              onBlur={(e) => {
+                if (e.target.value.trim() === project.title) return;
+                const data = new FormData();
+                data.set("title", e.target.value);
+                renameProjectAction(project.id, data);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              className="w-full text-2xl sm:text-3xl font-heading font-bold text-platinum mb-2 bg-transparent border-none outline-none focus:ring-1 focus:ring-cyan rounded px-1 -ml-1"
+            />
             {project.description && <p className="text-slate">{project.description}</p>}
             {overdueCount > 0 && (
               <p className="mt-3 inline-flex items-center gap-2 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/25 rounded-lg px-3 py-1.5">
@@ -247,16 +265,18 @@ export function ClientProjectBoard({
                   onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                   className="text-xl font-bold text-platinum bg-transparent border-none outline-none focus:ring-1 focus:ring-cyan rounded px-1 w-full"
                 />
-                <button
-                  onClick={() => {
-                    deleteTaskAction(activeTask.id, project.id);
-                    setActiveTaskId(null);
-                  }}
-                  aria-label="Delete task"
-                  className="text-slate hover:text-red-400 transition-colors shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {canDeleteTasks && (
+                  <button
+                    onClick={() => {
+                      deleteTaskAction(activeTask.id, project.id);
+                      setActiveTaskId(null);
+                    }}
+                    aria-label="Delete task"
+                    className="text-slate hover:text-red-400 transition-colors shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Description — supports @mentions */}

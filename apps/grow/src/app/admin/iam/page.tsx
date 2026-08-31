@@ -32,7 +32,7 @@ export default async function IamPage() {
   const modules = MODULES.map((m) => ({ key: m.key as string, label: m.label }));
 
   return (
-    <div className="p-10 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-heading font-bold text-platinum mb-2 flex items-center gap-3">

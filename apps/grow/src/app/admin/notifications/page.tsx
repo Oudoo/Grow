@@ -26,7 +26,7 @@ export default async function NotificationsPage() {
   const mailReady = isMailConfigured();
 
   return (
-    <div className="p-10 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-10 max-w-3xl mx-auto">
       <div className="flex items-start justify-between mb-8 gap-6">
         <div>
           <h1 className="text-3xl font-heading font-bold text-platinum mb-2 flex items-center gap-3">

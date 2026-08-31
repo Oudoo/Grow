@@ -40,6 +40,9 @@ const TEAM = [
  * Every business module at `manage`, with `iam` deliberately absent (= none).
  * Mirrors ModuleKey in src/lib/access.ts, minus `iam` (user administration) and
  * minus `chatbot` (no route exists yet).
+ *
+ * NOTE: this grant is broad — finance, CRM and every client-facing module.
+ * Confirm it against the holder's role before reusing it for someone new.
  */
 const EXEC_ACCESS = {
   analytics: "manage",
@@ -76,6 +79,9 @@ const EXECUTIVES = [
   {
     email: "basem.341@gmail.com",
     name: "Basem",
+    // Marketing Manager, with deliberate access to every business module
+    // including finance — reviewed and kept intentionally on 2026-08-31. Wider
+    // than the job title implies, so do not "correct" it back down.
     // Shares STAFF_PASSWORD by request; set only when the account is created.
     get password() {
       return process.env.STAFF_PASSWORD;
@@ -151,7 +157,7 @@ async function main() {
     // ── Accounts with an explicit per-module access map ────────────────────
     // Role is ADMIN, not SUPER_ADMIN, because SUPER_ADMIN implicitly gets
     // `manage` everywhere and would override whatever the map says — which
-    // matters for the CEO account, whose whole point is that `iam` is withheld.
+    // matters for the account whose whole point is that `iam` is withheld.
     // Each entry carries its own map, so read the map to know what it can do.
     // Password is set only on creation, so later changes are never clobbered.
     for (const exec of EXECUTIVES) {

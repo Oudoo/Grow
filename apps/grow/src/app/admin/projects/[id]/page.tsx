@@ -4,6 +4,7 @@ import { ClientProjectBoard } from "./ClientProjectBoard";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { pickerOptions } from "@/lib/directory";
+import { canDeleteTasksAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function ProjectDetailsPage({
   const { id } = await params;
   const { task: initialTaskId } = await searchParams;
 
-  const [project, directory] = await Promise.all([
+  const [project, directory, canDeleteTasks] = await Promise.all([
     prisma.project.findUnique({
       where: { id },
       include: {
@@ -40,17 +41,22 @@ export default async function ProjectDetailsPage({
     // Owner picker + mention candidates come from IAM, so anyone with a Grow
     // account that can open this module is selectable here.
     pickerOptions("projects", "view"),
+    // Task deletion is restricted to named accounts (see actions.ts). Computed
+    // here so the button is simply absent for everyone else, rather than
+    // present and then rejected.
+    canDeleteTasksAction(),
   ]);
 
   if (!project) notFound();
 
   return (
-    <div className="p-10 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 lg:p-10 max-w-[1600px] mx-auto">
       <ClientProjectBoard
         project={project}
         directory={directory}
         currentUserId={session.uid}
         initialTaskId={initialTaskId ?? null}
+        canDeleteTasks={canDeleteTasks}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 "use server";
 
-import { assertAccess } from "@/lib/auth";
+import { assertAccess, getSession } from "@/lib/auth";
+import { can } from "@/lib/access";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { directoryFor, resolveByName, UNASSIGNED } from "@/lib/directory";
@@ -155,6 +156,22 @@ export async function createProjectAction(formData: FormData) {
   if (!title) return;
 
   await prisma.project.create({ data: { title, description: description || null } });
+  revalidatePath("/admin/projects");
+}
+
+export async function renameProjectAction(id: string, formData: FormData) {
+  await assertAccess("projects", "manage");
+  const title = (formData.get("title") as string)?.trim();
+  if (!title) return;
+
+  const description = formData.get("description");
+  const data: { title: string; description?: string | null } = { title };
+  // Only touch the description when the form actually submitted the field, so
+  // renaming from a title-only form cannot silently blank it.
+  if (typeof description === "string") data.description = description.trim() || null;
+
+  await prisma.project.update({ where: { id }, data });
+  revalidatePath(`/admin/projects/${id}`);
   revalidatePath("/admin/projects");
 }
 
@@ -364,8 +381,47 @@ export async function updateTaskDescriptionAction(id: string, projectId: string,
   dispatchInBackground();
 }
 
+/**
+ * Who may delete a task, beyond having projects:manage.
+ *
+ * Deletion is the one irreversible action on the board — a task takes its
+ * subtasks, comments, attachments and history with it (cascading FKs), and
+ * there is no undo. Everyone with projects:manage can create and edit; only
+ * these accounts can destroy.
+ *
+ * An explicit list rather than a role check, because the people who should hold
+ * this do not map onto a single role: two are SUPER_ADMIN, one is not. Matched
+ * case-insensitively on email.
+ *
+ * TODO: move to the admin configuration screen when that lands, so this no
+ * longer needs a developer and a deploy to change.
+ */
+const TASK_DELETE_ALLOWED = [
+  "mahmoud.hassan@growcdx.com",
+  "hana.mohamed@growcdx.com",
+  "basem.341@gmail.com",
+];
+
+function mayDeleteTasks(email: string): boolean {
+  return TASK_DELETE_ALLOWED.includes(email.trim().toLowerCase());
+}
+
+/** True when the current user may delete tasks — drives the UI affordance. */
+export async function canDeleteTasksAction(): Promise<boolean> {
+  const session = await getSession();
+  if (!session) return false;
+  if (!can(session.role, session.access, "projects", "manage")) return false;
+  return mayDeleteTasks(session.email);
+}
+
 export async function deleteTaskAction(id: string, projectId: string) {
-  await assertAccess("projects", "manage");
+  const actor = await assertAccess("projects", "manage");
+  // Enforced here, not only in the UI: a server action is reachable by its
+  // global action id regardless of which page rendered it, so hiding the button
+  // is a courtesy and this is the actual boundary.
+  if (!mayDeleteTasks(actor.email)) {
+    throw new Error("You do not have permission to delete tasks.");
+  }
   await prisma.task.delete({ where: { id } });
   revalidateTask(projectId);
 }

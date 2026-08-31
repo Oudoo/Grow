@@ -45,6 +45,16 @@ const CLIENTS = {
     websiteUrl: "https://sportive-hub.com",
     status: "active",
   },
+  "nour-clinic-elite": {
+    name: "Nour Clinic Elite",
+    // Surgical practice per the induction playbook's capture fields; the exact
+    // specialty is not stated there, so it is not asserted here either.
+    industry: "Healthcare — Surgical Practice",
+    websiteUrl: null,
+    // "onboarding", not "active": the executive induction has not been run and
+    // no client data has been captured yet.
+    status: "onboarding",
+  },
 };
 
 /** Valid values of knowledgeDocTypeEnum (packages/engine-db/src/schema/aom.ts). */

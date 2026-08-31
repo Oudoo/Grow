@@ -52,7 +52,7 @@ export default async function ClientsAccessPage() {
   const products = PRODUCTS.map((p) => ({ key: p.key as string, label: p.label }));
 
   return (
-    <div className="p-10 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-10 max-w-6xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-heading font-bold text-platinum mb-2 flex items-center gap-3">
           <Building2 className="w-8 h-8 text-cyan" />
