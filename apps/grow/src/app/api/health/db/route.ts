@@ -37,6 +37,8 @@ export async function GET() {
       ["notifications", () => prisma.notification.count()],
       ["activities", () => prisma.activity.count()],
       ["settings", () => prisma.systemSetting.count()],
+      ["channels", () => prisma.channel.count()],
+      ["chatMessages", () => prisma.chatMessage.count()],
     ] as [string, () => Promise<number>][]) {
       try {
         tables[name] = await count();
