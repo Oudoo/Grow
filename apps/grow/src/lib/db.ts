@@ -1,85 +1,44 @@
 import { PrismaClient } from '@/generated/prisma';
-import { isConnectionFailure } from './db-errors';
 
 /**
- * Prisma client, with automatic recovery from a dead connection pool.
+ * Prisma client.
  *
- * **Why the recovery layer exists.** Editing Remote MySQL access — adding or
- * revoking a host — makes MySQL invalidate this user's existing sessions. The
- * pooled connections are then dead, but Prisma keeps handing them out, so every
- * query fails with an authentication error until the process restarts. Observed
- * on 2026-08-31: a grant change caused roughly two minutes of total admin
- * failure, and it only cleared because a deploy happened to restart the app.
- * Without that restart it would have stayed broken indefinitely.
+ * ── Why there is no automatic reconnect layer here ──
  *
- * The fix is to notice that class of error and retire the pool, so the next
- * attempt opens a fresh connection. One retry, with a cooldown, so a database
- * that is genuinely down does not turn every query into a reconnect storm.
+ * A previous version wrapped every query in an extension that, on a
+ * connection-class error, called $disconnect() and retried once. It was meant to
+ * fix a real problem: editing Remote MySQL invalidates this user's sessions, and
+ * after a grant change the admin console failed for about two minutes until a
+ * deploy happened to restart the app.
+ *
+ * It made things far worse. The recoverable set included P2024 — "timed out
+ * fetching a connection from the pool" — which fires under ordinary load. On
+ * that error the layer destroyed the pool that every other in-flight request was
+ * waiting on, producing more pool timeouts, producing more disconnects. The
+ * result was not a slow console but a total one: every database-touching request
+ * hung until the gateway gave up at 504, while the public site kept serving from
+ * its bundled fallback and so looked healthy.
+ *
+ * The lesson is specific and worth keeping: **pool exhaustion is not a broken
+ * connection.** Treating a symptom of load as a symptom of a dead socket turns a
+ * queue into a collapse. If this is revisited, recovery must exclude P2024 and
+ * P1008 entirely, must never tear down a shared pool while requests are queued
+ * on it, and needs load testing rather than reasoning.
+ *
+ * The original problem is self-limiting and follows a deliberate manual action.
+ * The mitigation is a one-line operational note: after changing Remote MySQL
+ * settings, restart the Node app. See lib/db-errors.ts, which is retained with
+ * its tests for whenever this is properly designed.
  */
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: ReturnType<typeof build> | undefined;
+  prisma: PrismaClient | undefined;
 };
 
 if (!process.env.DATABASE_URL) {
   console.warn("WARNING: DATABASE_URL is not set in the environment.");
 }
 
-/**
- * Minimum gap between reconnect attempts. A burst of concurrent queries hitting
- * a dead pool would otherwise each call $disconnect(), fighting each other and
- * making recovery slower rather than faster.
- */
-const RECONNECT_COOLDOWN_MS = 5_000;
-
-function build() {
-  const base = new PrismaClient();
-  let lastReconnect = 0;
-  let reconnecting: Promise<void> | null = null;
-
-  /** Retire the pool. Concurrent callers share one attempt. */
-  async function recycle(): Promise<boolean> {
-    const now = Date.now();
-    if (reconnecting) {
-      await reconnecting;
-      return true;
-    }
-    if (now - lastReconnect < RECONNECT_COOLDOWN_MS) return false;
-
-    lastReconnect = now;
-    reconnecting = (async () => {
-      try {
-        // $disconnect drops the pool; Prisma reconnects lazily on the next
-        // query, which is exactly the behaviour we want here.
-        await base.$disconnect();
-        console.warn("[db] connection pool was unusable — retired it; reconnecting on next query.");
-      } catch (e) {
-        console.error("[db] could not retire the pool:", e);
-      } finally {
-        reconnecting = null;
-      }
-    })();
-    await reconnecting;
-    return true;
-  }
-
-  return base.$extends({
-    query: {
-      async $allOperations({ query, args }) {
-        try {
-          return await query(args);
-        } catch (e) {
-          if (!isConnectionFailure(e)) throw e;
-          // One retry only. If the second attempt also fails the caller sees
-          // the real error, and /api/health/db reports it accurately.
-          if (!(await recycle())) throw e;
-          return await query(args);
-        }
-      },
-    },
-  });
-}
-
-export const prisma = globalForPrisma.prisma ?? build();
+export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
