@@ -93,6 +93,51 @@ TABLES.push([
    )`,
 ]);
 
+/** Team chat. */
+TABLES.push(
+  [
+    "Channel",
+    `CREATE TABLE Channel (
+       id          VARCHAR(191) NOT NULL,
+       slug        VARCHAR(191) NOT NULL,
+       name        VARCHAR(191) NOT NULL,
+       topic       TEXT NULL,
+       isPrivate   TINYINT(1) NOT NULL DEFAULT 0,
+       createdById VARCHAR(191) NULL,
+       createdAt   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       updatedAt   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       PRIMARY KEY (id),
+       UNIQUE KEY Channel_slug_key (slug)
+     )`,
+  ],
+  [
+    "ChannelMember",
+    `CREATE TABLE ChannelMember (
+       id         VARCHAR(191) NOT NULL,
+       channelId  VARCHAR(191) NOT NULL,
+       userId     VARCHAR(191) NOT NULL,
+       lastReadAt DATETIME(3) NULL,
+       joinedAt   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       PRIMARY KEY (id),
+       UNIQUE KEY ChannelMember_channelId_userId_key (channelId, userId)
+     )`,
+  ],
+  [
+    "ChatMessage",
+    `CREATE TABLE ChatMessage (
+       id         VARCHAR(191) NOT NULL,
+       channelId  VARCHAR(191) NOT NULL,
+       authorId   VARCHAR(191) NOT NULL,
+       authorName VARCHAR(191) NOT NULL,
+       body       TEXT NOT NULL,
+       mentions   TEXT NULL,
+       editedAt   DATETIME(3) NULL,
+       createdAt  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       PRIMARY KEY (id)
+     )`,
+  ],
+);
+
 /** Indexes to add: [table, indexName, columns] */
 const INDEXES = [
   ["Task", "Task_assigneeId_idx", "(assigneeId)"],
@@ -102,6 +147,8 @@ const INDEXES = [
   ["Activity", "Activity_taskId_createdAt_idx", "(taskId, createdAt)"],
   ["Notification", "Notification_userId_readAt_idx", "(userId, readAt)"],
   ["Notification", "Notification_emailedAt_emailAttempts_idx", "(emailedAt, emailAttempts)"],
+  ["ChannelMember", "ChannelMember_userId_idx", "(userId)"],
+  ["ChatMessage", "ChatMessage_channelId_createdAt_idx", "(channelId, createdAt)"],
 ];
 
 /**
@@ -114,6 +161,16 @@ const FOREIGN_KEYS = [
     "Activity",
     "Activity_taskId_fkey",
     "FOREIGN KEY (taskId) REFERENCES Task(id) ON DELETE CASCADE ON UPDATE CASCADE",
+  ],
+  [
+    "ChannelMember",
+    "ChannelMember_channelId_fkey",
+    "FOREIGN KEY (channelId) REFERENCES Channel(id) ON DELETE CASCADE ON UPDATE CASCADE",
+  ],
+  [
+    "ChatMessage",
+    "ChatMessage_channelId_fkey",
+    "FOREIGN KEY (channelId) REFERENCES Channel(id) ON DELETE CASCADE ON UPDATE CASCADE",
   ],
 ];
 

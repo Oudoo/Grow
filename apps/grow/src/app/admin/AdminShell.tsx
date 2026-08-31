@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X, SlidersHorizontal } from "lucide-react";
+import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X, SlidersHorizontal, MessagesSquare } from "lucide-react";
 import { logoutAction } from "./actions";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -32,6 +32,7 @@ const LINKS: NavLink[] = [
   { name: "Grow Playbook", href: "/admin/playbook", icon: BookOpen, module: "playbook" },
   { name: "White-Label", href: "/admin/whitelabel", icon: Paintbrush, module: "branding", need: "manage" },
   { name: "Configuration", href: "/admin/configuration", icon: SlidersHorizontal, module: "settings", need: "manage" },
+  { name: "Team Chat", href: "/admin/chat", icon: MessagesSquare, module: "chat" },
 ];
 
 const SYSTEMS: NavLink[] = [

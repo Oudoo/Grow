@@ -55,6 +55,7 @@ const EXEC_ACCESS = {
   playbook: "manage",
   engine: "manage",
   producer: "manage",
+  chat: "manage",
 };
 
 /**

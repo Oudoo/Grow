@@ -26,8 +26,12 @@ export type ModuleKey =
   | "playbook"
   | "producer"
   | "engine"
+  // The client-facing chatbot product — distinct from `chat` below, which is
+  // internal team messaging. Kept separate so a client can be entitled to the
+  // chatbot without gaining access to staff conversations.
   | "chatbot"
-  | "settings";
+  | "settings"
+  | "chat";
 
 export type AccessMap = Partial<Record<ModuleKey, AccessLevel>>;
 
@@ -53,6 +57,10 @@ export const MODULES: ModuleDef[] = [
   // a developer. Separate from `iam` on purpose: changing task statuses is not
   // the same trust level as creating accounts, so it can be delegated alone.
   { key: "settings", label: "Configuration", path: "/admin/configuration" },
+  // Team chat. Every staff account gets `view` by default in practice — a chat
+  // nobody can open is pointless — but it is a module so it can be withheld
+  // from client accounts and route-gated like everything else.
+  { key: "chat", label: "Team Chat", path: "/admin/chat" },
   { key: "branding", label: "Branding", path: "/admin/branding" },
   { key: "playbook", label: "Grow Playbook", path: "/admin/playbook" },
   { key: "engine", label: "Grow Engine", path: "/engine" },

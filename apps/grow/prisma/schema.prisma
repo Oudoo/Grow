@@ -181,6 +181,68 @@ model Notification {
   @@index([emailedAt, emailAttempts])
 }
 
+// ── Team chat ──────────────────────────────────────────────────────────────
+
+/// A chat channel. Membership is explicit rather than "everyone sees
+/// everything", so a channel can be scoped to the people who need it — and a
+/// client-facing channel later needs no schema change.
+model Channel {
+  id          String   @id @default(uuid())
+  /// URL-safe name, unique. Displayed with a leading # in the UI.
+  slug        String   @unique
+  name        String
+  topic       String?  @db.Text
+  /// Open channels are joinable by any staff account; private ones need an
+  /// explicit membership row.
+  isPrivate   Boolean  @default(false)
+  /// AdminUser id of the creator. Kept even if that account goes.
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members  ChannelMember[]
+  messages ChatMessage[]
+}
+
+/// One person's membership of one channel, and their read position.
+///
+/// `lastReadAt` is the whole unread mechanism: unread count is messages in the
+/// channel newer than this. Storing a timestamp rather than a per-message read
+/// flag keeps it one row per person per channel instead of one per message.
+model ChannelMember {
+  id         String    @id @default(uuid())
+  channelId  String
+  channel    Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  /// AdminUser id — no FK, since AdminUser is in the same schema but members
+  /// may be seeded before accounts exist.
+  userId     String
+  lastReadAt DateTime?
+  joinedAt   DateTime  @default(now())
+
+  /// One membership per person per channel.
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id         String    @id @default(uuid())
+  channelId  String
+  channel    Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  /// AdminUser id of the author.
+  authorId   String
+  /// Denormalised so an old message still shows a name if the account is gone.
+  authorName String
+  body       String    @db.Text
+  /// Resolved @mentions as a JSON array of AdminUser ids, captured at write
+  /// time — same approach as task comments, so highlighting survives a rename.
+  mentions   String?   @db.Text
+  editedAt   DateTime?
+  createdAt  DateTime  @default(now())
+
+  /// The only query that matters: a channel's messages, newest last.
+  @@index([channelId, createdAt])
+}
+
 /// Admin-editable system configuration: one row per setting, value as JSON.
 ///
 /// Exists so option lists (task statuses, priorities, …) can be changed from the

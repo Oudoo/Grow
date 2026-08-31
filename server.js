@@ -250,6 +250,10 @@ async function bootstrapDatabase() {
     // Idempotent — no writes when nothing changed.
     await step("client knowledge bases", process.execPath, ["scripts/seed-client-knowledge.mjs"]);
 
+    // Default system configuration. Writes only when nothing is configured yet,
+    // so an admin's own edits in the Configuration screen are never clobbered.
+    await step("system configuration", process.execPath, ["scripts/seed-config.mjs"]);
+
     console.log("[bootstrap] Done.");
   } catch (err) {
     console.warn("[bootstrap] Failed (site unaffected):", err.message);
