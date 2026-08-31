@@ -27,15 +27,26 @@ export async function GET() {
     // does — and the only symptom would be a module throwing at runtime.
     // Touch the newest tables here so a missed migration is visible from
     // outside instead of being discovered by a user.
-    let notifications: number | string;
-    try {
-      notifications = await prisma.notification.count();
-    } catch {
-      notifications = "table-missing — run `prisma db push`";
+    //
+    // One entry per table added since this probe was written. Each newly added
+    // table gets a line here, because that is what caught the last silent
+    // migration failure — a deploy went live with the code but not the schema,
+    // and nothing else would have shown it until a user hit the feature.
+    const tables: Record<string, number | string> = {};
+    for (const [name, count] of [
+      ["notifications", () => prisma.notification.count()],
+      ["activities", () => prisma.activity.count()],
+      ["settings", () => prisma.systemSetting.count()],
+    ] as [string, () => Promise<number>][]) {
+      try {
+        tables[name] = await count();
+      } catch {
+        tables[name] = "table-missing — boot migration did not run";
+      }
     }
 
     return Response.json(
-      { ok: true, adminUsers: users, notifications, ms: Date.now() - started },
+      { ok: true, adminUsers: users, ...tables, ms: Date.now() - started },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e: unknown) {
