@@ -90,8 +90,14 @@ const EXECUTIVES = [
     access: EXEC_ACCESS,
   },
   {
-    // CTO. Personal address on purpose — his @growcdx.com mailbox is pending
-    // the domain transfer. Migrate him to the company address once that lands;
+    // Multimedia Specialist, holding manage on EVERY module including `iam` —
+    // reviewed and kept intentionally on 2026-08-31. That is wider than the
+    // role implies (he can create accounts and re-permission anyone, his own
+    // included), so it is a deliberate decision rather than an oversight: do
+    // not "correct" it down without asking.
+    //
+    // Personal address on purpose — his @growcdx.com mailbox is pending the
+    // domain transfer. Migrate him to the company address once that lands;
     // changing `email` here would create a SECOND account rather than rename
     // this one, so do it in the IAM Portal and remove this entry afterwards.
     email: "seifmohammed0123@gmail.com",

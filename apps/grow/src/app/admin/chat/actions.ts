@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { directoryFor } from "@/lib/directory";
 import { mentionedUserIds } from "@/lib/mentions";
 import { dispatchInBackground, notifyUsers } from "@/lib/notify";
+import { storeUpload, deleteUpload } from "@/lib/uploads";
+import { REACTIONS } from "@/lib/chat-types";
 
 /**
  * Team chat actions.
@@ -99,8 +101,10 @@ export async function joinChannelAction(channelId: string, _formData?: FormData)
 export async function postMessageAction(channelId: string, formData: FormData): Promise<ChatResult> {
   const actor = await assertAccess("chat", "manage");
 
-  const body = (formData.get("body") as string)?.trim();
-  if (!body) return { ok: false, error: "Nothing to send." };
+  const body = (formData.get("body") as string)?.trim() ?? "";
+  const hasFiles = formData.getAll("files").some((f) => f instanceof File && f.size > 0);
+  // A file on its own is a valid message; empty text with no file is not.
+  if (!body && !hasFiles) return { ok: false, error: "Nothing to send." };
   if (body.length > 4000) return { ok: false, error: "That message is too long — 4000 characters maximum." };
 
   const channel = await prisma.channel.findUnique({
@@ -117,6 +121,39 @@ export async function postMessageAction(channelId: string, formData: FormData): 
     if (!member) return { ok: false, error: "You are not a member of that channel." };
   }
 
+  // A threaded reply carries its parent; validated so a reply cannot be attached
+  // to a message in another channel, and so threads stay one level deep.
+  const rawParent = formData.get("parentId");
+  let parentId: string | null = null;
+  if (typeof rawParent === "string" && rawParent) {
+    const parent = await prisma.chatMessage.findUnique({
+      where: { id: rawParent },
+      select: { channelId: true, parentId: true },
+    });
+    if (!parent || parent.channelId !== channelId) {
+      return { ok: false, error: "That thread no longer exists." };
+    }
+    // Replying to a reply attaches to the same parent rather than nesting.
+    parentId = parent.parentId ?? rawParent;
+  }
+
+  // Attachments, stored before the message so a failed upload does not leave a
+  // message claiming a file that is not there.
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length > 5) return { ok: false, error: "Five files per message is the maximum." };
+
+  const stored = [];
+  for (const file of files) {
+    const result = await storeUpload(file);
+    if (!result.ok || !result.file) {
+      // Roll back anything already written — a partial attachment set is worse
+      // than a rejected send.
+      for (const s of stored) await deleteUpload(s.storageKey);
+      return { ok: false, error: result.error ?? "Could not attach that file." };
+    }
+    stored.push(result.file);
+  }
+
   const directory = await directoryFor("chat", "view");
   const mentioned = mentionedUserIds(body, directory);
 
@@ -126,7 +163,17 @@ export async function postMessageAction(channelId: string, formData: FormData): 
       authorId: actor.uid,
       authorName: actor.name,
       body,
+      parentId,
       mentions: mentioned.length ? JSON.stringify(mentioned) : null,
+      attachments: {
+        create: stored.map((f) => ({
+          fileName: f.fileName,
+          mimeType: f.mimeType,
+          sizeBytes: f.sizeBytes,
+          storageKey: f.storageKey,
+          uploadedBy: actor.uid,
+        })),
+      },
     },
   });
 
@@ -174,7 +221,12 @@ export interface ChatMessageRow {
   authorId: string;
   authorName: string;
   body: string;
+  editedAt: Date | null;
   createdAt: Date;
+  /** Reply count, so the main view can show "3 replies" without loading them. */
+  replyCount: number;
+  reactions: { emoji: string; userIds: string[] }[];
+  attachments: { id: string; fileName: string; mimeType: string; sizeBytes: number }[];
 }
 
 /**
@@ -204,10 +256,208 @@ export async function channelMessagesAction(
   }
 
   const rows = await prisma.chatMessage.findMany({
-    where: { channelId },
+    // Top-level only — replies are loaded per thread when one is opened.
+    where: { channelId, parentId: null },
     orderBy: { createdAt: "desc" },
     take: limit,
-    select: { id: true, authorId: true, authorName: true, body: true, createdAt: true },
+    select: {
+      id: true, authorId: true, authorName: true, body: true,
+      editedAt: true, createdAt: true,
+      _count: { select: { replies: true } },
+      reactions: { select: { emoji: true, userId: true } },
+      attachments: { select: { id: true, fileName: true, mimeType: true, sizeBytes: true } },
+    },
   });
-  return rows.reverse();
+
+  return rows.reverse().map((r) => {
+    // Group reactions by emoji, keeping who reacted so the UI can show your own
+    // as active and toggle it.
+    const byEmoji = new Map<string, string[]>();
+    for (const rx of r.reactions) {
+      const list = byEmoji.get(rx.emoji) ?? [];
+      list.push(rx.userId);
+      byEmoji.set(rx.emoji, list);
+    }
+    return {
+      id: r.id,
+      authorId: r.authorId,
+      authorName: r.authorName,
+      body: r.body,
+      editedAt: r.editedAt,
+      createdAt: r.createdAt,
+      replyCount: r._count.replies,
+      reactions: [...byEmoji].map(([emoji, userIds]) => ({ emoji, userIds })),
+      attachments: r.attachments,
+    };
+  });
+}
+
+
+// ── Editing ────────────────────────────────────────────────────────────────
+
+/**
+ * Edit a message.
+ *
+ * Only the author, and only the body — reassigning authorship or moving a
+ * message between channels are not edits. `editedAt` is stamped so readers can
+ * see it changed; quietly rewriting something people have already read is worse
+ * than leaving the typo.
+ */
+export async function editMessageAction(messageId: string, formData: FormData): Promise<ChatResult> {
+  const actor = await assertAccess("chat", "manage");
+
+  const body = (formData.get("body") as string)?.trim();
+  if (!body) return { ok: false, error: "A message cannot be empty. Delete it instead." };
+  if (body.length > 4000) return { ok: false, error: "That message is too long — 4000 characters maximum." };
+
+  const message = await prisma.chatMessage.findUnique({
+    where: { id: messageId },
+    select: { authorId: true, body: true },
+  });
+  if (!message) return { ok: false, error: "That message no longer exists." };
+  if (message.authorId !== actor.uid) return { ok: false, error: "You can only edit your own messages." };
+  if (message.body === body) return { ok: true };
+
+  const directory = await directoryFor("chat", "view");
+  const mentioned = mentionedUserIds(body, directory);
+
+  await prisma.chatMessage.update({
+    where: { id: messageId },
+    data: {
+      body,
+      mentions: mentioned.length ? JSON.stringify(mentioned) : null,
+      editedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/admin/chat");
+  return { ok: true };
+}
+
+/** Delete a message. Author only; its replies, reactions and files go with it. */
+export async function deleteMessageAction(messageId: string): Promise<ChatResult> {
+  const actor = await assertAccess("chat", "manage");
+
+  const message = await prisma.chatMessage.findUnique({
+    where: { id: messageId },
+    select: { authorId: true, attachments: { select: { storageKey: true } } },
+  });
+  if (!message) return { ok: true };
+  if (message.authorId !== actor.uid) return { ok: false, error: "You can only delete your own messages." };
+
+  // Remove the files first: the rows cascade away, and an orphaned file on disk
+  // would never be reachable again to clean up.
+  for (const a of message.attachments) await deleteUpload(a.storageKey);
+  await prisma.chatMessage.delete({ where: { id: messageId } });
+
+  revalidatePath("/admin/chat");
+  return { ok: true };
+}
+
+// ── Reactions ──────────────────────────────────────────────────────────────
+
+/** Toggle one reaction. Adding twice removes it, which is what people expect. */
+export async function toggleReactionAction(messageId: string, emoji: string): Promise<ChatResult> {
+  const actor = await assertAccess("chat", "manage");
+  if (!REACTIONS.includes(emoji as (typeof REACTIONS)[number])) {
+    return { ok: false, error: "That reaction is not available." };
+  }
+
+  const existing = await prisma.messageReaction.findUnique({
+    where: { messageId_userId_emoji: { messageId, userId: actor.uid, emoji } },
+  });
+
+  if (existing) {
+    await prisma.messageReaction.delete({ where: { id: existing.id } });
+  } else {
+    // The message may have been deleted between render and click.
+    const message = await prisma.chatMessage.findUnique({ where: { id: messageId }, select: { id: true } });
+    if (!message) return { ok: false, error: "That message no longer exists." };
+    await prisma.messageReaction.create({ data: { messageId, userId: actor.uid, emoji } });
+  }
+
+  revalidatePath("/admin/chat");
+  return { ok: true };
+}
+
+// ── Direct messages ────────────────────────────────────────────────────────
+
+/**
+ * Open (or reopen) a direct conversation with one person.
+ *
+ * A DM is a Channel with isDm set, so threads, reactions, attachments, mentions
+ * and read state all work without a parallel implementation. `dmKey` is the two
+ * member ids sorted and joined, which makes "the conversation with this person"
+ * a single unique lookup rather than a scan.
+ */
+export async function openDmAction(otherUserId: string): Promise<ChatResult & { slug?: string }> {
+  const actor = await assertAccess("chat", "manage");
+  if (otherUserId === actor.uid) return { ok: false, error: "You cannot message yourself." };
+
+  const directory = await directoryFor("chat", "view");
+  const other = directory.find((u) => u.id === otherUserId);
+  if (!other) return { ok: false, error: "That person does not have chat access." };
+
+  const dmKey = [actor.uid, otherUserId].sort().join("|");
+  const existing = await prisma.channel.findUnique({ where: { dmKey }, select: { slug: true } });
+  if (existing) return { ok: true, slug: existing.slug };
+
+  // Slug is derived from the key's hash, not from names: names change, and a
+  // slug containing two people's names leaks who talks to whom in a URL.
+  const slug = `dm-${Buffer.from(dmKey).toString("base64url").slice(0, 20).toLowerCase()}`;
+
+  await prisma.channel.create({
+    data: {
+      slug,
+      // Display name is resolved from members at render time; this is a fallback.
+      name: other.name,
+      isPrivate: true,
+      isDm: true,
+      dmKey,
+      createdById: actor.uid,
+      members: {
+        create: [
+          { userId: actor.uid, lastReadAt: new Date() },
+          { userId: otherUserId },
+        ],
+      },
+    },
+  });
+
+  revalidatePath("/admin/chat");
+  return { ok: true, slug };
+}
+
+// ── Threads ────────────────────────────────────────────────────────────────
+
+export interface ThreadReply {
+  id: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  editedAt: Date | null;
+  createdAt: Date;
+}
+
+/** Replies to one message, oldest first. */
+export async function threadRepliesAction(parentId: string): Promise<ThreadReply[]> {
+  const actor = await assertAccess("chat", "view");
+
+  const parent = await prisma.chatMessage.findUnique({
+    where: { id: parentId },
+    select: { channel: { select: { id: true, isPrivate: true } } },
+  });
+  if (!parent) return [];
+  if (parent.channel.isPrivate) {
+    const member = await prisma.channelMember.findUnique({
+      where: { channelId_userId: { channelId: parent.channel.id, userId: actor.uid } },
+    });
+    if (!member) return [];
+  }
+
+  return prisma.chatMessage.findMany({
+    where: { parentId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, authorId: true, authorName: true, body: true, editedAt: true, createdAt: true },
+  });
 }

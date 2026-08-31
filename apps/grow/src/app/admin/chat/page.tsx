@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Hash, Lock, MessagesSquare, Plus } from "lucide-react";
+import { Hash, Lock, MessageSquare, MessagesSquare, Plus } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { directoryFor } from "@/lib/directory";
 import { ChatRoom } from "./ChatRoom";
 import { ActionForm } from "@/components/engine/action-form";
-import { channelMessagesAction, createChannelAction, joinChannelAction, visibleChannelIds } from "./actions";
+import { channelMessagesAction, createChannelAction, joinChannelAction, openDmAction, visibleChannelIds } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export default async function ChatPage({
       where: { id: { in: visibleIds } },
       orderBy: [{ isPrivate: "asc" }, { name: "asc" }],
       select: {
-        id: true, slug: true, name: true, topic: true, isPrivate: true,
+        id: true, slug: true, name: true, topic: true, isPrivate: true, isDm: true, dmKey: true,
         members: { where: { userId: session.uid }, select: { lastReadAt: true } },
         _count: { select: { messages: true } },
       },
@@ -65,17 +65,38 @@ export default async function ChatPage({
     }),
   );
 
+  // A DM is titled by the other participant. The stored name is only a fallback
+  // — people get renamed, and a DM should follow.
+  const byId = new Map(directory.map((d) => [d.id, d.name]));
+  const titled = channels.map((ch) => {
+    if (!ch.isDm || !ch.dmKey) return { ...ch, displayName: ch.name };
+    const other = ch.dmKey.split("|").find((id) => id !== session.uid);
+    return { ...ch, displayName: (other && byId.get(other)) || ch.name };
+  });
+
+  const rooms = titled.filter((ch) => !ch.isDm);
+  const dms = titled.filter((ch) => ch.isDm);
+
   const active =
-    channels.find((ch) => ch.slug === requestedSlug) ?? channels[0] ?? null;
+    titled.find((ch) => ch.slug === requestedSlug) ?? titled[0] ?? null;
   const initialMessages = active ? await channelMessagesAction(active.id) : [];
 
   // Public channels this person has not joined — offered rather than hidden, so
   // a new starter can find the conversations that already exist.
   const joinable = await prisma.channel.findMany({
-    where: { isPrivate: false, members: { none: { userId: session.uid } } },
+    where: { isPrivate: false, isDm: false, members: { none: { userId: session.uid } } },
     orderBy: { name: "asc" },
     select: { id: true, slug: true, name: true },
   });
+
+  // Everyone with chat access, minus yourself and anyone you already have a DM
+  // with — a list that repeats existing conversations is just noise.
+  const existingDmPartners = new Set(
+    dms.flatMap((ch) => (ch.dmKey ?? "").split("|")).filter((id) => id && id !== session.uid),
+  );
+  const dmCandidates = directory
+    .filter((u) => u.id !== session.uid && !existingDmPartners.has(u.id))
+    .map((u) => ({ id: u.id, name: u.name }));
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-6xl mx-auto">
@@ -94,10 +115,10 @@ export default async function ChatPage({
         {/* ── channel list ── */}
         <aside className="space-y-4">
           <nav className="space-y-1">
-            {channels.length === 0 && (
+            {rooms.length === 0 && (
               <p className="text-sm text-slate">No channels yet.</p>
             )}
-            {channels.map((ch) => {
+            {rooms.map((ch) => {
               const unread = unreadByChannel.get(ch.id) ?? 0;
               const isActive = active?.id === ch.id;
               return (
@@ -111,7 +132,7 @@ export default async function ChatPage({
                   }`}
                 >
                   {ch.isPrivate ? <Lock className="h-3.5 w-3.5 shrink-0" /> : <Hash className="h-3.5 w-3.5 shrink-0" />}
-                  <span className="truncate">{ch.name}</span>
+                  <span className="truncate">{ch.displayName}</span>
                   {unread > 0 && (
                     <span className="ml-auto shrink-0 rounded-full bg-cyan px-1.5 text-[10px] font-bold text-void">
                       {unread > 99 ? "99+" : unread}
@@ -121,6 +142,51 @@ export default async function ChatPage({
               );
             })}
           </nav>
+
+          {dms.length > 0 && (
+            <div className="border-t border-fg/10 pt-4">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate">Direct messages</p>
+              <div className="space-y-1">
+                {dms.map((ch) => {
+                  const unread = unreadByChannel.get(ch.id) ?? 0;
+                  const isActive = active?.id === ch.id;
+                  return (
+                    <Link
+                      key={ch.id}
+                      href={`/admin/chat?c=${ch.slug}`}
+                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors ${
+                        isActive ? "bg-cyan/10 font-bold text-cyan" : "text-slate hover:bg-fg/5 hover:text-platinum"
+                      }`}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{ch.displayName}</span>
+                      {unread > 0 && (
+                        <span className="ml-auto shrink-0 rounded-full bg-cyan px-1.5 text-[10px] font-bold text-void">
+                          {unread > 99 ? "99+" : unread}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {canPost && dmCandidates.length > 0 && (
+            <div className="border-t border-fg/10 pt-4">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate">Start a conversation</p>
+              <div className="space-y-1">
+                {dmCandidates.map((u) => (
+                  <ActionForm key={u.id} action={openDmAction.bind(null, u.id)} successMessage="Opened.">
+                    <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-slate hover:bg-fg/5 hover:text-platinum">
+                      <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{u.name}</span>
+                    </button>
+                  </ActionForm>
+                ))}
+              </div>
+            </div>
+          )}
 
           {joinable.length > 0 && (
             <div className="border-t border-fg/10 pt-4">
@@ -178,9 +244,10 @@ export default async function ChatPage({
           {active ? (
             <ChatRoom
               channelId={active.id}
-              channelName={active.name}
+              channelName={active.displayName}
               channelSlug={active.slug}
               isPrivate={active.isPrivate}
+              isDm={active.isDm}
               topic={active.topic}
               initialMessages={initialMessages}
               currentUserId={session.uid}

@@ -195,6 +195,14 @@ model Channel {
   /// Open channels are joinable by any staff account; private ones need an
   /// explicit membership row.
   isPrivate   Boolean  @default(false)
+  /// A direct message conversation. Modelled as a channel rather than a separate
+  /// entity so messages, threads, reactions, attachments and read state all work
+  /// without a parallel implementation. DMs are always private, never listed in
+  /// the browsable channel list, and named from their members at render time.
+  isDm        Boolean  @default(false)
+  /// Sorted, joined member ids for a DM ("a|b"), so looking up "the conversation
+  /// with this person" is one indexed read instead of a join per candidate.
+  dmKey       String?  @unique
   /// AdminUser id of the creator. Kept even if that account goes.
   createdById String?
   createdAt   DateTime @default(now())
@@ -225,22 +233,76 @@ model ChannelMember {
 }
 
 model ChatMessage {
-  id         String    @id @default(uuid())
+  id         String        @id @default(uuid())
   channelId  String
-  channel    Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channel    Channel       @relation(fields: [channelId], references: [id], onDelete: Cascade)
   /// AdminUser id of the author.
   authorId   String
   /// Denormalised so an old message still shows a name if the account is gone.
   authorName String
-  body       String    @db.Text
+  body       String        @db.Text
   /// Resolved @mentions as a JSON array of AdminUser ids, captured at write
   /// time — same approach as task comments, so highlighting survives a rename.
-  mentions   String?   @db.Text
+  mentions   String?       @db.Text
+  /// Set when the author edits. Non-null renders the "edited" marker — silently
+  /// changing a message someone has already read is worse than the typo.
   editedAt   DateTime?
-  createdAt  DateTime  @default(now())
+  /// Parent message for a threaded reply; null for a top-level message. One
+  /// level only: a reply cannot itself have replies, which keeps a conversation
+  /// readable and the query a single indexed lookup.
+  parentId   String?
+  parent     ChatMessage?  @relation("MessageThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies    ChatMessage[] @relation("MessageThread")
 
-  /// The only query that matters: a channel's messages, newest last.
-  @@index([channelId, createdAt])
+  reactions   MessageReaction[]
+  attachments ChatAttachment[]
+  createdAt   DateTime          @default(now())
+
+  /// A channel's top-level messages, newest last. parentId is in the index so
+  /// the main view can exclude replies without a second pass.
+  @@index([channelId, parentId, createdAt])
+  /// A thread's replies.
+  @@index([parentId, createdAt])
+}
+
+/// One person's one reaction of one kind to one message.
+///
+/// A row per (message, user, emoji) rather than a count: a count cannot tell you
+/// whether *you* already reacted, which is what the UI needs in order to toggle.
+model MessageReaction {
+  id        String      @id @default(uuid())
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  /// A single emoji from a fixed set, validated on write — free text here would
+  /// become a second message field.
+  emoji     String
+  createdAt DateTime    @default(now())
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+/// A file attached to a chat message.
+///
+/// The file itself lives OUTSIDE the deploy directory (see lib/uploads.ts), for
+/// the same reason .grow.env does: a redeploy replaces the app directory, and
+/// anything stored inside it would be destroyed. Only metadata is here.
+model ChatAttachment {
+  id         String      @id @default(uuid())
+  messageId  String
+  message    ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  /// Name as uploaded, shown to people. Never used to build a filesystem path.
+  fileName   String
+  /// Validated against an allow-list on upload.
+  mimeType   String
+  sizeBytes  Int
+  /// Filename on disk — a generated id plus extension, never user input.
+  storageKey String
+  uploadedBy String
+  createdAt  DateTime    @default(now())
+
+  @@index([messageId])
 }
 
 /// Admin-editable system configuration: one row per setting, value as JSON.

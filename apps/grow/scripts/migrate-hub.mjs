@@ -38,6 +38,10 @@ const COLUMNS = [
   ["Task", "completedAt", "DATETIME(3) NULL"],
   // Comment — IAM-linked author and the resolved @mention list.
   ["Comment", "authorId", "VARCHAR(191) NULL"],
+  // Chat: direct messages, and threaded replies.
+  ["Channel", "isDm", "TINYINT(1) NOT NULL DEFAULT 0"],
+  ["Channel", "dmKey", "VARCHAR(191) NULL"],
+  ["ChatMessage", "parentId", "VARCHAR(191) NULL"],
   ["Comment", "mentions", "TEXT NULL"],
 ];
 
@@ -138,6 +142,36 @@ TABLES.push(
   ],
 );
 
+/** Chat: threads, reactions and attachments. */
+TABLES.push(
+  [
+    "MessageReaction",
+    `CREATE TABLE MessageReaction (
+       id        VARCHAR(191) NOT NULL,
+       messageId VARCHAR(191) NOT NULL,
+       userId    VARCHAR(191) NOT NULL,
+       emoji     VARCHAR(191) NOT NULL,
+       createdAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       PRIMARY KEY (id),
+       UNIQUE KEY MessageReaction_messageId_userId_emoji_key (messageId, userId, emoji)
+     )`,
+  ],
+  [
+    "ChatAttachment",
+    `CREATE TABLE ChatAttachment (
+       id         VARCHAR(191) NOT NULL,
+       messageId  VARCHAR(191) NOT NULL,
+       fileName   VARCHAR(191) NOT NULL,
+       mimeType   VARCHAR(191) NOT NULL,
+       sizeBytes  INT NOT NULL,
+       storageKey VARCHAR(191) NOT NULL,
+       uploadedBy VARCHAR(191) NOT NULL,
+       createdAt  DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+       PRIMARY KEY (id)
+     )`,
+  ],
+);
+
 /** Indexes to add: [table, indexName, columns] */
 const INDEXES = [
   ["Task", "Task_assigneeId_idx", "(assigneeId)"],
@@ -149,6 +183,15 @@ const INDEXES = [
   ["Notification", "Notification_emailedAt_emailAttempts_idx", "(emailedAt, emailAttempts)"],
   ["ChannelMember", "ChannelMember_userId_idx", "(userId)"],
   ["ChatMessage", "ChatMessage_channelId_createdAt_idx", "(channelId, createdAt)"],
+  ["ChatMessage", "ChatMessage_channelId_parentId_createdAt_idx", "(channelId, parentId, createdAt)"],
+  ["ChatMessage", "ChatMessage_parentId_createdAt_idx", "(parentId, createdAt)"],
+  ["MessageReaction", "MessageReaction_messageId_idx", "(messageId)"],
+  ["ChatAttachment", "ChatAttachment_messageId_idx", "(messageId)"],
+];
+
+/** Unique constraints added after the fact: [table, name, columns]. */
+const UNIQUES = [
+  ["Channel", "Channel_dmKey_key", "(dmKey)"],
 ];
 
 /**
@@ -171,6 +214,21 @@ const FOREIGN_KEYS = [
     "ChatMessage",
     "ChatMessage_channelId_fkey",
     "FOREIGN KEY (channelId) REFERENCES Channel(id) ON DELETE CASCADE ON UPDATE CASCADE",
+  ],
+  [
+    "ChatMessage",
+    "ChatMessage_parentId_fkey",
+    "FOREIGN KEY (parentId) REFERENCES ChatMessage(id) ON DELETE CASCADE ON UPDATE CASCADE",
+  ],
+  [
+    "MessageReaction",
+    "MessageReaction_messageId_fkey",
+    "FOREIGN KEY (messageId) REFERENCES ChatMessage(id) ON DELETE CASCADE ON UPDATE CASCADE",
+  ],
+  [
+    "ChatAttachment",
+    "ChatAttachment_messageId_fkey",
+    "FOREIGN KEY (messageId) REFERENCES ChatMessage(id) ON DELETE CASCADE ON UPDATE CASCADE",
   ],
 ];
 
@@ -242,6 +300,12 @@ async function main() {
       if (!(await hasTable(table))) continue;
       if (await hasIndex(table, name)) continue;
       await run(`indexed ${table} ${name}`, `CREATE INDEX ${name} ON ${table} ${cols}`);
+    }
+
+    for (const [table, name, cols] of UNIQUES) {
+      if (!(await hasTable(table))) continue;
+      if (await hasIndex(table, name)) continue;
+      await run(`unique ${table} ${name}`, `CREATE UNIQUE INDEX ${name} ON ${table} ${cols}`);
     }
 
     for (const [table, name, definition] of FOREIGN_KEYS) {
