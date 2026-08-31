@@ -54,6 +54,24 @@ const EXEC_ACCESS = {
   producer: "manage",
 };
 
+/**
+ * Every module at `manage`, INCLUDING `iam` — user administration and all
+ * business modules. Mirrors the canonical MODULES list in src/lib/access.ts
+ * (`chatbot` is omitted only because no route exists for it yet).
+ *
+ * Distinct from EXEC_ACCESS above, which withholds `iam` on purpose. Anyone
+ * granted this can create accounts and change permissions, including their own.
+ */
+const FULL_ACCESS = { ...EXEC_ACCESS, iam: "manage" };
+
+/**
+ * Accounts granted an explicit per-module map, rather than SUPER_ADMIN.
+ *
+ * The distinction matters: SUPER_ADMIN implies `manage` on everything
+ * automatically, so it cannot express "everything except user administration",
+ * and it silently picks up any module added later. An explicit map says exactly
+ * what was intended and stays that way.
+ */
 const EXECUTIVES = [
   {
     email: "basem.341@gmail.com",
@@ -64,7 +82,27 @@ const EXECUTIVES = [
     },
     access: EXEC_ACCESS,
   },
+  {
+    // CTO. Personal address on purpose — his @growcdx.com mailbox is pending
+    // the domain transfer. Migrate him to the company address once that lands;
+    // changing `email` here would create a SECOND account rather than rename
+    // this one, so do it in the IAM Portal and remove this entry afterwards.
+    email: "seifmohammed0123@gmail.com",
+    name: "Seif Mohammed",
+    get password() {
+      return process.env.STAFF_PASSWORD;
+    },
+    access: FULL_ACCESS,
+  },
 ];
+
+/** Describe an executive entry by what it can actually do, for the boot log. */
+function describe(exec) {
+  const mods = Object.keys(exec.access).length;
+  return exec.access.iam === "manage"
+    ? `admin, all ${mods} modules incl. IAM`
+    : `executive, ${mods} modules (no IAM)`;
+}
 
 async function main() {
   const staffPassword = process.env.STAFF_PASSWORD;
@@ -110,12 +148,11 @@ async function main() {
         console.log(`[seed-staff] created super admin: ${u.email}`);
       }
     }
-    // ── Executive (CEO) account ────────────────────────────────────────────
-    // Highest END-USER access: `manage` on every business module, and NO `iam`
-    // grant — so this account runs the whole business but cannot create, edit,
-    // delete or re-permission users, and cannot grant itself more access.
-    // Role is ADMIN, not SUPER_ADMIN: SUPER_ADMIN implicitly gets `manage`
-    // everywhere (including iam), which would defeat the exclusion.
+    // ── Accounts with an explicit per-module access map ────────────────────
+    // Role is ADMIN, not SUPER_ADMIN, because SUPER_ADMIN implicitly gets
+    // `manage` everywhere and would override whatever the map says — which
+    // matters for the CEO account, whose whole point is that `iam` is withheld.
+    // Each entry carries its own map, so read the map to know what it can do.
     // Password is set only on creation, so later changes are never clobbered.
     for (const exec of EXECUTIVES) {
       if (!exec.password) continue;
@@ -126,7 +163,7 @@ async function main() {
           where: { email: exec.email },
           data: { role: "ADMIN", isActive: true, access },
         });
-        console.log(`[seed-staff] ensured executive (no IAM): ${exec.email}`);
+        console.log(`[seed-staff] ensured ${describe(exec)}: ${exec.email}`);
       } else {
         await prisma.adminUser.create({
           data: {
@@ -138,7 +175,7 @@ async function main() {
             passwordHash: hashPassword(exec.password),
           },
         });
-        console.log(`[seed-staff] created executive (no IAM): ${exec.email}`);
+        console.log(`[seed-staff] created ${describe(exec)}: ${exec.email}`);
       }
     }
   } catch (e) {
