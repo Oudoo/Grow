@@ -171,6 +171,10 @@ export async function createTask(formData: FormData) {
     estimateHours: parsed.data.estimateHours?.toString(),
   });
   revalidatePath("/engine/tasks");
+  // Also the client page, whose Creative & CAT tab draws a schedule calendar
+  // from these due dates — without this a task added on the calendar does not
+  // appear until a hard reload.
+  if (parsed.data.clientId) revalidatePath(`/engine/clients/${parsed.data.clientId}`);
   return { ok: true };
 }
 

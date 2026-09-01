@@ -23,6 +23,20 @@ import {
   processInsights,
 } from "@growengine/db";
 import { requireTeamUser } from "@/lib/engine/session";
+import { CreativeCalendar, type CalendarItem } from "./CreativeCalendar";
+
+/**
+ * A timestamp's calendar day in local time, as YYYY-MM-DD.
+ *
+ * Not toISOString().slice(0,10): that converts to UTC first, so an expiry late
+ * in the evening lands on the calendar a day early for anyone east of Greenwich
+ * — which is everyone here.
+ */
+function localDay(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${day}`;
+}
 import { jsonArray, jsonNumberMap } from "@/lib/engine/json";
 
 /** Shape of a recommendation's verification evidence (a json column). */
@@ -118,6 +132,7 @@ export default async function ClientDetailPage({
     decisionRows,
     dmaicRows,
     dmaicTasks,
+    datedTasks,
     assets,
     approvals,
     pilots,
@@ -154,6 +169,16 @@ export default async function ClientDetailPage({
     db.select().from(decisions).where(and(eq(decisions.tenantId, tenantId), eq(decisions.clientId, id))).orderBy(desc(decisions.decidedAt)).limit(20),
     db.select().from(dmaicProjects).where(and(eq(dmaicProjects.tenantId, tenantId), eq(dmaicProjects.clientId, id))).orderBy(desc(dmaicProjects.createdAt)),
     db.select().from(tasks).where(and(eq(tasks.tenantId, tenantId), eq(tasks.clientId, id), dsql`${tasks.dmaicProjectId} IS NOT NULL`)),
+    // Every task for this client that carries a due date — what the schedule
+    // calendar draws. Separate from dmaicTasks above, which is DMAIC-only.
+    db
+      .select({
+        id: tasks.id, title: tasks.title, dueDate: tasks.dueDate,
+        status: tasks.status, priority: tasks.priority,
+      })
+      .from(tasks)
+      .where(and(eq(tasks.tenantId, tenantId), eq(tasks.clientId, id), dsql`${tasks.dueDate} IS NOT NULL`))
+      .orderBy(tasks.dueDate),
     db.select().from(creativeAssets).where(and(eq(creativeAssets.tenantId, tenantId), eq(creativeAssets.clientId, id))).orderBy(desc(creativeAssets.createdAt)),
     db.select().from(catApprovals).where(and(eq(catApprovals.tenantId, tenantId), eq(catApprovals.clientId, id))).orderBy(desc(catApprovals.requestedAt)),
     db.select().from(abPilots).where(and(eq(abPilots.tenantId, tenantId), eq(abPilots.clientId, id))).orderBy(desc(abPilots.createdAt)),
@@ -171,6 +196,45 @@ export default async function ClientDetailPage({
   const decisionByRec = new Map(
     decisionRows.filter((d) => d.sourceEntityType === "recommendation").map((d) => [d.sourceEntityId, d])
   );
+  // Everything with an external date, in one shape the calendar can draw.
+  // Three kinds, because three different things create a commitment to a client:
+  // a task deadline, a sign-off clock, and a pilot window.
+  const calendarItems: CalendarItem[] = [
+    ...datedTasks
+      .filter((t) => t.dueDate)
+      .map((t) => ({
+        id: t.id,
+        kind: "task" as const,
+        title: t.title,
+        date: String(t.dueDate),
+        status: t.status,
+        priority: t.priority,
+      })),
+    ...approvals
+      .filter((a) => a.expiresAt && a.status === "pending")
+      .map((a) => ({
+        id: a.id,
+        kind: "approval" as const,
+        // Named by the asset where possible: "CAT approval" on a calendar tells
+        // you nothing about what is waiting.
+        title: `Sign-off due: ${assets.find((x) => x.id === a.creativeAssetId)?.name ?? "creative"}`,
+        date: localDay(a.expiresAt!),
+        status: a.status,
+      })),
+    ...pilots
+      .filter((p) => p.startDate)
+      .map((p) => ({
+        id: p.id,
+        kind: "pilot" as const,
+        title: `Pilot: ${p.name}`,
+        date: String(p.startDate),
+        endDate: p.endDate ? String(p.endDate) : null,
+        status: p.status,
+      })),
+  ];
+
+  const canManageWork = user.isSuperAdmin || user.permissions.includes("work:manage");
+
   const milestones = jsonArray<{
     label: string;
     metric: string;
@@ -651,6 +715,15 @@ export default async function ClientDetailPage({
 
         {/* ───────────── CREATIVE & CAT ───────────── */}
         <TabsContent value="creative" className="space-y-4">
+          {/* Schedule first: the question before promising a client a date is
+              "what is already committed that week?" */}
+          <CreativeCalendar
+            clientId={client.id}
+            clientName={client.name}
+            items={calendarItems}
+            canManage={canManageWork}
+          />
+
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="space-y-3 lg:col-span-2">
               {assets.map((asset) => {
