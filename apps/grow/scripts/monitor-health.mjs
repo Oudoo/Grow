@@ -11,6 +11,20 @@
  * report that the process is wedged. Cron runs independently: if Passenger is
  * hung or the app cannot reach MySQL, this still fires.
  *
+ * ⚠ THIS CANNOT RUN FROM HOSTINGER CRON ON THIS ACCOUNT. Verified 2026-09-01:
+ * cron's environment has no `node` on PATH and no node binary at /usr/bin,
+ * /usr/local/bin, ~/nodevenv, ~/.nvm or /opt/alt/alt-nodejs*. Passenger starts
+ * the app with a Node the cron shell cannot see. `curl` IS available, so the
+ * scheduled check is a curl one-liner in the crontab instead:
+ *
+ *   curl -fsS -m 20 -o /dev/null https://growcdx.com/api/health/db \
+ *     || echo "GROW-DB-UNREACHABLE at $(date -u +%F_%H:%M)"
+ *
+ * That reports (curl -f fails on the 503 the endpoint returns when the database
+ * is unreachable) but cannot alert. Keep this script for manual runs and for any
+ * external runner that does have Node — a laptop, CI, or a small VM. Real paging
+ * needs an off-host monitor; see DEPLOYMENT.md.
+ *
  * WHAT IT DELIBERATELY DOES NOT DO. It never restarts anything. Two attempts at
  * automatic recovery today each caused a worse outage than the fault they
  * targeted; the job here is to *tell a human quickly*, which is the part that was

@@ -337,3 +337,57 @@ authentication error, the node's address has probably changed. To recover:
 The marketing site keeps working throughout: public pages fall back to bundled
 data on any database error. Only the admin console and the engine/producer
 modules go down, which is exactly why a database fault used to be invisible.
+
+---
+
+## Uptime monitoring
+
+**Watch `/api/health/db`, never `/api/health`.** The latter is deliberately
+dependency-free: it stayed green through a total login outage on 2026-09-01 while
+the database was unreachable. Only `/api/health/db` issues a real query, and it
+returns **503** when the database cannot be reached — so any monitor can treat a
+non-200 as an incident with no response parsing.
+
+It also reports which host the connection uses:
+
+```json
+{"ok":true,"host":"127.0.0.1","adminUsers":7,"ms":4}
+```
+
+`host` should read `127.0.0.1`. If it ever reads `srv1808.hstgr.io`, the app has
+fallen back to the remote path and is once again exposed to a routing change or a
+revoked grant — the exact cause of that outage.
+
+### What is set up on the server
+
+A cron every five minutes:
+
+```
+curl -fsS -m 20 -o /dev/null https://growcdx.com/api/health/db || echo "GROW-DB-UNREACHABLE at $(date -u +%F_%H:%M)"
+```
+
+Silent while healthy; prints a line when not. Read it in hPanel → Advanced →
+Cron Jobs → output.
+
+**This detects but does not alert.** Nobody watches cron output, and there is no
+transport on the box to notify with: SMTP is pending the domain transfer, and
+cron has no `node`, so `scripts/monitor-health.mjs` — which does know how to
+alert over Twilio WhatsApp — cannot be scheduled here. Verified: no node binary
+on cron's PATH, nor at /usr/bin, /usr/local/bin, ~/nodevenv, ~/.nvm or
+/opt/alt/alt-nodejs*.
+
+### What still needs doing — 2 minutes, and it is the part that matters
+
+An **off-host** monitor, which is strictly better than anything on this server:
+it keeps working when the server does not, and it actually pages someone.
+
+1. Create a free account at uptimerobot.com (or Better Stack / Healthchecks.io).
+2. Add monitor → **HTTP(s)**.
+3. URL: `https://growcdx.com/api/health/db`
+4. Interval: 5 minutes.
+5. Alert contact: your email, and WhatsApp/SMS if you want it to wake you.
+
+Nothing else is required — the endpoint already returns the right status codes.
+
+Once SMTP is configured (see the email section above), `monitor-health.mjs` can
+also be run from anywhere that has Node and will alert over WhatsApp directly.
