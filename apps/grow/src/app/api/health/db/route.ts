@@ -47,8 +47,23 @@ export async function GET() {
       }
     }
 
+    // Which host the connection actually uses.
+    //
+    // Reported on SUCCESS, not only on failure, because it is the difference
+    // between two very different situations that look identical from outside:
+    // a local connection (no external route, no remote-access grant, nothing to
+    // revoke by accident) versus the remote hostname (both of those, and a
+    // total login outage on 2026-09-01 when that path broke). server.js probes
+    // and prefers local; this is how you confirm which one it settled on.
+    let host = "unknown";
+    try {
+      host = new URL(process.env.DATABASE_URL ?? "").hostname || "unknown";
+    } catch {
+      /* leave as unknown — never worth failing the probe over */
+    }
+
     return Response.json(
-      { ok: true, adminUsers: users, ...tables, ms: Date.now() - started },
+      { ok: true, host, adminUsers: users, ...tables, ms: Date.now() - started },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e: unknown) {
