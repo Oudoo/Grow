@@ -96,28 +96,82 @@ try {
   console.warn("[server] Could not read .grow.env:", err.message);
 }
 
-// ── 1a. DATABASE_URL host normalisation ────────────────────────────────────
-// MySQL accounts are per-host: `user@localhost` and `user@<ip>` are DIFFERENT
-// accounts with DIFFERENT passwords. On this host the `@localhost` account still
-// carries an old password that cannot be changed from the panel or over SQL
-// (ALTER USER is not permitted to this user), so connecting via `localhost`
-// fails with "Authentication failed against database server" even though the
-// credentials are correct for the account we CAN manage.
+// ── 1a. DATABASE_URL host selection ────────────────────────────────────────
+// Pick the database host that actually WORKS, by connecting to each candidate
+// before Next starts. Not by assumption — by proof.
 //
-// Point at the real database hostname instead, whose account matches the
-// panel-set password. Override with DATABASE_HOST if the host ever changes.
-try {
+// History, because it matters for why this is a probe and not a constant:
+//
+//  - MySQL accounts are per-host: `user@localhost` and `user@<ip>` are different
+//    accounts with different passwords. The `@localhost` account once carried a
+//    stale password, so this file unconditionally rewrote localhost →
+//    srv1808.hstgr.io.
+//  - That rewrite turned a loopback connection into a network round-trip, which
+//    then depended on an external route AND on a per-IP remote-access grant.
+//    On 2026-09-01 that path broke: the node could not open TCP to
+//    srv1808.hstgr.io at all (Prisma P1001), so every login failed with "Cannot
+//    reach the accounts database" while the database itself was perfectly
+//    healthy and reachable from elsewhere.
+//
+// A local connection has neither dependency: no external route, no grant list,
+// nothing to revoke by accident. So localhost is tried FIRST and the remote host
+// is only a fallback. The probe is boot-time and one-shot — it makes a decision
+// and gets out of the way, rather than wrapping queries at runtime (an earlier
+// attempt at runtime recovery caused a far worse outage).
+async function selectDatabaseHost() {
   const raw = process.env.DATABASE_URL;
-  if (raw) {
-    const u = new URL(raw);
-    if (u.hostname === "localhost" || u.hostname === "127.0.0.1") {
-      u.hostname = process.env.DATABASE_HOST || "srv1808.hstgr.io";
-      process.env.DATABASE_URL = u.toString();
-      console.log(`[server] DATABASE_URL host normalised to ${u.hostname} (per-host MySQL accounts)`);
+  if (!raw) return;
+
+  let base;
+  try {
+    base = new URL(raw);
+  } catch {
+    console.log("[server] DATABASE_URL is not a parseable URL — leaving it untouched.");
+    return;
+  }
+
+  const remoteHost = process.env.DATABASE_HOST || "srv1808.hstgr.io";
+  // Candidates in order of preference. localhost first: it cannot be broken by a
+  // routing change or a revoked grant.
+  const candidates = [];
+  const seen = new Set();
+  for (const host of ["localhost", "127.0.0.1", remoteHost]) {
+    if (!host || seen.has(host)) continue;
+    seen.add(host);
+    const u = new URL(base.toString());
+    u.hostname = host;
+    candidates.push({ host, url: u.toString() });
+  }
+
+  let mysql;
+  try {
+    mysql = require(require.resolve("mysql2/promise", { paths: [APP_DIR, __dirname] }));
+  } catch (err) {
+    // Without mysql2 we cannot probe. Leave DATABASE_URL exactly as configured
+    // rather than guessing — /api/health/db will report the truth either way.
+    console.log(`[server] cannot probe database hosts (${err.message}); using DATABASE_URL as configured.`);
+    return;
+  }
+
+  for (const { host, url } of candidates) {
+    let conn;
+    try {
+      conn = await mysql.createConnection({ uri: url, connectTimeout: 4000 });
+      await conn.query("SELECT 1");
+      process.env.DATABASE_URL = url;
+      console.log(`[server] database host: ${host} (probed OK)`);
+      return;
+    } catch (err) {
+      console.log(`[server] database host ${host} unusable: ${err.code || err.message}`);
+    } finally {
+      if (conn) { try { await conn.end(); } catch {} }
     }
   }
-} catch (err) {
-  console.warn("[server] could not normalise DATABASE_URL host:", err.message);
+
+  console.log(
+    "[server] NO database host reachable. Leaving DATABASE_URL as configured; " +
+      "the front end still serves and /api/health/db reports the cause."
+  );
 }
 
 // ── 1b. AUTH_SECRET must exist, and must not be a shared/guessable default ──
@@ -162,8 +216,22 @@ const next = require(require.resolve("next", { paths: [APP_DIR, __dirname] }));
 const app = next({ dev: false, dir: APP_DIR });
 const handle = app.getRequestHandler();
 
-app
-  .prepare()
+// Probe BEFORE preparing Next, not alongside it.
+//
+// PrismaClient reads DATABASE_URL when it is CONSTRUCTED, and lib/db.ts
+// constructs it at module scope — so the moment Next imports any route that
+// touches the database, the URL is captured. Racing the probe against
+// app.prepare() would sometimes lose, and the resulting misconfiguration would
+// look exactly like the outage this is meant to prevent.
+//
+// The cost is a few seconds at boot, and only when localhost is unusable —
+// a working local connection probes in milliseconds.
+//
+// selectDatabaseHost never rejects: it logs and returns, so it cannot stop the
+// server coming up. A database that is entirely unreachable still leaves the
+// marketing pages serving from their bundled fallback.
+selectDatabaseHost()
+  .then(() => app.prepare())
   .then(() => {
     http
       .createServer((req, res) => handle(req, res))
