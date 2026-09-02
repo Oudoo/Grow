@@ -29,7 +29,7 @@ const POLL_HIDDEN_MS = 60_000;
 
 export function ChatRoom({
   channelId, channelName, channelSlug, isPrivate, isDm, topic,
-  initialMessages, currentUserId, directory, canPost,
+  initialMessages, currentUserId, directory, canPost, showHeader = true,
 }: {
   channelId: string;
   channelName: string;
@@ -41,6 +41,12 @@ export function ChatRoom({
   currentUserId: string;
   directory: MentionCandidate[];
   canPost: boolean;
+  /**
+   * The channel name and topic. Off for the floating dock, whose own header
+   * already names the channel and carries the switcher — two titles stacked in
+   * a 23rem panel is just less room for the conversation.
+   */
+  showHeader?: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessageRow[]>(initialMessages);
   const [error, setError] = useState<string | null>(null);
@@ -50,8 +56,11 @@ export function ChatRoom({
   const [pending, startTransition] = useTransition();
   const scroller = useRef<HTMLDivElement>(null);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    // Props → state on a channel switch. eslint-disable sits here rather than
+    // above the effect, where it suppressed nothing (the rule reports on the
+    // call, not the hook).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMessages(initialMessages);
     setError(null);
     setEditing(null);
@@ -103,15 +112,17 @@ export function ChatRoom({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="mb-3 shrink-0 border-b border-fg/10 pb-3">
-        <h2 className="flex items-center gap-2 text-lg font-bold text-platinum">
-          {isDm ? <MessageSquare className="h-4 w-4 text-slate" />
-                : isPrivate ? <Lock className="h-4 w-4 text-slate" />
-                : <Hash className="h-4 w-4 text-slate" />}
-          {channelName}
-        </h2>
-        {topic && <p className="mt-0.5 text-sm text-slate">{topic}</p>}
-      </header>
+      {showHeader && (
+        <header className="mb-3 shrink-0 border-b border-fg/10 pb-3">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-platinum">
+            {isDm ? <MessageSquare className="h-4 w-4 text-slate" />
+                  : isPrivate ? <Lock className="h-4 w-4 text-slate" />
+                  : <Hash className="h-4 w-4 text-slate" />}
+            {channelName}
+          </h2>
+          {topic && <p className="mt-0.5 text-sm text-slate">{topic}</p>}
+        </header>
+      )}
 
       <div ref={scroller} className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
         {messages.length === 0 && (

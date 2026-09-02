@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X, SlidersHorizontal, MessagesSquare } from "lucide-react";
 import { logoutAction } from "./actions";
+import { ChatDock } from "./chat/ChatDock";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { can, type AccessLevel, type AccessMap, type ModuleKey, type UserRole } from "@/lib/access";
@@ -233,6 +234,18 @@ export default function AdminShell({
           {children}
         </main>
       </div>
+
+      {/*
+        Floating chat, bottom-right of every console page — except the chat page
+        itself, where it would float over the thing it opens.
+
+        Hidden rather than unmounted while the mobile drawer is open: the
+        launcher would otherwise sit on top of the drawer, and unmounting would
+        throw away an unsent message.
+      */}
+      {can(role, access, "chat", "view") && pathname !== "/admin/chat" && (
+        <ChatDock hidden={navOpen} />
+      )}
     </div>
   );
 }

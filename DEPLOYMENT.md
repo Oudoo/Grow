@@ -256,10 +256,39 @@ Check the current state at `/api/health/mail` (needs an admin session). It
 reports whether SMTP is configured, whether the credentials actually work, and
 how many messages are sitting in the outbox.
 
-### 1. Create the mailbox
+### 1. Create the mailboxes
 
-hPanel → **Emails** → your `growcdx.com` mail account → create
-`notifications@growcdx.com`. Keep the password it gives you.
+`growcdx.com` is ours, with **10 mailboxes** on the plan. Hostinger Email is
+already wired in DNS — MX to `mx1`/`mx2.hostinger.com`, SPF, three DKIM CNAMEs
+and autodiscover — so mail works the moment a mailbox exists. Nothing in DNS
+needs touching.
+
+hPanel → **Emails** → `growcdx.com` → **Create email account**, for each of:
+
+| Mailbox | Who | Why this address |
+| --- | --- | --- |
+| `mahmoud.hassan@growcdx.com` | Mahmoud | already his IAM login |
+| `hana.mohamed@growcdx.com` | Hana | already her IAM login |
+| `ahmed.alaa@growcdx.com` | Dr. Ahmed Alaa | already his IAM login |
+| `danya.mohamed@growcdx.com` | Danya | already her IAM login |
+| `shennawy@growcdx.com` | Dr. Shennawy | already his IAM login |
+| `seif.mohammed@growcdx.com` | Seif | IAM login is still a personal address — migrate after |
+| `basem@growcdx.com` | Basem | IAM login is still a personal address — migrate after |
+| `info@growcdx.com` | shared | public contact address |
+| `notifications@growcdx.com` | the system | SMTP sender, below |
+
+The first five are not optional extras: those addresses are **already** the
+login and notification address on their IAM accounts, so until the mailbox
+exists every email the system sends them bounces. The two personal addresses
+keep working as logins until someone migrates them (**IAM Portal → the account →
+change the email**; editing `scripts/seed-staff.mjs` would create a *second*
+account rather than rename one).
+
+`notifications@growcdx.com` is a separate mailbox from `info@` on purpose: system
+mail should not land replies in a mailbox people read, and a leaked SMTP password
+then costs a robot account rather than the company's public address.
+
+Keep each password Hostinger gives you; the sender's is the one needed below.
 
 ### 2. Add the settings to `.grow.env`
 
@@ -370,9 +399,10 @@ Silent while healthy; prints a line when not. Read it in hPanel → Advanced →
 Cron Jobs → output.
 
 **This detects but does not alert.** Nobody watches cron output, and there is no
-transport on the box to notify with: SMTP is pending the domain transfer, and
-cron has no `node`, so `scripts/monitor-health.mjs` — which does know how to
-alert over Twilio WhatsApp — cannot be scheduled here. Verified: no node binary
+transport on the box to notify with: SMTP is unconfigured until the sender
+mailbox above is created, and cron has no `node`, so
+`scripts/monitor-health.mjs` — which does know how to alert over Twilio
+WhatsApp — cannot be scheduled here. Verified: no node binary
 on cron's PATH, nor at /usr/bin, /usr/local/bin, ~/nodevenv, ~/.nvm or
 /opt/alt/alt-nodejs*.
 

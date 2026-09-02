@@ -96,10 +96,11 @@ const EXECUTIVES = [
     // included), so it is a deliberate decision rather than an oversight: do
     // not "correct" it down without asking.
     //
-    // Personal address on purpose — his @growcdx.com mailbox is pending the
-    // domain transfer. Migrate him to the company address once that lands;
-    // changing `email` here would create a SECOND account rather than rename
-    // this one, so do it in the IAM Portal and remove this entry afterwards.
+    // Personal address on purpose. growcdx.com is now ours with mailboxes
+    // available, so seif.mohammed@growcdx.com can be created and he can be
+    // migrated — but changing `email` here would create a SECOND account rather
+    // than rename this one. Do it in the IAM Portal, and remove this entry
+    // afterwards. Same applies to Basem above.
     email: "seifmohammed0123@gmail.com",
     name: "Seif Mohammed",
     get password() {

@@ -2,11 +2,13 @@
 
 import { dmKeyFor, dmSlug } from "@/lib/dm-slug";
 
-import { assertAccess } from "@/lib/auth";
+import { assertAccess, getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { can } from "@/lib/access";
+import { unreadByChannel } from "@/lib/chat-unread";
 import { directoryFor } from "@/lib/directory";
-import { mentionedUserIds } from "@/lib/mentions";
+import { mentionedUserIds, type MentionCandidate } from "@/lib/mentions";
 import { dispatchInBackground, notifyUsers } from "@/lib/notify";
 import { storeUpload, deleteUpload } from "@/lib/uploads";
 import { REACTIONS } from "@/lib/chat-types";
@@ -484,4 +486,85 @@ export async function threadRepliesAction(parentId: string): Promise<ThreadReply
     orderBy: { createdAt: "asc" },
     select: { id: true, authorId: true, authorName: true, body: true, editedAt: true, createdAt: true },
   });
+}
+
+// ── Floating dock ──────────────────────────────────────────────────────────
+
+export interface DockChannel {
+  id: string;
+  slug: string;
+  /** Already resolved for display: a DM carries the other person's name. */
+  name: string;
+  topic: string | null;
+  isPrivate: boolean;
+  isDm: boolean;
+  unread: number;
+}
+
+export interface DockState {
+  currentUserId: string;
+  canPost: boolean;
+  channels: DockChannel[];
+  directory: MentionCandidate[];
+}
+
+/**
+ * Everything the floating chat dock needs, in one call.
+ *
+ * The dock rides along on every admin page, so this is deliberately cheap and
+ * deliberately quiet:
+ *
+ *  - It reads the session itself and returns `null` when the caller has no chat
+ *    access, rather than using assertAccess. A thrown error here would be a
+ *    thrown error on every page in the console, including for the accounts that
+ *    are not supposed to see chat at all — for them "no dock" is the answer,
+ *    not a failure.
+ *  - Messages are NOT included. The dock polls this for the unread badge while
+ *    closed; loading a conversation nobody opened would be the expensive part.
+ *    ChatRoom fetches those when a channel is actually selected.
+ */
+export async function chatDockAction(): Promise<DockState | null> {
+  const session = await getSession();
+  if (!session) return null;
+  if (!can(session.role, session.access, "chat", "view")) return null;
+
+  const visibleIds = await visibleChannelIds(session.uid);
+  const [rows, directory, unread] = await Promise.all([
+    prisma.channel.findMany({
+      where: { id: { in: visibleIds } },
+      // Public channels first, then private, each alphabetically; DMs are
+      // partitioned out by the dock. Stable order beats sorting by unread —
+      // a list that reshuffles under you is hard to use twice.
+      orderBy: [{ isPrivate: "asc" }, { name: "asc" }],
+      select: { id: true, slug: true, name: true, topic: true, isPrivate: true, isDm: true, dmKey: true },
+    }),
+    directoryFor("chat", "view"),
+    unreadByChannel(session.uid),
+  ]);
+
+  // A DM is titled by the other participant; the stored name is a fallback for
+  // an account that has since gone.
+  const byId = new Map(directory.map((d) => [d.id, d.name]));
+  const channels: DockChannel[] = rows.map((ch) => {
+    const other = ch.isDm && ch.dmKey ? ch.dmKey.split("|").find((id) => id !== session.uid) : null;
+    return {
+      id: ch.id,
+      slug: ch.slug,
+      name: (other && byId.get(other)) || ch.name,
+      topic: ch.topic,
+      isPrivate: ch.isPrivate,
+      isDm: ch.isDm,
+      unread: unread.get(ch.id) ?? 0,
+    };
+  });
+
+  return {
+    currentUserId: session.uid,
+    canPost: can(session.role, session.access, "chat", "manage"),
+    channels,
+    // Narrowed on purpose: a DirectoryUser also carries `role` and the whole
+    // per-module `access` map, and this payload crosses to the browser. The
+    // mention picker needs a name and an email, and nothing else.
+    directory: directory.map((d) => ({ id: d.id, name: d.name, email: d.email })),
+  };
 }

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
 import { directoryFor } from "@/lib/directory";
+import { unreadByChannel } from "@/lib/chat-unread";
 import { ChatRoom } from "./ChatRoom";
 import { ActionForm } from "@/components/engine/action-form";
 import { channelMessagesAction, createChannelAction, joinChannelAction, openDmAction, visibleChannelIds } from "./actions";
@@ -41,29 +42,14 @@ export default async function ChatPage({
       orderBy: [{ isPrivate: "asc" }, { name: "asc" }],
       select: {
         id: true, slug: true, name: true, topic: true, isPrivate: true, isDm: true, dmKey: true,
-        members: { where: { userId: session.uid }, select: { lastReadAt: true } },
-        _count: { select: { messages: true } },
       },
     }),
     directoryFor("chat", "view"),
   ]);
 
-  // Unread per channel: messages newer than this person's read marker. One
-  // grouped query rather than a count per channel.
-  const unreadByChannel = new Map<string, number>();
-  await Promise.all(
-    channels.map(async (ch) => {
-      const since = ch.members[0]?.lastReadAt;
-      const count = await prisma.chatMessage.count({
-        where: {
-          channelId: ch.id,
-          authorId: { not: session.uid },
-          ...(since ? { createdAt: { gt: since } } : {}),
-        },
-      });
-      unreadByChannel.set(ch.id, count);
-    }),
-  );
+  // Unread per channel. Shared with the floating dock so the two badges can
+  // never disagree, and one grouped query rather than a count per channel.
+  const unreadCounts = await unreadByChannel(session.uid);
 
   // A DM is titled by the other participant. The stored name is only a fallback
   // — people get renamed, and a DM should follow.
@@ -119,7 +105,7 @@ export default async function ChatPage({
               <p className="text-sm text-slate">No channels yet.</p>
             )}
             {rooms.map((ch) => {
-              const unread = unreadByChannel.get(ch.id) ?? 0;
+              const unread = unreadCounts.get(ch.id) ?? 0;
               const isActive = active?.id === ch.id;
               return (
                 <Link
@@ -148,7 +134,7 @@ export default async function ChatPage({
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate">Direct messages</p>
               <div className="space-y-1">
                 {dms.map((ch) => {
-                  const unread = unreadByChannel.get(ch.id) ?? 0;
+                  const unread = unreadCounts.get(ch.id) ?? 0;
                   const isActive = active?.id === ch.id;
                   return (
                     <Link
