@@ -299,8 +299,19 @@ Keep each password Hostinger gives you; the sender's is the one needed below.
 ### 2. Add the settings to `.grow.env`
 
 `.grow.env` lives **outside** the deploy directory so redeploys preserve it, and
-`server.js` loads it authoritatively (it overrides anything set in the hPanel
-environment panel). Append:
+`server.js` loads it authoritatively.
+
+**It is the only place runtime configuration works.** hPanel → Node.js →
+Environment variables looks like the obvious home for these, but that panel is
+*build* settings: the API route behind it is `nodejs/builds/settings/env`, and
+values set there are not in the app process's environment. Proven on 2026-09-02 —
+`CRON_SECRET` was set there, saved (which restarts the process), then an explicit
+restart was issued as well, and `/api/notifications/dispatch` still rejected the
+matching secret with 401. The panel was put back to empty. Do not spend time
+there; if a value must reach the running app, it goes in this file.
+
+In hPanel's File Manager a dotfile is hidden until you enable **Show hidden
+files** (Settings, top right). Append:
 
 ```
 SMTP_HOST=smtp.hostinger.com
@@ -309,19 +320,43 @@ SMTP_USER=internal@growcdx.com
 SMTP_PASS=<the internal@ mailbox password>
 MAIL_FROM=GROW <internal@growcdx.com>
 APP_URL=https://growcdx.com
-CRON_SECRET=<a long random string>
+CRON_SECRET=<must match the cron job's x-cron-secret header>
 ```
 
-Generate `CRON_SECRET` with:
+`CRON_SECRET` is **not** a free choice: a cron job already exists carrying a
+value in its command, and the two must be identical or the dispatcher 401s.
+Read it from hPanel → Advanced → Cron Jobs. It is deliberately not written into
+this file — a repository is not a secret store.
+
+To rotate it (or to generate one from scratch), take a new value from:
 
 ```
 node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
 ```
 
+and put it in **both** `.grow.env` and the cron command.
+
 Then restart the Node app (hPanel → Website → Node.js → Restart) so the new
 values are read.
 
-### 3. Schedule the dispatcher
+### 3. The dispatcher cron — already created
+
+Created on 2026-09-02, uid `gInR3iY0TW`, every 15 minutes. Nothing to do unless
+you are rebuilding this from scratch, in which case see below.
+
+It carries the shared secret **literally** in the command rather than grepping it
+out of `.grow.env` as the older instructions did — the file's path differs per
+host (`~/.grow.env` or `~/domains/growcdx.com/.grow.env`) and a grep that misses
+yields an empty header, i.e. a cron that 401s silently forever. The cost is that
+the secret exists in two places: **rotating `CRON_SECRET` means changing both the
+file and the cron command**, or the dispatcher goes quiet.
+
+Running it before SMTP is configured is harmless: `dispatchPendingEmails()`
+returns immediately when mail is unconfigured, specifically so queued rows keep
+their attempts instead of burning through `MAX_EMAIL_ATTEMPTS` against a mail
+server that was never going to answer.
+
+### 3b. Scheduling it from scratch
 
 The dispatcher does two things on each run: sweeps due dates (queueing reminders
 for tasks that are due soon or already late) and drains the email outbox.
