@@ -28,6 +28,18 @@ export function GET() {
         authSecret: Boolean(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
         databaseUrl: Boolean(process.env.DATABASE_URL),
         nodeEnv: process.env.NODE_ENV ?? "unknown",
+        // Mail and scheduler, presence only — same reasoning as above, learned
+        // again on 2026-09-02. /api/health/mail answers this properly but needs
+        // an admin session, so from outside the box there was no way to tell
+        // "the settings were added to a .grow.env nothing reads" from "one key
+        // is missing or misspelt". Both look like a silent 401 or no email.
+        smtpHost: Boolean(process.env.SMTP_HOST),
+        smtpUser: Boolean(process.env.SMTP_USER),
+        smtpPass: Boolean(process.env.SMTP_PASS),
+        cronSecret: Boolean(process.env.CRON_SECRET),
+        // Which .grow.env was loaded — "domain", "home", "other", or absent
+        // when none was found. Set by server.js; never the path.
+        envSource: process.env.GROW_ENV_SOURCE ?? null,
       },
     },
     { headers: { "Cache-Control": "no-store" } },

@@ -89,6 +89,16 @@ try {
       override: true,
     });
     console.log(`[server] Loaded persistent secrets from ${resolvedEnvPath} (authoritative)`);
+    // Which candidate won, for /api/health to report. Not the path itself: that
+    // carries the hosting username, and this endpoint is public. "domain" vs
+    // "home" is the part that matters, because more than one copy of this file
+    // can exist and only the deepest one is read — an edit to the other is
+    // silently ignored, which is otherwise invisible from outside the box.
+    process.env.GROW_ENV_SOURCE = resolvedEnvPath.includes(`${path.sep}domains${path.sep}`)
+      ? "domain"
+      : resolvedEnvPath === path.join(require("node:os").homedir(), ".grow.env")
+        ? "home"
+        : "other";
   } else {
     console.warn("[server] No .grow.env found — starting without it (front end still serves).");
   }
