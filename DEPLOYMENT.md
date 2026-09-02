@@ -272,21 +272,27 @@ hPanel → **Emails** → `growcdx.com` → **Create email account**, for each o
 | `ahmed.alaa@growcdx.com` | Dr. Ahmed Alaa | already his IAM login |
 | `danya.mohamed@growcdx.com` | Danya | already her IAM login |
 | `shennawy@growcdx.com` | Dr. Shennawy | already his IAM login |
-| `seif.mohammed@growcdx.com` | Seif | IAM login is still a personal address — migrate after |
-| `basem@growcdx.com` | Basem | IAM login is still a personal address — migrate after |
+| `seif.mohammed@growcdx.com` | Seif | now his IAM login (renamed 2026-09-02) |
+| `basem@growcdx.com` | Basem | now his IAM login (renamed 2026-09-02) |
 | `info@growcdx.com` | shared | public contact address |
-| `notifications@growcdx.com` | the system | SMTP sender, below |
+| `internal@growcdx.com` | the system | SMTP sender, below |
 
-The first five are not optional extras: those addresses are **already** the
-login and notification address on their IAM accounts, so until the mailbox
-exists every email the system sends them bounces. The two personal addresses
-keep working as logins until someone migrates them (**IAM Portal → the account →
-change the email**; editing `scripts/seed-staff.mjs` would create a *second*
-account rather than rename one).
+All nine exist as of 2026-09-02. The first five were not optional extras: those
+addresses are **already** the login and notification address on their IAM
+accounts, so until each mailbox existed every email the system sent them bounced.
 
-`notifications@growcdx.com` is a separate mailbox from `info@` on purpose: system
-mail should not land replies in a mailbox people read, and a leaked SMTP password
-then costs a robot account rather than the company's public address.
+Seif and Basem were on personal Gmail addresses and have been **renamed** onto
+the company ones by `scripts/seed-staff.mjs` (see `renameAccount()`): the account
+row is updated in place, so its id — and therefore every task, message,
+membership and notification attached to it — is preserved, and each signs in at
+the new address with the password they already had. Anyone else who needs moving
+goes the same way: add `renamedFrom` to their entry, or use **IAM Portal → the
+account → change the email**. Never change `email` alone in the seed; without
+`renamedFrom` that creates a *second* account rather than renaming one.
+
+`internal@growcdx.com` is a separate mailbox from `info@` on purpose: system mail
+should not land replies in a mailbox people read, and a leaked SMTP password then
+costs a robot account rather than the company's public address.
 
 Keep each password Hostinger gives you; the sender's is the one needed below.
 
@@ -299,9 +305,9 @@ environment panel). Append:
 ```
 SMTP_HOST=smtp.hostinger.com
 SMTP_PORT=465
-SMTP_USER=notifications@growcdx.com
-SMTP_PASS=<the mailbox password>
-MAIL_FROM=GROW <notifications@growcdx.com>
+SMTP_USER=internal@growcdx.com
+SMTP_PASS=<the internal@ mailbox password>
+MAIL_FROM=GROW <internal@growcdx.com>
 APP_URL=https://growcdx.com
 CRON_SECRET=<a long random string>
 ```

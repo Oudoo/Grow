@@ -418,7 +418,11 @@ export async function updateTaskDescriptionAction(id: string, projectId: string,
 const TASK_DELETE_ALLOWED = [
   "mahmoud.hassan@growcdx.com",
   "hana.mohamed@growcdx.com",
-  "basem.341@gmail.com",
+  // Was basem.341@gmail.com until 2026-09-02. Because this list matches on
+  // email rather than id, a login rename silently revokes the permission —
+  // the old address is deliberately NOT kept alongside it, since an entry that
+  // is nobody's account would grant deletion to whoever is given it next.
+  "basem@growcdx.com",
 ];
 
 function mayDeleteTasks(email: string): boolean {

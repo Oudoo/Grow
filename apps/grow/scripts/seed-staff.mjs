@@ -78,7 +78,13 @@ const FULL_ACCESS = { ...EXEC_ACCESS, iam: "manage", settings: "manage" };
  */
 const EXECUTIVES = [
   {
-    email: "basem.341@gmail.com",
+    email: "basem@growcdx.com",
+    // Migrated off a personal Gmail on 2026-09-02, once the mailbox existed.
+    // See renameAccount(): this RENAMES the existing row, keeping its id — so
+    // his tasks, messages, memberships and notifications follow him, and his
+    // password does not change. Leave this here; it is a no-op once done, and
+    // deleting it before the deploy that runs it would create a second account.
+    renamedFrom: "basem.341@gmail.com",
     name: "Basem",
     // Marketing Manager, with deliberate access to every business module
     // including finance — reviewed and kept intentionally on 2026-08-31. Wider
@@ -96,12 +102,10 @@ const EXECUTIVES = [
     // included), so it is a deliberate decision rather than an oversight: do
     // not "correct" it down without asking.
     //
-    // Personal address on purpose. growcdx.com is now ours with mailboxes
-    // available, so seif.mohammed@growcdx.com can be created and he can be
-    // migrated — but changing `email` here would create a SECOND account rather
-    // than rename this one. Do it in the IAM Portal, and remove this entry
-    // afterwards. Same applies to Basem above.
-    email: "seifmohammed0123@gmail.com",
+    email: "seif.mohammed@growcdx.com",
+    // Migrated off a personal Gmail on 2026-09-02 — same rename, same
+    // guarantees, see the note on Basem above.
+    renamedFrom: "seifmohammed0123@gmail.com",
     name: "Seif Mohammed",
     get password() {
       return process.env.STAFF_PASSWORD;
@@ -109,6 +113,47 @@ const EXECUTIVES = [
     access: FULL_ACCESS,
   },
 ];
+
+/**
+ * Move an account to a new email address, preserving the row.
+ *
+ * A login change has to be a rename, never a delete-and-recreate: every task
+ * assignment, chat message, channel membership, reaction, notification and
+ * activity row is keyed on the AdminUser **id**, so recreating the account
+ * orphans all of it. Updating `email` in place keeps the id — and keeps
+ * `passwordHash`, so the person signs in at the new address with the password
+ * they already have.
+ *
+ * Idempotent by construction: once renamed, the old address no longer resolves
+ * and this returns immediately, so it is safe on every boot.
+ *
+ * Called as its own phase before any account is looked up or created, so the
+ * rename can never race the create-if-missing — that ordering is what produces
+ * two accounts instead of one moved one.
+ *
+ * It refuses one case on purpose. If BOTH addresses exist there are two real
+ * accounts, each possibly carrying its own history, and choosing which one
+ * survives is a decision with consequences — not something a boot script should
+ * make silently. It logs both ids and leaves them alone.
+ */
+async function renameAccount(prisma, from, to) {
+  const [source, target] = await Promise.all([
+    prisma.adminUser.findUnique({ where: { email: from }, select: { id: true } }).catch(() => null),
+    prisma.adminUser.findUnique({ where: { email: to }, select: { id: true } }).catch(() => null),
+  ]);
+
+  if (!source) return;  // already migrated, or never existed
+  if (target) {
+    console.warn(
+      `[seed-staff] NOT renaming ${from} → ${to}: both accounts exist ` +
+        `(${source.id} and ${target.id}). Merge them in the IAM Portal, then redeploy.`,
+    );
+    return;
+  }
+
+  await prisma.adminUser.update({ where: { id: source.id }, data: { email: to } });
+  console.log(`[seed-staff] renamed ${from} → ${to} — same account (${source.id}), password unchanged`);
+}
 
 /** Describe an executive entry by what it can actually do, for the boot log. */
 function describe(exec) {
@@ -136,11 +181,23 @@ async function main() {
     console.warn("[seed-staff] STAFF_PASSWORD not set — skipping team accounts.");
   }
 
-  if (accounts.length === 0) return;
+  // Renames are not conditional on any password: they neither create an account
+  // nor set one. Returning early because STAFF_PASSWORD happens to be unset on a
+  // host would silently skip a migration someone is waiting on.
+  const renames = EXECUTIVES.filter((e) => e.renamedFrom);
+  if (accounts.length === 0 && renames.length === 0) return;
 
   const { PrismaClient } = require("../src/generated/prisma");
   const prisma = new PrismaClient();
   try {
+    // ── Login renames, first ───────────────────────────────────────────────
+    // Before anything looks a company address up, move any account still living
+    // at an old one. Its own phase so the ordering is not an accident of where
+    // the call happens to sit inside another loop.
+    for (const exec of renames) {
+      await renameAccount(prisma, exec.renamedFrom, exec.email);
+    }
+
     for (const u of accounts) {
       const existing = await prisma.adminUser.findUnique({ where: { email: u.email } }).catch(() => null);
       if (existing) {

@@ -83,7 +83,16 @@ async function mirrorUser(
         status: "active",
       })
       .onDuplicateKeyUpdate({
-        set: { name: data.name, isSuperAdmin: data.isSuperAdmin, clientId: data.clientId },
+        // `email` is in here as of 2026-09-02. The mirror keys on the hub id, so
+        // it survived two people changing their login address — but it kept
+        // showing the old one, because the update set never included it. A
+        // mirror that ignores a change is not a mirror.
+        set: {
+          email: data.email,
+          name: data.name,
+          isSuperAdmin: data.isSuperAdmin,
+          clientId: data.clientId,
+        },
       });
     mirrored.add(uid);
   } catch {

@@ -19,9 +19,9 @@ import type { Transporter } from "nodemailer";
  * Hostinger mailbox settings (Emails → your @growcdx.com account):
  *   SMTP_HOST=smtp.hostinger.com
  *   SMTP_PORT=465          # 465 = implicit TLS, 587 = STARTTLS
- *   SMTP_USER=notifications@growcdx.com
+ *   SMTP_USER=internal@growcdx.com
  *   SMTP_PASS=<the mailbox password>
- *   MAIL_FROM="GROW <notifications@growcdx.com>"
+ *   MAIL_FROM="GROW <internal@growcdx.com>"
  *   APP_URL=https://growcdx.com          # used to build absolute deep links
  * Put these in .grow.env, which lives outside the deploy directory and is
  * loaded authoritatively by server.js.
