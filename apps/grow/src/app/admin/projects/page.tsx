@@ -61,6 +61,7 @@ export default async function ProjectsDashboard() {
         status: t.status,
         priority: t.priority,
         assignee: t.assignee,
+        assigneeId: t.assigneeId,
         overdue: isOverdue(t.dueDate, t.status, completeIds),
       })),
   );
