@@ -445,6 +445,57 @@ export async function deleteTaskAction(id: string, projectId: string) {
   revalidateTask(projectId);
 }
 
+/**
+ * Create a task from the calendar.
+ *
+ * Separate from createTaskAction because the shapes genuinely differ: the board
+ * form knows its project from the page and has no owner picker in the column,
+ * while the calendar knows the DATE from the cell that was clicked and must be
+ * told which project. Reusing one action would mean a signature where half the
+ * fields are ignored depending on the caller.
+ *
+ * Everything else — validation, notification, activity — goes through the same
+ * helpers, so a task created here is indistinguishable from one created on the
+ * board.
+ */
+export async function createCalendarTaskAction(formData: FormData) {
+  const actor = await assertAccess("projects", "manage");
+
+  const title = (formData.get("title") as string)?.trim();
+  const projectId = (formData.get("projectId") as string)?.trim();
+  if (!title || !projectId) return;
+
+  // The project must exist, and the id comes from a form, so check it rather
+  // than letting a foreign-key error surface as a server crash.
+  const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true } });
+  if (!project) return;
+
+  const dueDate = parseDueDate(formData.get("dueDate"));
+  const assignee = await resolveAssignee(formData.get("assigneeId"));
+  const { priorities } = await getProjectConfig();
+  const priority = normalisePriorityFor(priorities, formData.get("priority"));
+
+  const task = await prisma.task.create({
+    data: {
+      title,
+      assignee: assignee.name,
+      assigneeId: assignee.id,
+      priority,
+      dueDate,
+      projectId,
+    },
+  });
+
+  await recordActivity({
+    taskId: task.id, actorId: actor.uid, actorName: actor.name,
+    kind: "created", to: title,
+  });
+  await notifyAssignment(actor, assignee.id, task);
+
+  revalidateTask(projectId);
+  dispatchInBackground();
+}
+
 // ── Subtasks ───────────────────────────────────────────────────────────────
 
 export async function createSubTaskAction(taskId: string, projectId: string, formData: FormData) {

@@ -7,6 +7,9 @@ import { Button } from "@/components/engine/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/engine/ui/input";
 import { ActionForm } from "@/components/engine/action-form";
 import { createTask } from "@/app/engine/_actions/work";
+import {
+  DAY_LABELS, dayKey, fromDayKey, indexByDay, isWeekend, monthGrid, monthLabel, shiftMonth,
+} from "@/lib/calendar";
 
 /**
  * Month calendar for a client's dated commitments, with task creation on a day.
@@ -27,10 +30,6 @@ import { createTask } from "@/app/engine/_actions/work";
  * the Egyptian working week, which is where this agency and its clients operate.
  * Change WEEK_START and WEEKEND together if that is ever wrong.
  */
-
-const WEEK_START = 0; // 0 = Sunday
-const WEEKEND = [5, 6]; // Friday, Saturday
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export type CalendarKind = "task" | "approval" | "pilot";
 
@@ -58,23 +57,6 @@ const KIND_LABEL: Record<CalendarKind, string> = {
   pilot: "Pilot",
 };
 
-/** Local calendar date as YYYY-MM-DD — never via toISOString, which shifts to UTC. */
-function ymd(d: Date): string {
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-
-/** The 6×7 grid of days covering a month, including the padding days either side. */
-function monthGrid(year: number, month: number): Date[] {
-  const first = new Date(year, month, 1);
-  const offset = (first.getDay() - WEEK_START + 7) % 7;
-  const start = new Date(year, month, 1 - offset);
-  // Six rows always: the height stays constant as you page through months,
-  // which stops the layout jumping.
-  return Array.from({ length: 42 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
-}
-
 export function CreativeCalendar({
   clientId,
   clientName,
@@ -91,48 +73,17 @@ export function CreativeCalendar({
   const [addingOn, setAddingOn] = useState<string | null>(null);
 
   const grid = useMemo(() => monthGrid(cursor.year, cursor.month), [cursor]);
-  const todayKey = ymd(today);
+  const todayKey = dayKey(today);
 
-  /** date → items, expanding ranges across every day they cover. */
-  const byDay = useMemo(() => {
-    const map = new Map<string, CalendarItem[]>();
-    const push = (key: string, item: CalendarItem) => {
-      const list = map.get(key) ?? [];
-      list.push(item);
-      map.set(key, list);
-    };
-    for (const item of items) {
-      if (!item.endDate || item.endDate === item.date) {
-        push(item.date, item);
-        continue;
-      }
-      // Walk the range day by day, bounded so a bad end date cannot loop away.
-      const start = new Date(`${item.date}T12:00:00`);
-      const end = new Date(`${item.endDate}T12:00:00`);
-      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
-      for (let d = start, guard = 0; d <= end && guard < 400; guard++) {
-        push(ymd(d), item);
-        d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
-      }
-    }
-    return map;
-  }, [items]);
-
-  const monthLabel = new Date(cursor.year, cursor.month, 1).toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  });
+  const byDay = useMemo(() => indexByDay(items), [items]);
 
   const monthCount = grid.filter(
-    (d) => d.getMonth() === cursor.month && (byDay.get(ymd(d))?.length ?? 0) > 0,
+    (d) => d.getMonth() === cursor.month && (byDay.get(dayKey(d))?.length ?? 0) > 0,
   ).length;
 
   function shift(by: number) {
     setAddingOn(null);
-    setCursor((c) => {
-      const d = new Date(c.year, c.month + by, 1);
-      return { year: d.getFullYear(), month: d.getMonth() };
-    });
+    setCursor((c) => shiftMonth(c, by));
   }
 
   return (
@@ -142,7 +93,7 @@ export function CreativeCalendar({
           <div>
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
-              Schedule — {monthLabel}
+              Schedule — {monthLabel(cursor.year, cursor.month)}
             </CardTitle>
             <CardDescription>
               {monthCount > 0
@@ -179,7 +130,7 @@ export function CreativeCalendar({
                 <div
                   key={label}
                   className={`px-2 py-1 text-[11px] font-medium uppercase tracking-wide ${
-                    WEEKEND.includes(i) ? "text-muted-foreground/60" : "text-muted-foreground"
+                    [5, 6].includes(i) ? "text-muted-foreground/60" : "text-muted-foreground"
                   }`}
                 >
                   {label}
@@ -189,10 +140,10 @@ export function CreativeCalendar({
 
             <div className="grid grid-cols-7 gap-1">
               {grid.map((day) => {
-                const key = ymd(day);
+                const key = dayKey(day);
                 const inMonth = day.getMonth() === cursor.month;
                 const isToday = key === todayKey;
-                const isWeekend = WEEKEND.includes(day.getDay());
+                const weekend = isWeekend(day);
                 const dayItems = byDay.get(key) ?? [];
 
                 return (
@@ -204,7 +155,7 @@ export function CreativeCalendar({
                     className={`group min-h-[5.5rem] rounded-md border p-1.5 transition-colors ${
                       !inMonth
                         ? "bg-muted/30"
-                        : isWeekend
+                        : weekend
                           ? "bg-muted"
                           : "bg-card"
                     } ${isToday ? "border-primary ring-1 ring-primary" : ""}`}
@@ -280,7 +231,7 @@ export function CreativeCalendar({
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm font-medium">
                 New deadline on{" "}
-                {new Date(`${addingOn}T12:00:00`).toLocaleDateString(undefined, {
+                {fromDayKey(addingOn)?.toLocaleDateString(undefined, {
                   weekday: "long", day: "numeric", month: "long",
                 })}
               </p>

@@ -7,8 +7,10 @@ import { SeedProjectsButton } from "./SeedProjectsButton";
 import { BackfillOwnersButton } from "./BackfillOwnersButton";
 import { getSession } from "@/lib/auth";
 import { can } from "@/lib/access";
-import { isOverdue } from "@/lib/projects";
-import { getTaskStatuses } from "@/lib/settings";
+import { formatDueDate, isOverdue } from "@/lib/projects";
+import { getProjectConfig } from "@/lib/settings";
+import { pickerOptions } from "@/lib/directory";
+import { ProjectCalendar, type CalendarTask } from "./ProjectCalendar";
 import { UNASSIGNED } from "@/lib/directory";
 import type { Project, Task } from "@/generated/prisma";
 
@@ -24,8 +26,11 @@ export default async function ProjectsDashboard() {
   const canManage = can(session.role, session.access, "projects", "manage");
 
   // "Complete" is a configured flag, not the literal id "DONE".
-  const statuses = await getTaskStatuses();
+  const { statuses, priorities } = await getProjectConfig();
   const completeIds = statuses.filter((s) => s.isComplete).map((s) => s.id);
+  // Owner picker for the calendar's create form — same IAM directory the board
+  // uses, so the two can never offer different people.
+  const directory = await pickerOptions("projects", "view");
 
   let projects: ProjectWithTasks[] = [];
   // Tasks still carrying a free-text owner with no IAM link — surfaces the
@@ -39,6 +44,26 @@ export default async function ProjectsDashboard() {
   } catch (e) {
     console.error("Projects DB query failed:", e);
   }
+
+  // Dated tasks across every project, for the schedule calendar. Derived from
+  // the projects already fetched rather than a second query.
+  const calendarTasks: CalendarTask[] = projects.flatMap((project) =>
+    (project.tasks ?? [])
+      .filter((t) => t.dueDate)
+      .map((t) => ({
+        id: t.id,
+        title: t.title,
+        // formatDueDate reads the stored 12:00 UTC anchor, which is what keeps a
+        // task due "the 15th" on the 15th in every timezone.
+        date: formatDueDate(t.dueDate)!,
+        projectId: project.id,
+        projectTitle: project.title,
+        status: t.status,
+        priority: t.priority,
+        assignee: t.assignee,
+        overdue: isOverdue(t.dueDate, t.status, completeIds),
+      })),
+  );
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto">
@@ -61,6 +86,21 @@ export default async function ProjectsDashboard() {
       {canManage && unlinked > 0 && (
         <div className="mb-8">
           <BackfillOwnersButton count={unlinked} />
+        </div>
+      )}
+
+      {/* Schedule first. The question when planning is "what is already due
+          this week?", and that was previously only answerable per project. */}
+      {projects.length > 0 && (
+        <div className="mb-8">
+          <ProjectCalendar
+            tasks={calendarTasks}
+            projects={projects.map((p) => ({ id: p.id, title: p.title }))}
+            statuses={statuses}
+            priorities={priorities}
+            directory={directory.filter((d) => d.id !== "").map((d) => ({ id: d.id, name: d.name }))}
+            canManage={canManage}
+          />
         </div>
       )}
 
