@@ -1,43 +1,48 @@
 ## LAST_AGENT
-Claude Code
+Claude Code (Opus 5)
 
 ## BRANCH
-main (consolidated; auto-deploys to Hostinger)
+main — by explicit owner instruction, overriding the "never commit to main" rule
+in .agent/AGENTS.md. Deploys go out from main by ARCHIVE (git deploys are broken).
 
 ## UPDATED
-2026-06-07T14:05:00+03:00
+2026-09-08T14:35:00+03:00
 
 ## GOAL
-Reskin the Aura public marketing site to the "Fuel" light agency aesthetic
-(white / light-gray, near-black text, blue #0A84FF accent, hairline borders,
-massive ultra-bold display headings, parenthetical section labels, 01/ numbers).
-Keep ALL content/ideas and the entire frontend + backend structure intact.
+Hand this system over to a new Claude account cleanly. The full handover lives at
+the repo root in HANDOVER.md — read that, not this file. This file is only the
+state marker the AgentOS ruleset asks for.
 
 ## CURRENT_STATE
-- globals.css: :root repointed to Fuel LIGHT palette; .dark palette unchanged
-  (admin keeps original dark). New utilities: display, display-xl, eyebrow.
-- layout.tsx: defaultTheme="light", enableSystem=false (predictable demo).
-- admin/layout.tsx: wrapped in `dark` so the dashboard + login stay dark.
-- Public reskinned (light Fuel): Navbar, Footer, page.tsx (home), about, suites,
-  methodology, products, products/[slug], support, audit, audit-quiz, and the
-  interactive components (LegacyVsAuraSlider, InteractiveArchitectureBuilder,
-  HeroDiagnosisForm, ExitIntentPopup, BusinessAuditEngine).
-- Reskin only: no t() keys lost, no prop/import/data-flow/logic changes, all
-  server-action wiring (submitAuditForm, submitPublicTicketAction) intact.
-- VERIFIED: tsc clean, eslint clean, 8/8 tests, `next build` exit 0 (22 routes).
+Live at https://growcdx.com, deployment 65, database healthy over 127.0.0.1.
+Shipped recently: unified IAM directory across every tool; email notifications
+(queued outbox); due dates + priority; My Work; activity timelines;
+admin-editable statuses/priorities; team chat with threads, reactions, uploads,
+editing, DMs and a floating dock on every console page; a consolidated project
+calendar and an Engine client calendar on a shared lib/calendar.ts; Seif and
+Basem migrated onto growcdx.com logins by in-place rename.
+Local development WORKS: `npm run dev --prefix apps/grow` uses .env.local →
+grow_local; /api/health/db returns ok. (Earlier notes claiming otherwise were
+wrong; the local schema was simply stale and migrate-hub.mjs fixed it.)
 
 ## BLOCKER
-None (code). Live deploy depends on Hostinger: DB password is AuraDb2026Secure,
-admin login works, app is up. CDN cache now short (s-maxage=60) so deploys show.
+1. Five in-process Engine workers fail a `queue_jobs` query ~7×/second —
+   3.4M runtime log lines. Cause unconfirmed; most likely the table is missing
+   because migrate-engine.mjs swallows migrator errors. See HANDOVER.md §3.2.
+2. SMTP for internal@growcdx.com went into the WRONG .grow.env. The app reads
+   /home/u454713534/domains/growcdx.com/.grow.env (proven: /api/health →
+   envSource "domain", all four mail flags false). See HANDOVER.md §3.1.
 
 ## NEXT_STEP
-- Optional: localize the English parenthetical eyebrow labels for Arabic.
-- Optional: rename middleware.ts -> proxy.ts (Next 16 deprecation warning only).
-- Production go-live planned for the morning.
+- Confirm and fix the queue_jobs loop (add a count to /api/health/db first).
+- Move the SMTP + CRON_SECRET block into the domain-level .grow.env, restart,
+  then run the dispatcher — it will send ~22 queued notification emails at once.
+- Set up an off-host uptime monitor on /api/health/db (NOT /api/health).
 
 ## FILES
-- src/app/globals.css, src/app/layout.tsx, src/app/admin/layout.tsx
-- src/app/page.tsx, about/page.tsx, suites/page.tsx, methodology/page.tsx
-- src/app/products/page.tsx, products/[slug]/page.tsx, support/page.tsx
-- src/app/audit/page.tsx, audit-quiz/page.tsx
-- src/components/{Navbar,Footer,LegacyVsAuraSlider,InteractiveArchitectureBuilder,HeroDiagnosisForm,ExitIntentPopup,BusinessAuditEngine}.tsx
+- HANDOVER.md (root) — the real handover, 15 sections
+- DEPLOYMENT.md — operational runbook
+- server.js — boot: chdir, .grow.env, DB host probe, bootstrap steps
+- apps/grow/src/instrumentation.ts — starts the failing workers
+- apps/grow/scripts/{migrate-hub,migrate-engine,seed-staff}.mjs
+- .claude/launch.json — grow-hub-dev (local DB) vs grow-hub (production env)

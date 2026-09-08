@@ -2,6 +2,14 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "//": "Local development. `next dev` loads apps/grow/.env.local FIRST, which points DATABASE_URL at the local grow_local database — so this is the config that gives you a working login. Run `DATABASE_URL=<grow_local url> node apps/grow/scripts/migrate-hub.mjs` once if console pages 500 on a missing table.",
+      "name": "grow-hub-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "apps/grow"],
+      "port": 3000
+    },
+    {
+      "//": "Production-mode serve of the last build. NOTE: apps/grow/scripts/start.mjs does `import dotenv/config`, which loads .env (PRODUCTION DATABASE_URL) before Next can read .env.local — so this cannot reach the local database and every console page will 500 on auth. Use it only to check a production build's static output.",
       "name": "grow-hub",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["start", "--prefix", "apps/grow"],
