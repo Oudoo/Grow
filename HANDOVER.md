@@ -100,10 +100,12 @@ An earlier version of this section said the SMTP block "went into
 on 2026-09-12 (through a temporary cron job — see §7.5): `~/.grow.env` does not
 exist (`/api/health` → `envSecondary: null` after the deploy that reads it), and `/home/u454713534/domains/growcdx.com/.grow.env` contains
 exactly `DATABASE_URL NODE_ENV AUTH_SECRET ADMIN_EMAIL ADMIN_PASSWORD
-STAFF_PASSWORD`. Whatever was edited was not a file the app reads. The likely
-candidates are a `.grow.env` created inside `public_html/` or `nodejs/` — the
-folders File Manager opens into — which are *siblings* of the running app, not
-ancestors, so `findPersistentEnvFiles()` never sees them.
+STAFF_PASSWORD`. A search of the account (`~`, the domain folder,
+`public_html/`, `nodejs/`) found exactly one `.grow.env` on the whole account:
+the domain-level file, **265 bytes, last modified 2026-07-05**. Whatever was
+edited, it never reached this host. If a file is ever created inside
+`public_html/` or `nodejs/` (the folders File Manager opens into), it will not
+be read either: those are *siblings* of the running app, not ancestors.
 
 Since 2026-09-12 `server.js` reads **both** copies: the domain-level file is
 authoritative, the account-home file fills only keys the first one lacks, and
