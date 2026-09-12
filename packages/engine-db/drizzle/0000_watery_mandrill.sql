@@ -1161,6 +1161,15 @@ CREATE INDEX `ab_pilots_client_idx` ON `ab_pilots` (`client_id`,`status`);--> st
 CREATE INDEX `cat_approvals_client_idx` ON `cat_approvals` (`client_id`,`status`);--> statement-breakpoint
 CREATE INDEX `creative_assets_client_idx` ON `creative_assets` (`client_id`,`status`);--> statement-breakpoint
 CREATE INDEX `cost_tracking_tenant_idx` ON `cost_tracking` (`tenant_id`,`created_at`);--> statement-breakpoint
+-- Amended 2026-09-12. `feature` was generated as TEXT, and the index below on a
+-- TEXT column cannot be created on MySQL/MariaDB without a prefix length: this
+-- statement failed on EVERY database this migration ever ran on, and because the
+-- Drizzle migrator records a migration only after all of its statements succeed,
+-- the whole file stayed unrecorded and blocked 0001 — while 63 tables from the
+-- statements above it were already in place. No database had recorded 0000, so
+-- it was still pending everywhere and could be amended: narrow the column first
+-- (migration 0002 repeats this for the snapshot's sake), then build the index.
+ALTER TABLE `cost_tracking` MODIFY COLUMN `feature` varchar(191) NOT NULL;--> statement-breakpoint
 CREATE INDEX `cost_tracking_feature_idx` ON `cost_tracking` (`tenant_id`,`feature`);--> statement-breakpoint
 CREATE INDEX `invoices_tenant_idx` ON `invoices` (`tenant_id`,`status`);--> statement-breakpoint
 CREATE INDEX `subscriptions_tenant_idx` ON `subscriptions` (`tenant_id`);--> statement-breakpoint

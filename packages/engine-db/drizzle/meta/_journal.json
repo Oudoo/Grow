@@ -15,6 +15,13 @@
       "when": 1782622463017,
       "tag": "0001_majestic_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1789210741029,
+      "tag": "0002_cost_tracking_feature_varchar",
+      "breakpoints": true
     }
   ]
 }

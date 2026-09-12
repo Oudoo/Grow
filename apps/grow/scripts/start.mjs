@@ -26,10 +26,10 @@
  * which on a shared host turns a missing package into a boot-time hang.
  */
 import "dotenv/config";
-import { config as loadEnv } from "dotenv";
-import { existsSync } from "node:fs";
+import { config as loadEnv, parse as parseEnv } from "dotenv";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, dirname } from "node:path";
+import { join, dirname, sep } from "node:path";
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 
@@ -47,24 +47,53 @@ process.on("uncaughtException", (err) => console.error("[bootstrap] uncaught exc
 // the domain folder hPanel's File Manager opens into (the one holding
 // public_html). We search every ancestor directory plus the account home.
 // Values here never override variables already set in the environment.
-function findPersistentEnv() {
+//
+// Two copies can exist (domain folder and account home). The nearest one is
+// primary; the other fills only keys the primary lacks — same layering as
+// server.js, for the same reason (an SMTP block once landed in the copy that
+// was never read). /api/health reports envSource / envSecondary.
+function findPersistentEnvFiles() {
+  const found = [];
   let dir = process.cwd();
   for (let i = 0; i < 10; i++) {
     const candidate = join(dir, ".grow.env");
-    if (existsSync(candidate)) return candidate;
+    if (existsSync(candidate)) {
+      found.push(candidate);
+      break;
+    }
     const parent = dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   const home = join(homedir(), ".grow.env");
-  return existsSync(home) ? home : null;
+  if (existsSync(home) && !found.includes(home)) found.push(home);
+  return found;
+}
+
+function describeEnvFile(file) {
+  if (file.includes(`${sep}domains${sep}`)) return "domain";
+  if (file === join(homedir(), ".grow.env")) return "home";
+  return "other";
 }
 
 try {
-  const persistentEnv = findPersistentEnv();
-  if (persistentEnv) {
-    loadEnv({ path: persistentEnv });
-    console.log(`[start] Loaded persistent secrets from ${persistentEnv}`);
+  const [primary, ...secondaries] = findPersistentEnvFiles();
+  if (primary) {
+    loadEnv({ path: primary });
+    process.env.GROW_ENV_SOURCE = describeEnvFile(primary);
+    console.log(`[start] Loaded persistent secrets from ${primary}`);
+    for (const file of secondaries) {
+      const filled = [];
+      for (const [key, value] of Object.entries(parseEnv(readFileSync(file)))) {
+        if (process.env[key] === undefined) {
+          process.env[key] = value;
+          filled.push(key);
+        }
+      }
+      process.env.GROW_ENV_SECONDARY = describeEnvFile(file);
+      process.env.GROW_ENV_SECONDARY_KEYS = filled.join(",");
+      console.log(`[start] Also read ${file} (secondary): filled ${filled.length} key(s)${filled.length ? `: ${filled.join(", ")}` : ""}`);
+    }
   } else {
     console.warn("[start] No .grow.env found — starting without it (front end still serves).");
   }

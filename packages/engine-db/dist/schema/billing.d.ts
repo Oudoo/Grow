@@ -863,9 +863,9 @@ export declare const costTracking: import("drizzle-orm/mysql-core").MySqlTableWi
             name: "feature";
             tableName: "cost_tracking";
             dataType: "string";
-            columnType: "MySqlText";
+            columnType: "MySqlVarChar";
             data: string;
-            driverParam: string;
+            driverParam: string | number;
             notNull: true;
             hasDefault: false;
             isPrimaryKey: false;

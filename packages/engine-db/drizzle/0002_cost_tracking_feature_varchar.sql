@@ -1,0 +1,1 @@
+ALTER TABLE `cost_tracking` MODIFY COLUMN `feature` varchar(191) NOT NULL;

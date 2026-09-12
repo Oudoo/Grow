@@ -55,6 +55,25 @@ export interface JobOptions {
     /** Delay before the job first becomes eligible (ms). */
     delay?: number;
 }
+/**
+ * The database's own words for a failed query. Drizzle wraps them in a
+ * "Failed query: <the whole SQL and params>" message and hides the MySQL
+ * error in `cause`, so a log line built from `message` says everything except
+ * what went wrong. This says the cause first, and nothing else.
+ */
+export declare function describeDbError(err: unknown): string;
+/**
+ * Whether queue_jobs has the columns the poll loop depends on. They arrived
+ * in engine migration 0001, which production did not receive for weeks while
+ * the boot migrator swallowed its own failure (scripts/migrate-engine.mjs) —
+ * during which five workers polled a table without `available_at` ~7×/s.
+ * Workers gate on this before their first poll; `limit 0` validates the
+ * columns without reading a row.
+ */
+export declare function isQueueSchemaReady(): Promise<{
+    ready: boolean;
+    reason?: string;
+}>;
 /** The shape the in-app worker processors receive (BullMQ-`Job`-compatible). */
 export interface QueueJob<T = Record<string, unknown>> {
     id: string;
@@ -98,11 +117,13 @@ export type JobProcessor<T = Record<string, unknown>> = (job: QueueJob<T>) => Pr
  * claims one job for its queue, runs the processor, and records the outcome.
  */
 export interface PollWorker {
-    on(event: "error" | "completed" | "failed", listener: (...args: unknown[]) => void): PollWorker;
+    on(event: "error" | "recovered" | "completed" | "failed", listener: (...args: unknown[]) => void): PollWorker;
     close(): Promise<void>;
 }
 export declare function createPollWorker<T = Record<string, unknown>>(queueName: QueueName, processor: JobProcessor<T>, options?: {
     pollIntervalMs?: number;
+    maxIdleIntervalMs?: number;
+    maxErrorBackoffMs?: number;
 }): PollWorker;
 /** Queue depth/health for the System Health Dashboard. */
 export declare function getQueueStats(): Promise<Record<string, {

@@ -11,6 +11,27 @@
  */
 export const dynamic = "force-dynamic";
 
+/** The keys .env.example documents — the only names this public probe will echo. */
+const KNOWN_KEYS = new Set([
+  "DATABASE_URL",
+  "AUTH_SECRET",
+  "ADMIN_EMAIL",
+  "ADMIN_PASSWORD",
+  "ADMIN_PASSWORD_HASH",
+  "STAFF_PASSWORD",
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "SMTP_SECURE",
+  "MAIL_FROM",
+  "APP_URL",
+  "CRON_SECRET",
+  "ANTHROPIC_API_KEY",
+  "GROW_ENGINE_URL",
+  "GROWEES_PRODUCER_URL",
+]);
+
 export function GET() {
   return Response.json(
     {
@@ -40,6 +61,16 @@ export function GET() {
         // Which .grow.env was loaded — "domain", "home", "other", or absent
         // when none was found. Set by server.js; never the path.
         envSource: process.env.GROW_ENV_SOURCE ?? null,
+        // Since 2026-09-12 server.js also reads the OTHER copy, if one exists,
+        // for keys the primary lacks — because the SMTP block was added to
+        // ~/.grow.env while the app read the domain-level file, and nothing
+        // said so. These name which keys came from that secondary file, so
+        // "configured, but in the file that only fills gaps" is visible.
+        // Key NAMES only, and only well-known ones; never values.
+        envSecondary: process.env.GROW_ENV_SECONDARY ?? null,
+        envSecondaryKeys: (process.env.GROW_ENV_SECONDARY_KEYS ?? "")
+          .split(",")
+          .filter((k) => KNOWN_KEYS.has(k)),
       },
     },
     { headers: { "Cache-Control": "no-store" } },

@@ -56,23 +56,47 @@ process.on("uncaughtException", (err) => console.error("[server] uncaught except
 // ── 1. Secrets ────────────────────────────────────────────────────────────
 // Production secrets live OUTSIDE the deploy directory so redeploys keep them.
 // Same contract as scripts/start.mjs: a .grow.env anywhere above the app.
-function findPersistentEnv() {
+//
+// Two copies can exist — the domain folder's (nearest ancestor) and the
+// account home's — and until 2026-09-12 only the nearest one was read. The
+// SMTP block was added to ~/.grow.env while the app read the domain-level
+// file, so mail stayed unconfigured and the only clue was a public health flag.
+// Now: the nearest file is AUTHORITATIVE (override: true, as before); any
+// other copy is read afterwards and fills only keys the primary lacks, and
+// /api/health names which keys came from it. Edit the domain-level file for
+// anything that must win; the home file can no longer be silently ignored.
+function findPersistentEnvFiles() {
+  const found = [];
   let dir = __dirname;
   for (let i = 0; i < 10; i++) {
     const candidate = path.join(dir, ".grow.env");
-    if (fs.existsSync(candidate)) return candidate;
+    if (fs.existsSync(candidate)) {
+      found.push(candidate);
+      break; // nearest wins; deeper copies would be an accident, not a layer
+    }
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
   const home = path.join(require("node:os").homedir(), ".grow.env");
-  return fs.existsSync(home) ? home : null;
+  if (fs.existsSync(home) && !found.includes(home)) found.push(home);
+  return found;
+}
+
+// "domain" / "home" / "other" for /api/health — never the path, which carries
+// the hosting username and that endpoint is public.
+function describeEnvFile(file) {
+  if (file.includes(`${path.sep}domains${path.sep}`)) return "domain";
+  if (file === path.join(require("node:os").homedir(), ".grow.env")) return "home";
+  return "other";
 }
 
 let resolvedEnvPath = null;
 try {
-  resolvedEnvPath = findPersistentEnv();
-  if (resolvedEnvPath) {
+  const dotenv = require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] }));
+  const [primary, ...secondaries] = findPersistentEnvFiles();
+  if (primary) {
+    resolvedEnvPath = primary;
     // override: true — .grow.env is the AUTHORITATIVE production secret store.
     //
     // The host also injects environment variables from its control panel, and
@@ -84,21 +108,25 @@ try {
     //
     // This file lives outside the deploy directory, survives redeploys, is not
     // in git, and is the documented place for production secrets. It should win.
-    require(require.resolve("dotenv", { paths: [APP_DIR, __dirname] })).config({
-      path: resolvedEnvPath,
-      override: true,
-    });
-    console.log(`[server] Loaded persistent secrets from ${resolvedEnvPath} (authoritative)`);
-    // Which candidate won, for /api/health to report. Not the path itself: that
-    // carries the hosting username, and this endpoint is public. "domain" vs
-    // "home" is the part that matters, because more than one copy of this file
-    // can exist and only the deepest one is read — an edit to the other is
-    // silently ignored, which is otherwise invisible from outside the box.
-    process.env.GROW_ENV_SOURCE = resolvedEnvPath.includes(`${path.sep}domains${path.sep}`)
-      ? "domain"
-      : resolvedEnvPath === path.join(require("node:os").homedir(), ".grow.env")
-        ? "home"
-        : "other";
+    dotenv.config({ path: primary, override: true });
+    console.log(`[server] Loaded persistent secrets from ${primary} (authoritative)`);
+    process.env.GROW_ENV_SOURCE = describeEnvFile(primary);
+
+    for (const file of secondaries) {
+      const filled = [];
+      for (const [key, value] of Object.entries(dotenv.parse(fs.readFileSync(file)))) {
+        if (process.env[key] === undefined) {
+          process.env[key] = value;
+          filled.push(key);
+        }
+      }
+      process.env.GROW_ENV_SECONDARY = describeEnvFile(file);
+      process.env.GROW_ENV_SECONDARY_KEYS = filled.join(",");
+      console.log(
+        `[server] Also read ${file} (secondary): filled ${filled.length} key(s) the primary lacks` +
+          (filled.length ? `: ${filled.join(", ")}` : "")
+      );
+    }
   } else {
     console.warn("[server] No .grow.env found — starting without it (front end still serves).");
   }

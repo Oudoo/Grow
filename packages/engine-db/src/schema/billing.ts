@@ -140,8 +140,19 @@ export const costTracking = mysqlTable(
     /** anthropic | openai | whisper_local | embedding */
     provider: varchar("provider", { length: 191 }).notNull(),
     model: varchar("model", { length: 191 }).notNull(),
-    /** Which platform feature consumed it: dmaic, meeting_analysis, aeo_audit... */
-    feature: text("feature").notNull(),
+    /**
+     * Which platform feature consumed it: dmaic, meeting_analysis, aeo_audit...
+     * varchar(191), not text: it is part of cost_tracking_feature_idx, and a
+     * TEXT column in an index needs a prefix length MySQL/MariaDB refuse to
+     * infer — the generated `CREATE INDEX` was statement 244 of migration
+     * 0000 and failed on every database this schema ever met (ER_TOO_LONG_KEY
+     * on MariaDB 11.8). Because the Drizzle migrator records a migration only
+     * once ALL its statements succeed, that one statement left the whole
+     * engine schema unrecorded and blocked migration 0001 for months.
+     * Migration 0002 narrows the column; 0000 was amended to do the same
+     * before the index, since no database had recorded it. Found 2026-09-12.
+     */
+    feature: varchar("feature", { length: 191 }).notNull(),
     inputTokens: int("input_tokens").notNull().default(0),
     outputTokens: int("output_tokens").notNull().default(0),
     costUsd: decimal("cost_usd", { precision: 12, scale: 6 }).notNull().default("0"),

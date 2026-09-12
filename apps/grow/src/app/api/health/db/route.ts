@@ -47,6 +47,36 @@ export async function GET() {
       }
     }
 
+    // Engine (Drizzle) schema, through the same Prisma connection as raw SQL.
+    // queue_jobs is the table the five in-process workers poll; the column
+    // named here arrived in engine migration 0001, which production did not
+    // receive for weeks while the boot migrator swallowed its own failure and
+    // the workers failed ~7×/s (scripts/migrate-engine.mjs has the story).
+    // COUNT(available_at) proves the table AND the column; the migrations row
+    // count proves the bookkeeping — 0 rows with 90 engine tables present is
+    // exactly the broken state, and it was invisible until this line.
+    try {
+      const [row] = await prisma.$queryRaw<{ n: bigint | number }[]>`SELECT COUNT(available_at) AS n FROM queue_jobs`;
+      tables.queueJobs = Number(row?.n ?? 0);
+    } catch {
+      tables.queueJobs = "table-or-columns-missing — engine migration did not run";
+    }
+    try {
+      const [row] = await prisma.$queryRaw<{ n: bigint | number }[]>`SELECT COUNT(*) AS n FROM __drizzle_migrations`;
+      tables.engineMigrations = Number(row?.n ?? 0);
+    } catch {
+      tables.engineMigrations = "table-missing — engine migration never ran";
+    }
+
+    // Email outbox depth: rows queued and still eligible. Visible here (without
+    // a session) so "notifications stopped arriving" can be checked from
+    // outside the box; /api/health/mail has the SMTP verdict for admins.
+    try {
+      tables.outbox = await prisma.notification.count({ where: { emailedAt: null, emailAttempts: { lt: 3 } } });
+    } catch {
+      tables.outbox = "unavailable";
+    }
+
     // Which host the connection actually uses.
     //
     // Reported on SUCCESS, not only on failure, because it is the difference
