@@ -85,25 +85,35 @@ Heka Cosmetics, Heka Pharmacy, Base Training Club.
 
 ---
 
-## 3. Three things are unfinished right now
+## 3. Two things are unfinished right now (one was three)
 
-### 3.1 System email is one line away — and the line is in the wrong file
+### 3.1 System email is one block away — and we now know it is in NEITHER file
 
-SMTP was configured for `internal@growcdx.com`, but `/api/health` reports:
+`/api/health` still reports:
 
 ```
 "smtpHost":false,"smtpUser":false,"smtpPass":false,"cronSecret":false,"envSource":"domain"
 ```
 
-`envSource: "domain"` means the running app loads
-**`/home/u454713534/domains/growcdx.com/.grow.env`**. The four keys are absent
-from *that* file — the edit landed in the other copy (`~/.grow.env`), which the
-app never reads, because `findPersistentEnv()` in `server.js` walks **up** from
-the app directory and the domain-level file is found first.
+An earlier version of this section said the SMTP block "went into
+`~/.grow.env`, which the app never reads". **That was wrong.** Read on the host
+on 2026-09-12 (through a temporary cron job — see §7.5): `~/.grow.env` does not
+exist (`/api/health` → `envSecondary: null` after the deploy that reads it), and `/home/u454713534/domains/growcdx.com/.grow.env` contains
+exactly `DATABASE_URL NODE_ENV AUTH_SECRET ADMIN_EMAIL ADMIN_PASSWORD
+STAFF_PASSWORD`. Whatever was edited was not a file the app reads. The likely
+candidates are a `.grow.env` created inside `public_html/` or `nodejs/` — the
+folders File Manager opens into — which are *siblings* of the running app, not
+ancestors, so `findPersistentEnvFiles()` never sees them.
 
-**The fix:** put this block in `/home/u454713534/domains/growcdx.com/.grow.env`
-(File Manager hides dotfiles until you enable *Show hidden files*), then restart
-the Node app:
+Since 2026-09-12 `server.js` reads **both** copies: the domain-level file is
+authoritative, the account-home file fills only keys the first one lacks, and
+`/api/health` names those keys (`envSecondary`, `envSecondaryKeys`). So a line
+in either file now takes effect — but the block still has to be written.
+
+**The fix, unchanged:** append this to
+`/home/u454713534/domains/growcdx.com/.grow.env` (File Manager: enable *Show
+hidden files*; the file is one level ABOVE `public_html`), then restart the
+Node app:
 
 ```
 SMTP_HOST=smtp.hostinger.com
@@ -127,48 +137,50 @@ calling the dispatcher with that secret:
 curl -sS -H "x-cron-secret: <secret>" https://growcdx.com/api/notifications/dispatch
 ```
 
-**Warning before you do:** ~22 notifications are queued and have been since the
-feature shipped. The first successful dispatch emails all of them at once — your
-team gets a burst about mentions and assignments from days ago. Nothing was lost
-or burned in the meantime: `dispatchPendingEmails()` returns immediately when mail
-is unconfigured, precisely so queued rows keep their retry attempts. If you'd
-rather start clean, mark the backlog `emailedAt = now()` before configuring SMTP.
+**The backlog is gone.** The 22 notifications queued since 2026-08-31 were
+retired on 2026-09-12 — `emailedAt` set, `emailError` says why and how to
+reverse it — so the first live dispatch sends only new mail, not ten-day-old
+mentions. They are still visible in-app. `/api/health/db` → `outbox` shows what
+is queued at any time.
 
 DNS needs nothing: Hostinger Email is fully wired (MX `mx1`/`mx2.hostinger.com`,
 SPF, three DKIM CNAMEs, autodiscover). DMARC is `p=none` — monitoring only.
 
-### 3.2 Five in-process workers are failing ~7 times a second
+### 3.2 RESOLVED 2026-09-12 — the worker error loop, and what it actually was
 
-`apps/grow/src/instrumentation.ts` starts the Engine's queue workers in-process
-(`startInProcessWorkers()` from `@growengine/worker`). All five — `ai`, `events`,
-`integration`, `notification`, `research` — fail every poll:
+Five in-process workers had failed the same `queue_jobs` poll ~7 times a second
+since 2026-09-02 (5.16 M runtime-log lines; `nodejs/stderr.log` reached
+**6.7 GB**). The cause was neither of the two candidates listed here before:
 
-```
-[worker:integration] error Error: Failed query: select … from `queue_jobs`
-  where queue_name in (?) and status = ? and available_at <= ?
-  order by … limit ? for update skip locked
-```
+- `queue_jobs` existed, but with 12 columns — engine migration **0001** (which
+  adds `available_at`, `locked_at`, `locked_by`, `payload`, `max_attempts`) had
+  never run, and `__drizzle_migrations` was **empty** with 90 engine tables present.
+- Because statement 244 of 262 in migration **0000** — `CREATE INDEX` on
+  `cost_tracking(tenant_id, feature)` with `feature` a TEXT column — cannot run
+  on MariaDB (`ER_TOO_LONG_KEY`). drizzle-orm's migrator records a migration
+  only after *all* its statements succeed, DDL auto-commits, so 243 statements
+  were applied-but-unrecorded and every boot re-ran statement 1, hit "already
+  exists", and stopped. The old `migrate-engine.mjs` swallowed that. Proven by
+  running the migrator against the local database: same statement, same error.
 
-Measured 2026-09-08: **200 log entries spanning 29 seconds** = 40 failures per
-worker per 29s, and **`total_lines: 3,405,779`** in the runtime log. Two real
-costs: log volume on a quota-limited shared host, and a constant stream of failing
-transactions against the same connection pool that once caused a total outage
-(§11.1).
+What changed (commit `9d3251c`): `cost_tracking.feature` is `varchar(191)`
+(migration 0002; 0000 amended to narrow it before the index, which was legal
+because no database had ever recorded 0000); `scripts/migrate-engine.mjs` is
+now a **resumable, statement-by-statement runner** that treats "already
+exists" as an outcome, records with drizzle's own hash/created_at rule, prints
+the failing statement to stdout and exits 1 on anything else (header comment
+has the full story); the poll loop backs off (idle 1.5 s → 15 s with
+wake-on-enqueue, failures up to 60 s, reported once a minute with the
+database's own error first); workers start only once `isQueueSchemaReady()`
+proves the columns exist.
 
-**Cause is not yet confirmed.** Most likely `queue_jobs` does not exist:
-`scripts/migrate-engine.mjs` runs the Drizzle migrator and, by its own comment,
-"is failure-tolerant: any error is logged and swallowed", so a migrator that
-errors out leaves the schema partial and silent. `queue_jobs` is defined in
-`packages/engine-db/src/schema/platform.ts:203` and appears in both
-`apps/grow/drizzle-engine/*.sql` files. Note this is the **same class of bug** as
-§11.4 — a boot migrator swallowing its failure and hiding missing tables.
+Production was migrated from a laptop before the deploy: 0000 → 20 statements
+applied / 243 in place, 0001 → 6, 0002 → 1. **The loop stopped the instant the
+columns existed** — not one log line since.
 
-**Confirm before fixing:** add a `queue_jobs` count to `/api/health/db` (that
-endpoint is the established way to answer "does this table exist in production"),
-or read the boot log for `[bootstrap] engine schema` (see §7.4). Then either fix
-the migration or guard `instrumentation.ts` so workers don't spin against a table
-that isn't there — and give the poll loop a backoff regardless, because a failing
-poll at 7/s is wrong even when the table exists.
+**What to watch now:** `/api/health/db` must show `queueJobs` as a number (not
+"table-or-columns-missing") and `engineMigrations` ≥ 3. A boot log line
+`[migrate-engine] FAILED …` names the exact statement.
 
 ### 3.3 Nothing pages anyone when the site goes down
 
@@ -412,7 +424,7 @@ rather than as a mystery 500 a week later. Add a count for any table you add.
 | Script | What it does |
 | --- | --- |
 | `migrate-hub.mjs` | **All hub DDL, hand-written** over mysql2, because `prisma db push` does not work on this host (§8.2). Add every new table/index/FK here. |
-| `migrate-engine.mjs` | Runs the Drizzle migrator from `drizzle-engine/`. Swallows errors — see §3.2. |
+| `migrate-engine.mjs` | Applies `drizzle-engine/` **statement by statement**, resumable; "already exists" is an outcome, anything else prints the statement and exits 1 (§3.2). Run it from a laptop against prod with `DATABASE_URL=…` when a boot fails it. |
 | `seed-staff.mjs` | Staff IAM accounts, access maps, and login **renames** (§9). |
 | `link-task-owners.mjs` | Backfills task owners onto IAM accounts. |
 | `seed-client-knowledge.mjs` | Loads `content/clients/**` dossiers into the Engine. |
@@ -426,11 +438,24 @@ rather than as a mystery 500 a week later. Add a count for any table you add.
 hosting_getNode_jsRuntimeLogsV1  { domain: growcdx.com, username: u454713534, period: 1w, limit: 200 }
 ```
 
-Beware: the log is ~3.4 M lines (§3.2) and the response is capped, so a `1w`
-window returns only the newest entries — currently 29 seconds' worth of worker
-errors, which will drown out anything you're looking for. Fix §3.2 before
-expecting to find a `[bootstrap]` line. `hosting_clearNode_jsRuntimeLogsV1`
-exists if you need to reclaim the space.
+Beware: the log reached 5.16 M lines before §3.2 was fixed, and at that size a
+`period` request returns HTTP 500. `from_line: <large number>` (with no
+`period`) works and returns the newest entries plus `total_lines` — poll with
+`total_lines + 1` to see only what is new. The file behind the 6.7 GB was
+`nodejs/stderr.log` (`console.error`); `console.log` was 1 MB.
+`hosting_clearNode_jsRuntimeLogsV1` exists if the space has to be reclaimed.
+
+### 7.5 Running a shell command on the host (there is no SSH)
+
+A cron job runs arbitrary shell as the account user, and its output can be read
+back: `hosting_createAccountCronJobV1` (`* * * * *`), wait ~90 s,
+`hosting_getCronJobOutputV1`, `hosting_deleteAccountCronJobV1`. This is how the
+`.grow.env` key names in §3.1 and the 6.7 GB log were found. Rules learned:
+command ≤ 255 chars; the output is the **last command's stdout only** (wrap
+several in `( … ) 2>&1 | paste -sd ' ' -`); `$vars`, `%` and `~` are mangled
+before the shell sees them and `\n` loses its backslash — use absolute paths,
+`$(…)` works; no `node` in cron. Read-only by default; never blind-overwrite
+`.grow.env`.
 
 ---
 
@@ -680,9 +705,10 @@ because a second `bg-` class followed `bg-card`.
 
 **Ranked, highest value first.**
 
-1. **§3.2 worker error loop** — 7 failing queries/sec, 3.4 M log lines.
-2. **§3.1 finish SMTP** — one file, one restart.
-3. **§3.3 off-host uptime monitor** — 2 minutes, needs your account.
+1. **§3.1 finish SMTP** — one block in the domain-level `.grow.env`, one restart.
+   (§3.2, the worker error loop, was resolved on 2026-09-12.)
+2. **§3.3 off-host uptime monitor** — 2 minutes, needs your account.
+3. **Reclaim `nodejs/stderr.log`** if it is still 6.7 GB — §7.4 / §7.5.
 4. **Rotate the shared passwords.** `STAFF_PASSWORD` and the demo/admin passwords
    are shared and have been in use for months. Values are in the gitignored
    `.env`/`.env.local` and in `.grow.env`.
@@ -764,7 +790,16 @@ reviewing a state that is hard to reach with real data.
     the empty-account-id route error. That applies to env vars, cron, restart and
     runtime logs. `hosting_deployJsApplication`, `hosting_listJsDeployments` and
     the DNS tools work with `domain` alone.
-  - **Broken for this account:** all file endpoints (list/read/write).
+  - **Broken for this account:** file endpoints beyond `public_html`
+    (`hosting_listWebsiteFilesAndDirectoriesV1` lists the document root; `..`
+    is rejected). For anything else on the box, §7.5.
+  - **Keep the token out of `~/.claude.json`:** `scripts/mcp/setup-hostinger.sh
+    grow` stores it in the macOS Keychain (hidden prompt, or `--import
+    hostinger-grow` to move the one already in `~/.claude.json`) and registers
+    `hostinger-grow-{hosting,dns,domains,reach,vps,ecommerce}` through
+    `scripts/mcp/hostinger-mcp.sh`, which reads the token back at launch. Run it
+    once per account label (`grow`, and e.g. `cdx hosting dns` for the other).
+    Tokens are account-wide and unscoped — treat one like the hPanel password.
 - **GitHub** — two accounts exist: `OudoCDX` (company) and `Oudoo` (personal,
   which **owns `Oudoo/Grow`**). Pushing with the wrong active account gives a 403.
 - Zoho / Apollo / Figma / Gamma servers are connected but unrelated to this repo.
@@ -792,8 +827,13 @@ npm run dev --prefix apps/grow                      # http://localhost:3000
 cd apps/grow && npx tsc --noEmit -p tsconfig.json && npx vitest run
 npm run build                                       # from the repo root
 
-# local schema catch-up
+# local schema catch-up (hub, then engine)
 cd apps/grow && DATABASE_URL="<grow_local url>" node scripts/migrate-hub.mjs
+cd apps/grow && DATABASE_URL="<grow_local url>" node scripts/migrate-engine.mjs
+
+# new engine migration: edit packages/engine-db/src/schema, then
+cd packages/engine-db && npx drizzle-kit generate --dialect mysql --schema ./src/schema/index.ts --out ./drizzle --name <tag>
+rm -rf apps/grow/drizzle-engine && cp -r packages/engine-db/drizzle apps/grow/drizzle-engine
 
 # production health
 curl -fsS https://growcdx.com/api/health
@@ -808,9 +848,9 @@ curl -fsS https://growcdx.com/api/health/db
 | Production DB | `u454713534_grow_os` (MariaDB 11.8), user `u454713534_grow_admin`, over `127.0.0.1` |
 | Local DB | `grow_local` on `127.0.0.1:3306` |
 | Runtime config | `/home/u454713534/domains/growcdx.com/.grow.env` |
-| Deployments so far | 65 |
-| Tests | 9 files, 103 tests, run from `apps/grow` |
-| Hub models / engine tables | 26 Prisma / 63 Drizzle |
+| Deployments so far | 66 |
+| Tests | 10 files, 112 tests, run from `apps/grow` |
+| Hub models / engine tables | 26 Prisma / 63 Drizzle (3 engine migrations recorded) |
 | System sender | `internal@growcdx.com` |
 | Dispatcher cron | uid `gInR3iY0TW`, `*/15 * * * *` |
 | Working week | Sunday start, Friday–Saturday weekend |

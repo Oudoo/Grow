@@ -310,6 +310,16 @@ restart was issued as well, and `/api/notifications/dispatch` still rejected the
 matching secret with 401. The panel was put back to empty. Do not spend time
 there; if a value must reach the running app, it goes in this file.
 
+**Which file.** Two copies can exist: `/home/u454713534/domains/growcdx.com/.grow.env`
+(the domain folder, one level ABOVE `public_html`) and `/home/u454713534/.grow.env`.
+Since 2026-09-12 `server.js` reads both — the domain-level one is authoritative,
+the home one fills only keys it lacks — and `/api/health` reports `envSource`
+plus `envSecondary`/`envSecondaryKeys`. A `.grow.env` created *inside*
+`public_html/` or `nodejs/` is never read: those are siblings of the app, not
+ancestors. On 2026-09-12 the home copy was verified absent and the domain copy
+held only the six original keys, so this block has not been written anywhere
+the app looks yet.
+
 In hPanel's File Manager a dotfile is hidden until you enable **Show hidden
 files** (Settings, top right). Append:
 
