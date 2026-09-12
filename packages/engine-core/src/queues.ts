@@ -37,6 +37,7 @@ export interface AiJobData {
     | "dmaic"
     | "aeo_audit"
     | "meeting_analysis"
+    | "meeting_documents"
     | "sow"
     | "recommendation_verify"
     | "forecast"

@@ -14,7 +14,11 @@ export declare const EVENT_TYPES: {
     readonly integrationTokenExpiring: "integration.token_expiring";
     readonly meetingRecorded: "meeting.recorded";
     readonly meetingAnalyzed: "meeting.analyzed";
+    readonly meetingMinutesReady: "meeting.minutes_ready";
     readonly transcriptReady: "transcript.ready";
+    readonly mayaJoined: "maya.joined";
+    readonly mayaLeft: "maya.left";
+    readonly documentDrafted: "document.drafted";
     readonly recommendationCreated: "recommendation.created";
     readonly recommendationVerified: "recommendation.verified";
     readonly recommendationApproved: "recommendation.approved";

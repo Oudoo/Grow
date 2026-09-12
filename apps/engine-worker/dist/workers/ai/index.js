@@ -3,7 +3,7 @@ import { db, aiJobs } from "@growengine/db";
 import { createPollWorker, QUEUE_NAMES } from "@growengine/core";
 import { markJobStatus } from "../../lib/track.js";
 import { handleForecast, handleSeasonality, handleLostOpportunity, handleHealthScore, handleScorecards, } from "./quant.js";
-import { handleMeetingAnalysis, handleSowGeneration, handleRecommendationVerify, handleDmaicGeneration, handleReport, } from "./analysis.js";
+import { handleMeetingAnalysis, handleMeetingDocuments, handleSowGeneration, handleRecommendationVerify, handleDmaicGeneration, handleReport, } from "./analysis.js";
 import { handleLeadAudit, handleDigest, handleQbr, handleProcessIntelligence, } from "./reports.js";
 import { handleAeoAudit } from "./aeo.js";
 import { handleEmbedding, handleRetentionEnforcement } from "./maintenance.js";
@@ -17,6 +17,7 @@ const handlers = {
     dmaic: handleDmaicGeneration,
     aeo_audit: handleAeoAudit,
     meeting_analysis: handleMeetingAnalysis,
+    meeting_documents: handleMeetingDocuments,
     sow: handleSowGeneration,
     recommendation_verify: handleRecommendationVerify,
     forecast: handleForecast,

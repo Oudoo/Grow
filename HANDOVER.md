@@ -714,7 +714,9 @@ because a second `bg-` class followed `bg-card`.
 4. **Rotate the shared passwords.** `STAFF_PASSWORD` and the demo/admin passwords
    are shared and have been in use for months. Values are in the gitignored
    `.env`/`.env.local` and in `.grow.env`.
-5. **`ANTHROPIC_API_KEY` unset** — every AI feature is inert (§10).
+5. **`ANTHROPIC_API_KEY` and `VEXA_API_KEY` unset** — every AI feature, and
+   Maya the meeting agent, are inert until both are in `.grow.env` (DEPLOYMENT.md,
+   "Maya"). The code paths are deployed and dormant.
 6. **180.clinic placeholder content** — real phone, email, map, team and hours
    still needed from the client; the Contact page is template demo content.
 7. **Sportive Hub email** — publish `info@sportive-hub.com` or add MX to

@@ -1,3 +1,4 @@
+import type { z } from "zod/v4";
 import OpenAI from "openai";
 /**
  * AI provider abstraction. Primary provider is env-configured
@@ -21,6 +22,13 @@ export interface AiCompletionOptions {
 }
 export declare function openai(): OpenAI;
 export declare function recordAiCost(ctx: AiCallContext, provider: string, model: string, inputTokens: number, outputTokens: number): Promise<number>;
+/**
+ * Complete with a schema-validated result. Uses the Anthropic SDK's structured
+ * outputs (`messages.parse` + `output_config.format`) so the JSON is
+ * guaranteed to match the schema, and falls back to the text-and-parse path
+ * (then a schema parse) only when Anthropic is not configured.
+ */
+export declare function aiCompleteStructured<T>(schema: z.ZodType<T>, prompt: string, ctx: AiCallContext, opts?: AiCompletionOptions): Promise<T>;
 /**
  * Complete a prompt with the primary provider, falling back to the
  * secondary if the primary is unconfigured or errors.

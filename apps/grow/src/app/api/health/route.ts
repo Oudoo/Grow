@@ -58,6 +58,11 @@ export function GET() {
         smtpUser: Boolean(process.env.SMTP_USER),
         smtpPass: Boolean(process.env.SMTP_PASS),
         cronSecret: Boolean(process.env.CRON_SECRET),
+        // AI and Maya (the meeting agent), presence only. Both stay dormant
+        // until their keys are in .grow.env — see DEPLOYMENT.md, "Maya".
+        anthropicKey: Boolean(process.env.ANTHROPIC_API_KEY),
+        maya: Boolean(process.env.VEXA_API_KEY),
+        mayaWebhook: Boolean(process.env.VEXA_WEBHOOK_SECRET),
         // Which .grow.env was loaded — "domain", "home", "other", or absent
         // when none was found. Set by server.js; never the path.
         envSource: process.env.GROW_ENV_SOURCE ?? null,

@@ -11,6 +11,7 @@ import {
 } from "./quant.js";
 import {
   handleMeetingAnalysis,
+  handleMeetingDocuments,
   handleSowGeneration,
   handleRecommendationVerify,
   handleDmaicGeneration,
@@ -36,6 +37,7 @@ const handlers: Record<AiJobData["jobType"], (data: AiJobData) => Promise<unknow
   dmaic: handleDmaicGeneration,
   aeo_audit: handleAeoAudit,
   meeting_analysis: handleMeetingAnalysis,
+  meeting_documents: handleMeetingDocuments,
   sow: handleSowGeneration,
   recommendation_verify: handleRecommendationVerify,
   forecast: handleForecast,

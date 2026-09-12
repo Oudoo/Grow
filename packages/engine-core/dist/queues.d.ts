@@ -28,7 +28,7 @@ export interface IntegrationJobData {
 export interface AiJobData {
     tenantId: string;
     aiJobId: string;
-    jobType: "report" | "dmaic" | "aeo_audit" | "meeting_analysis" | "sow" | "recommendation_verify" | "forecast" | "embedding" | "lead_audit" | "qbr" | "digest" | "lost_opportunity" | "seasonality" | "process_intelligence" | "health_score" | "scorecards" | "retention_enforcement";
+    jobType: "report" | "dmaic" | "aeo_audit" | "meeting_analysis" | "meeting_documents" | "sow" | "recommendation_verify" | "forecast" | "embedding" | "lead_audit" | "qbr" | "digest" | "lost_opportunity" | "seasonality" | "process_intelligence" | "health_score" | "scorecards" | "retention_enforcement";
     input: Record<string, unknown>;
 }
 export interface ResearchJobData {

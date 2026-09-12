@@ -14,6 +14,8 @@ import {
 import {
   aiComplete,
   aiCompleteJson,
+  composeMeetingMinutes,
+  draftMeetingDocuments,
   transcribeAudio,
   downloadObject,
   computeConfidence,
@@ -183,6 +185,23 @@ Return strict JSON with keys:
     entityId: meetingId,
     payload: { clientId: meeting.clientId, confidence: confidence.score },
   });
+  // Maya's half: minutes, a summary, and the documents people promised each
+  // other — grounded in the same transcript and in whatever the team said to
+  // Maya during the call. Its failure must not undo the analysis above (the
+  // baseline is already saved), so it is logged and the page shows no
+  // minutes; Re-analyze runs the whole thing again.
+  try {
+    await composeMeetingMinutes(meetingId, data.tenantId);
+  } catch (err) {
+    console.error(`[maya] minutes for meeting ${meetingId} failed: ${(err as Error).message}`);
+  }
+
+}
+
+/** Draft every document the meeting asked for (queued by composeMeetingMinutes). */
+export async function handleMeetingDocuments(data: AiJobData) {
+  const { meetingId } = data.input as { meetingId: string };
+  return draftMeetingDocuments(meetingId, data.tenantId);
 }
 
 export async function handleSowGeneration(data: AiJobData) {

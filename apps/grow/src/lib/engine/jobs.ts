@@ -1,20 +1,6 @@
-import { eq } from "drizzle-orm";
-import { db, aiJobs } from "@growengine/db";
-import { enqueueAiJob, type AiJobData } from "@growengine/core";
-
 /**
- * Create a tracked AI job: insert the ai_jobs row first, then enqueue to
- * the AI worker with the row id so status/cost are linked end-to-end.
+ * Create a tracked AI job. The implementation moved to @growengine/core on
+ * 2026-09-12 so the worker (Maya's meeting-ended hand-off) can use it too;
+ * this re-export keeps every existing import in the hub working unchanged.
  */
-export async function createAiJob(
-  tenantId: string,
-  clientId: string | null,
-  jobType: AiJobData["jobType"],
-  input: Record<string, unknown>
-) {
-  const id = crypto.randomUUID();
-  await db.insert(aiJobs).values({ id, tenantId, clientId, jobType, input, status: "queued" });
-  const [row] = await db.select().from(aiJobs).where(eq(aiJobs.id, id));
-  await enqueueAiJob({ tenantId, aiJobId: row.id, jobType, input });
-  return row;
-}
+export { createTrackedAiJob as createAiJob } from "@growengine/core";

@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { z } from "zod/v4";
 import OpenAI from "openai";
 import { db, costTracking, usageRecords } from "@growengine/db";
 import { env } from "../env.js";
@@ -28,6 +30,10 @@ export interface AiCompletionOptions {
 
 /** USD per 1M tokens — keep current with provider pricing pages. */
 const PRICING: Record<string, { input: number; output: number }> = {
+  "claude-opus-5": { input: 5, output: 25 },
+  "claude-sonnet-5": { input: 2, output: 10 },
+  "claude-fable-5-1": { input: 10, output: 50 },
+  "claude-haiku-4-5": { input: 1, output: 5 },
   "claude-sonnet-4-6": { input: 3, output: 15 },
   "claude-opus-4-8": { input: 15, output: 75 },
   "claude-haiku-4-5-20251001": { input: 1, output: 5 },
@@ -87,6 +93,15 @@ export async function recordAiCost(
   return cost;
 }
 
+/**
+ * Anthropic path. Two things changed on 2026-09-12 for the current models:
+ *  - `temperature` is no longer sent. Claude Opus 5 / Sonnet 5 / Opus 4.7+
+ *    reject sampling parameters with a 400; `opts.temperature` is still
+ *    honoured by the OpenAI path.
+ *  - `stop_reason: "refusal"` is handled before the content is read. A
+ *    refused request has no text and must not be recorded as an empty
+ *    answer; the caller gets an error naming the reason instead.
+ */
 async function completeWithAnthropic(
   prompt: string,
   opts: AiCompletionOptions,
@@ -95,14 +110,53 @@ async function completeWithAnthropic(
   const model = env.anthropicModel;
   const res = await anthropic().messages.create({
     model,
-    max_tokens: opts.maxTokens ?? 4096,
-    temperature: opts.temperature ?? 0.2,
-    system: opts.system,
+    max_tokens: opts.maxTokens ?? 16000,
+    system: opts.json ? [opts.system, JSON_ONLY].filter(Boolean).join("\n\n") : opts.system,
     messages: [{ role: "user", content: prompt }],
   });
   await recordAiCost(ctx, "anthropic", model, res.usage.input_tokens, res.usage.output_tokens);
+  if (res.stop_reason === "refusal") {
+    throw new Error(`Claude declined this request (${res.stop_details?.category ?? "refusal"})`);
+  }
   const block = res.content.find((c) => c.type === "text");
   return block && block.type === "text" ? block.text : "";
+}
+
+const JSON_ONLY =
+  "Respond with a single JSON value and nothing else: no prose before or after it, no markdown fences.";
+
+/**
+ * Complete with a schema-validated result. Uses the Anthropic SDK's structured
+ * outputs (`messages.parse` + `output_config.format`) so the JSON is
+ * guaranteed to match the schema, and falls back to the text-and-parse path
+ * (then a schema parse) only when Anthropic is not configured.
+ */
+export async function aiCompleteStructured<T>(
+  schema: z.ZodType<T>,
+  prompt: string,
+  ctx: AiCallContext,
+  opts: AiCompletionOptions = {}
+): Promise<T> {
+  if (!env.anthropicApiKey) {
+    const loose = await aiCompleteJson<unknown>(prompt, ctx, opts);
+    return schema.parse(loose);
+  }
+  const model = env.anthropicModel;
+  const res = await anthropic().messages.parse({
+    model,
+    max_tokens: opts.maxTokens ?? 16000,
+    system: opts.system,
+    messages: [{ role: "user", content: prompt }],
+    output_config: { format: zodOutputFormat(schema) },
+  });
+  await recordAiCost(ctx, "anthropic", model, res.usage.input_tokens, res.usage.output_tokens);
+  if (res.stop_reason === "refusal") {
+    throw new Error(`Claude declined this request (${res.stop_details?.category ?? "refusal"})`);
+  }
+  if (res.parsed_output == null) {
+    throw new Error(`Structured output did not parse (stop_reason: ${res.stop_reason})`);
+  }
+  return res.parsed_output;
 }
 
 async function completeWithOpenAi(

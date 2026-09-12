@@ -43,7 +43,7 @@ export default async function MeetingsPage() {
           ))}
           {rows.length === 0 && (
             <p className="py-10 text-center text-sm text-muted-foreground">
-              Pipeline: prerequisites form → record → Whisper transcription → requirement extraction → Expectation Baseline → SOW.
+              Pipeline: prerequisites form → Maya joins the call (or you upload a recording) → transcript → requirements, minutes, documents → tasks on the board.
             </p>
           )}
         </div>
@@ -69,6 +69,11 @@ export default async function MeetingsPage() {
                 <div>
                   <Label>Agenda</Label>
                   <Textarea name="agenda" rows={3} />
+                </div>
+                <div>
+                  <Label>Meeting link (optional)</Label>
+                  <Input name="meetingUrl" placeholder="https://meet.google.com/xxx-xxxx-xxx or a Teams link" />
+                  <p className="mt-1 text-xs text-muted-foreground">Maya, the meeting agent, joins from this link when you invite her on the meeting page.</p>
                 </div>
                 <Button type="submit" className="w-full">Create meeting</Button>
               </ActionForm>

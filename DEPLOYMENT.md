@@ -397,6 +397,74 @@ the cron secret, and the JSON response reports exactly what was swept and sent.
 
 ---
 
+## Maya — the meeting agent (Google Meet + Microsoft Teams)
+
+Maya is a participant named "Maya" that joins a call, transcribes it with speaker
+names, listens for anything said to her ("Maya, note that…", "Maya, action
+item…", "Maya, prepare a proposal for…"), and after the call writes the minutes,
+a summary, drafts the documents that were promised, and proposes action items
+that a person approves into the project board. The bot itself is
+[Vexa](https://github.com/vexa-ai/vexa) (Apache-2.0); the hosted service and a
+self-hosted one speak the same API, so the app only needs a URL and a key.
+
+### 1. Keys — three lines in `.grow.env`, then restart
+
+```
+ANTHROPIC_API_KEY=sk-ant-…            # Console key (platform.claude.com), pay-as-you-go
+VEXA_API_KEY=…                        # vexa.ai → sign in → API key ($5 free bot credit, ~16 h)
+VEXA_WEBHOOK_SECRET=<openssl rand -hex 24>
+```
+
+Optional: `ANTHROPIC_MODEL=claude-sonnet-5` (about 60% cheaper than the default
+`claude-opus-5`), `MAYA_BOT_NAME` (default Maya), `MAYA_LANGUAGE=ar` or `en`
+(default: auto-detected per window), `VEXA_API_URL` for a self-hosted Vexa.
+
+`/api/health` reports `anthropicKey` and `maya` presence flags once the process
+has restarted; the meeting page says "Maya is not configured" until then.
+
+### 2. Register the webhook — once per Vexa account
+
+Polling every 20 s covers everything; the webhook only makes minutes arrive
+sooner after the call ends. From the repo root:
+
+```bash
+VEXA_API_KEY=… VEXA_WEBHOOK_SECRET=… node scripts/maya-webhook.mjs https://growcdx.com/api/webhooks/vexa
+```
+
+Deliveries are HMAC-signed; `/api/webhooks/vexa` rejects anything unsigned,
+mis-signed, or older than five minutes.
+
+### 3. Using her
+
+1. Create the meeting under Engine → Meetings (client, title, optional link).
+2. On the meeting page: paste the Google Meet link, or a `teams.live.com/meet/…`
+   link, or the **Meeting ID + passcode** printed in the Teams invite (the long
+   `meetup-join` link does not carry them), then **Invite Maya**.
+3. Someone in the call **admits** her when she knocks — the page shows
+   "awaiting admission" until then, "in the meeting" after.
+4. Talk to her by name. Everything after "Maya" is kept and classified: note,
+   action, decision, document, summary.
+5. When the call ends (or you click **Dismiss Maya**) the transcript goes through
+   the existing analysis, then minutes + summary + document drafts are written,
+   and the action items wait for a person to tick them into a project.
+
+Drafts land in the knowledge base (Engine → AOM) tagged `maya`/`draft` and are
+never sent anywhere by themselves.
+
+### Cost (Opus 5 rates, one hour-long call)
+
+Transcript analysis + minutes ≈ 25k input / 6k output tokens ≈ $0.28; each
+drafted document ≈ $0.10; Vexa bot time $0.30/h on the hosted plan. Sonnet 5
+cuts the Claude part by about 60%.
+
+### Self-hosting Vexa instead
+
+`make all` on a box with Docker (8 vCPU / 16 GB for a dev build); transcription
+runs on a GPU box or Vexa's hosted STT token. The shared Hostinger plan cannot
+run it — a Hostinger VPS can. Point `VEXA_API_URL` at it; nothing else changes.
+
+---
+
 ## Database remote access
 
 The app reaches MySQL from the web node over **IPv6**, at

@@ -38,9 +38,20 @@ export const env = {
   openaiApiKey: optional("OPENAI_API_KEY"),
   /** anthropic | openai */
   aiPrimaryProvider: optional("AI_PRIMARY_PROVIDER", "anthropic"),
-  anthropicModel: optional("ANTHROPIC_MODEL", "claude-sonnet-4-6"),
+  /** claude-opus-5 by default; ANTHROPIC_MODEL=claude-sonnet-5 is the cheaper choice. */
+  anthropicModel: optional("ANTHROPIC_MODEL", "claude-opus-5"),
   openaiModel: optional("OPENAI_MODEL", "gpt-4o"),
   embeddingModel: optional("EMBEDDING_MODEL", "text-embedding-3-small"),
+
+  // Maya, the meeting agent — a Vexa bot (hosted api.cloud.vexa.ai or self-hosted, same API)
+  vexaApiUrl: optional("VEXA_API_URL", "https://api.cloud.vexa.ai"),
+  vexaApiKey: optional("VEXA_API_KEY"),
+  /** Shared secret Vexa signs webhook deliveries with (PUT /user/webhook). */
+  vexaWebhookSecret: optional("VEXA_WEBHOOK_SECRET"),
+  /** The name the bot joins the call under, and what people say to address it. */
+  mayaBotName: optional("MAYA_BOT_NAME", "Maya"),
+  /** ISO language for transcription; empty = Vexa auto-detects each window. */
+  mayaLanguage: optional("MAYA_LANGUAGE"),
 
   // Transcription
   /** Path to a whisper.cpp `main`/`whisper-cli` binary for local transcription */

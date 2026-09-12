@@ -7,6 +7,8 @@ import {
   publishEvent,
   EVENT_TYPES,
   redis,
+  isMayaConfigured,
+  pollMayaMeetings,
 } from "@growengine/core";
 
 /**
@@ -131,6 +133,14 @@ async function scheduleDaily() {
 }
 
 export function startScheduler() {
+  // Maya: while a meeting bot is live, pull its transcript every 20 s so the
+  // meeting page shows live notes, and hand the meeting to analysis the tick
+  // after Vexa reports it complete. One cheap SELECT per tick when nothing is
+  // live; nothing at all when VEXA_API_KEY is unset. Vexa's webhook does the
+  // same work sooner when it is registered — this is the guarantee behind it.
+  const maya = isMayaConfigured()
+    ? setInterval(() => withLock("maya_poll", 15, async () => { await pollMayaMeetings(); }).catch(console.error), 20_000)
+    : null;
   const fiveMin = setInterval(
     () => withLock("due_syncs", 240, scheduleDueSyncs).catch(console.error),
     5 * 60_000
@@ -144,6 +154,7 @@ export function startScheduler() {
     15 * 60_000
   );
   return () => {
+    if (maya) clearInterval(maya);
     clearInterval(fiveMin);
     clearInterval(hourly);
     clearInterval(daily);

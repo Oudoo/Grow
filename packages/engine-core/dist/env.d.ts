@@ -11,9 +11,18 @@ export declare const env: {
     readonly openaiApiKey: string;
     /** anthropic | openai */
     readonly aiPrimaryProvider: string;
+    /** claude-opus-5 by default; ANTHROPIC_MODEL=claude-sonnet-5 is the cheaper choice. */
     readonly anthropicModel: string;
     readonly openaiModel: string;
     readonly embeddingModel: string;
+    readonly vexaApiUrl: string;
+    readonly vexaApiKey: string;
+    /** Shared secret Vexa signs webhook deliveries with (PUT /user/webhook). */
+    readonly vexaWebhookSecret: string;
+    /** The name the bot joins the call under, and what people say to address it. */
+    readonly mayaBotName: string;
+    /** ISO language for transcription; empty = Vexa auto-detects each window. */
+    readonly mayaLanguage: string;
     /** Path to a whisper.cpp `main`/`whisper-cli` binary for local transcription */
     readonly whisperCppPath: string;
     readonly whisperCppModelPath: string;

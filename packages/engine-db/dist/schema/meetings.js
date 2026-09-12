@@ -5,6 +5,8 @@ import { clients } from "./clients.js";
 export const meetingStatusEnum = [
     "scheduled",
     "awaiting_prereqs",
+    /** Maya (the meeting bot) has been sent to the call and it is not over yet. */
+    "live",
     "recorded",
     "transcribing",
     "analyzing",
@@ -14,6 +16,8 @@ export const meetingStatusEnum = [
 export const transcriptionEngineEnum = [
     "whisper_local",
     "whisper_api",
+    /** Live transcript streamed by the Vexa bot Maya rides in on. */
+    "vexa",
 ];
 /**
  * Pre-meeting prerequisite forms — global templates or client-specific.
@@ -60,11 +64,29 @@ export const meetings = mysqlTable("meetings", {
     /** Generated Expectation Baseline document (markdown) */
     expectationBaseline: text("expectation_baseline"),
     analysisConfidence: decimal("analysis_confidence", { precision: 5, scale: 2 }),
+    // ── Maya, the meeting agent (2026-09-12) ──────────────────────────────
+    /** The join link the team pasted; used only to derive the bot's address. */
+    meetingUrl: text("meeting_url"),
+    /** Vexa address of the bot session: platform + native meeting id. */
+    botPlatform: varchar("bot_platform", { length: 32 }),
+    botMeetingId: varchar("bot_meeting_id", { length: 191 }),
+    /** Last status Vexa reported (requested → awaiting_admission → active → completed/failed). */
+    botStatus: varchar("bot_status", { length: 64 }),
+    botRequestedAt: timestamp("bot_requested_at"),
+    botEndedAt: timestamp("bot_ended_at"),
+    /** What the team told Maya during the call: [{at, speaker, kind, text}] */
+    liveNotes: json("live_notes").notNull().default([]),
+    /** Minutes of meeting (markdown) and a short summary, written after the call. */
+    minutesMarkdown: text("minutes_markdown"),
+    summary: text("summary"),
+    /** Documents promised or requested in the call: [{type,title,audience,brief,status,documentId}] */
+    mentionedDocuments: json("mentioned_documents").notNull().default([]),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [
     index("meetings_tenant_idx").on(t.tenantId),
     index("meetings_client_idx").on(t.clientId),
+    index("meetings_bot_idx").on(t.botPlatform, t.botMeetingId),
 ]);
 export const transcripts = mysqlTable("transcripts", {
     id: varchar("id", { length: 36 }).primaryKey().$defaultFn(() => randomUUID()),
