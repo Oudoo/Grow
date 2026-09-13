@@ -13,17 +13,17 @@ export declare const incomingMetricSchema: z.ZodObject<{
     sourceRequestId: z.ZodOptional<z.ZodString>;
     sourceReferenceUrl: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    value: number;
     date: string;
     metric: string;
-    value: number;
     dimensions: Record<string, string | number>;
     currency?: string | undefined;
     sourceRequestId?: string | undefined;
     sourceReferenceUrl?: string | undefined;
 }, {
+    value: number;
     date: string;
     metric: string;
-    value: number;
     currency?: string | undefined;
     dimensions?: Record<string, string | number> | undefined;
     sourceRequestId?: string | undefined;

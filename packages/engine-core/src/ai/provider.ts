@@ -4,6 +4,34 @@ import type { z } from "zod/v4";
 import OpenAI from "openai";
 import { db, costTracking, usageRecords } from "@growengine/db";
 import { env } from "../env.js";
+import { getDevFlags } from "../dev-flags.js";
+
+/**
+ * Thrown when the Developer console has AI switched off. Callers that run
+ * jobs treat it as "skip, do not retry" (see the AI worker), not as a failure.
+ */
+export class AiDisabledError extends Error {
+  readonly code = "AI_DISABLED";
+  constructor() {
+    super("AI features are switched off in the Developer console (ai.enabled = false)");
+  }
+}
+
+/** Whether any provider key exists at all — the scheduler asks before queuing AI work. */
+export function isAiConfigured(): boolean {
+  return Boolean(env.anthropicApiKey || env.openaiApiKey);
+}
+
+/** The Claude model to use right now: the console's override, else the env default. */
+export async function resolveClaudeModel(): Promise<string> {
+  const flags = await getDevFlags();
+  return flags["ai.model"] || env.anthropicModel;
+}
+
+async function assertAiEnabled(): Promise<void> {
+  const flags = await getDevFlags();
+  if (!flags["ai.enabled"]) throw new AiDisabledError();
+}
 
 /**
  * AI provider abstraction. Primary provider is env-configured
@@ -107,7 +135,7 @@ async function completeWithAnthropic(
   opts: AiCompletionOptions,
   ctx: AiCallContext
 ): Promise<string> {
-  const model = env.anthropicModel;
+  const model = await resolveClaudeModel();
   const res = await anthropic().messages.create({
     model,
     max_tokens: opts.maxTokens ?? 16000,
@@ -137,11 +165,12 @@ export async function aiCompleteStructured<T>(
   ctx: AiCallContext,
   opts: AiCompletionOptions = {}
 ): Promise<T> {
+  await assertAiEnabled();
   if (!env.anthropicApiKey) {
     const loose = await aiCompleteJson<unknown>(prompt, ctx, opts);
     return schema.parse(loose);
   }
-  const model = env.anthropicModel;
+  const model = await resolveClaudeModel();
   const res = await anthropic().messages.parse({
     model,
     max_tokens: opts.maxTokens ?? 16000,
@@ -194,6 +223,7 @@ export async function aiComplete(
   ctx: AiCallContext,
   opts: AiCompletionOptions = {}
 ): Promise<string> {
+  await assertAiEnabled();
   const order =
     env.aiPrimaryProvider === "openai"
       ? (["openai", "anthropic"] as const)

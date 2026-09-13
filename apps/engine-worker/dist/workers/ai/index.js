@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, aiJobs } from "@growengine/db";
-import { createPollWorker, QUEUE_NAMES } from "@growengine/core";
+import { AiDisabledError, createPollWorker, QUEUE_NAMES } from "@growengine/core";
 import { markJobStatus } from "../../lib/track.js";
 import { handleForecast, handleSeasonality, handleLostOpportunity, handleHealthScore, handleScorecards, } from "./quant.js";
 import { handleMeetingAnalysis, handleMeetingDocuments, handleSowGeneration, handleRecommendationVerify, handleDmaicGeneration, handleReport, } from "./analysis.js";
@@ -65,6 +65,18 @@ export function createAiWorker() {
             return output;
         }
         catch (err) {
+            // AI switched off in the Developer console: not a failure, and not
+            // worth three retries. Park the job as skipped and let the queue row
+            // complete; re-queue from the console when AI is back on.
+            if (err instanceof AiDisabledError || err.code === "AI_DISABLED") {
+                if (aiJobId) {
+                    await db
+                        .update(aiJobs)
+                        .set({ status: "skipped", error: err.message, completedAt: new Date() })
+                        .where(eq(aiJobs.id, aiJobId));
+                }
+                return { skipped: true };
+            }
             if (aiJobId) {
                 await db
                     .update(aiJobs)

@@ -189,3 +189,28 @@ export function moduleForPath(pathname: string): ModuleKey | null {
   if (pathname.startsWith("/engine")) return "engine";
   return null;
 }
+
+
+// ── Developer console ──────────────────────────────────────────────────────
+/**
+ * The Developer console (/admin/developer) is for the owner alone — not a
+ * module, not a role. SUPER_ADMIN is necessary but not sufficient: the
+ * account's email must also be on DEVELOPER_EMAILS (comma-separated, in
+ * .grow.env), which defaults to the owner's login. Pure and env-only, so
+ * middleware (Edge bundle, no Prisma) can use it for the route gate and the
+ * server layout can use it for the sidebar link.
+ */
+export const DEFAULT_DEVELOPER_EMAILS = ["mahmoud.hassan@growcdx.com"];
+
+export function developerEmails(): string[] {
+  const raw = process.env.DEVELOPER_EMAILS;
+  const list = raw && raw.trim() ? raw.split(",") : DEFAULT_DEVELOPER_EMAILS;
+  return list.map((e) => e.trim().toLowerCase()).filter(Boolean);
+}
+
+export function isDeveloper(
+  session: { email?: string | null; role?: UserRole | string | null } | null | undefined
+): boolean {
+  if (!session?.email || session.role !== "SUPER_ADMIN") return false;
+  return developerEmails().includes(session.email.trim().toLowerCase());
+}

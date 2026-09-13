@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
-import { can, clientSubdomain, defaultLanding, moduleForPath, type ModuleKey } from '@/lib/access';
+import { can, clientSubdomain, defaultLanding, isDeveloper, moduleForPath, type ModuleKey } from '@/lib/access';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -48,6 +48,14 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('from', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // The Developer console is the owner's alone — not a module anyone can be
+  // granted. Everyone else is sent where they can actually go, the same way
+  // a missing module is handled, so the page's existence is not advertised.
+  if (pathname.startsWith('/admin/developer') && !isDeveloper(session)) {
+    if (isApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.redirect(new URL(defaultLanding(session.role, session.access), request.url));
   }
 
   // Authenticated → enforce per-module access for this path.

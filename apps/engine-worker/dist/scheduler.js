@@ -1,6 +1,6 @@
 import { and, eq, lt, sql as dsql } from "drizzle-orm";
 import { db, integrations, tenants, clients } from "@growengine/db";
-import { enqueueIntegrationJob, enqueueAiJob, enqueueNotificationJob, publishEvent, EVENT_TYPES, redis, isMayaConfigured, pollMayaMeetings, } from "@growengine/core";
+import { enqueueIntegrationJob, enqueueAiJob, enqueueNotificationJob, publishEvent, EVENT_TYPES, redis, isMayaConfigured, pollMayaMeetings, getDevFlags, isAiConfigured, } from "@growengine/core";
 /**
  * Scheduler — periodic orchestration. Runs inside the worker process on
  * setInterval ticks guarded by Redis locks so multiple worker instances
@@ -11,6 +11,17 @@ async function withLock(key, ttlSeconds, fn) {
     if (!acquired)
         return;
     await fn();
+}
+/**
+ * Same, but honouring the Developer console's "Scheduled jobs" switch. Maya's
+ * meeting poll deliberately does NOT go through this: a meeting in progress
+ * must keep syncing whatever the owner pauses.
+ */
+async function withScheduledLock(key, ttlSeconds, fn) {
+    const flags = await getDevFlags();
+    if (!flags["scheduler.enabled"])
+        return;
+    await withLock(key, ttlSeconds, fn);
 }
 /** Every 5 minutes: queue syncs for integrations whose frequency elapsed. */
 async function scheduleDueSyncs() {
@@ -54,6 +65,15 @@ async function scheduleTokenRefresh() {
 }
 /** Daily jobs: retention enforcement, process intelligence, weekly digests on Mondays, monthly on the 1st, scorecards on the 1st. */
 async function scheduleDaily() {
+    // Without a provider key (or with AI switched off) every AI job would fail
+    // three times and park itself — 32 such rows accumulated in the two days
+    // before this guard existed. Digests are AI too; nothing daily survives
+    // without AI, so the whole tick is skipped and says so once.
+    const flags = await getDevFlags();
+    if (!isAiConfigured() || !flags["ai.enabled"]) {
+        console.log("[scheduler] daily AI jobs skipped — AI is not configured or is switched off.");
+        return;
+    }
     const allTenants = await db.select().from(tenants).where(eq(tenants.status, "active"));
     const now = new Date();
     const isMonday = now.getUTCDay() === 1;
@@ -112,9 +132,9 @@ export function startScheduler() {
     const maya = isMayaConfigured()
         ? setInterval(() => withLock("maya_poll", 15, async () => { await pollMayaMeetings(); }).catch(console.error), 20_000)
         : null;
-    const fiveMin = setInterval(() => withLock("due_syncs", 240, scheduleDueSyncs).catch(console.error), 5 * 60_000);
-    const hourly = setInterval(() => withLock("token_refresh", 3500, scheduleTokenRefresh).catch(console.error), 60 * 60_000);
-    const daily = setInterval(() => withLock(`daily:${new Date().toISOString().slice(0, 10)}`, 86_400, scheduleDaily).catch(console.error), 15 * 60_000);
+    const fiveMin = setInterval(() => withScheduledLock("due_syncs", 240, scheduleDueSyncs).catch(console.error), 5 * 60_000);
+    const hourly = setInterval(() => withScheduledLock("token_refresh", 3500, scheduleTokenRefresh).catch(console.error), 60 * 60_000);
+    const daily = setInterval(() => withScheduledLock(`daily:${new Date().toISOString().slice(0, 10)}`, 86_400, scheduleDaily).catch(console.error), 15 * 60_000);
     return () => {
         if (maya)
             clearInterval(maya);

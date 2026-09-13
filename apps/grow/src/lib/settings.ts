@@ -124,3 +124,40 @@ export function removedInUse(
 }
 
 export { DEFAULT_TASK_STATUSES, DEFAULT_TASK_PRIORITIES };
+
+
+// ── Developer console: raw access to every setting ───────────────────────
+// The console is the owner's escape hatch: it lists every SystemSetting row
+// and lets the owner edit the JSON directly. Keys here are plain strings on
+// purpose (the typed SettingKey union covers only what has an editor). Every
+// typed getter above falls back to defaults on a malformed value, so a bad
+// edit degrades a page rather than breaking it.
+
+export interface RawSetting {
+  key: string;
+  value: string;
+  updatedBy: string | null;
+  updatedAt: Date;
+}
+
+export async function listAllSettings(): Promise<RawSetting[]> {
+  try {
+    return await prisma.systemSetting.findMany({ orderBy: { key: "asc" } });
+  } catch (e) {
+    console.error("[settings] could not list settings:", e);
+    return [];
+  }
+}
+
+/** Upsert any key with a JSON payload; the caller has validated the JSON. */
+export async function writeAnySetting(key: string, jsonText: string, actorId: string): Promise<void> {
+  await prisma.systemSetting.upsert({
+    where: { key },
+    create: { key, value: jsonText, updatedBy: actorId },
+    update: { value: jsonText, updatedBy: actorId },
+  });
+}
+
+export async function deleteAnySetting(key: string): Promise<void> {
+  await prisma.systemSetting.delete({ where: { key } }).catch(() => {});
+}

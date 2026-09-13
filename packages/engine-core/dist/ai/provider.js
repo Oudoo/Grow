@@ -3,6 +3,31 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import OpenAI from "openai";
 import { db, costTracking, usageRecords } from "@growengine/db";
 import { env } from "../env.js";
+import { getDevFlags } from "../dev-flags.js";
+/**
+ * Thrown when the Developer console has AI switched off. Callers that run
+ * jobs treat it as "skip, do not retry" (see the AI worker), not as a failure.
+ */
+export class AiDisabledError extends Error {
+    code = "AI_DISABLED";
+    constructor() {
+        super("AI features are switched off in the Developer console (ai.enabled = false)");
+    }
+}
+/** Whether any provider key exists at all — the scheduler asks before queuing AI work. */
+export function isAiConfigured() {
+    return Boolean(env.anthropicApiKey || env.openaiApiKey);
+}
+/** The Claude model to use right now: the console's override, else the env default. */
+export async function resolveClaudeModel() {
+    const flags = await getDevFlags();
+    return flags["ai.model"] || env.anthropicModel;
+}
+async function assertAiEnabled() {
+    const flags = await getDevFlags();
+    if (!flags["ai.enabled"])
+        throw new AiDisabledError();
+}
 /** USD per 1M tokens — keep current with provider pricing pages. */
 const PRICING = {
     "claude-opus-5": { input: 5, output: 25 },
@@ -68,7 +93,7 @@ export async function recordAiCost(ctx, provider, model, inputTokens, outputToke
  *    answer; the caller gets an error naming the reason instead.
  */
 async function completeWithAnthropic(prompt, opts, ctx) {
-    const model = env.anthropicModel;
+    const model = await resolveClaudeModel();
     const res = await anthropic().messages.create({
         model,
         max_tokens: opts.maxTokens ?? 16000,
@@ -90,11 +115,12 @@ const JSON_ONLY = "Respond with a single JSON value and nothing else: no prose b
  * (then a schema parse) only when Anthropic is not configured.
  */
 export async function aiCompleteStructured(schema, prompt, ctx, opts = {}) {
+    await assertAiEnabled();
     if (!env.anthropicApiKey) {
         const loose = await aiCompleteJson(prompt, ctx, opts);
         return schema.parse(loose);
     }
-    const model = env.anthropicModel;
+    const model = await resolveClaudeModel();
     const res = await anthropic().messages.parse({
         model,
         max_tokens: opts.maxTokens ?? 16000,
@@ -131,6 +157,7 @@ async function completeWithOpenAi(prompt, opts, ctx) {
  * secondary if the primary is unconfigured or errors.
  */
 export async function aiComplete(prompt, ctx, opts = {}) {
+    await assertAiEnabled();
     const order = env.aiPrimaryProvider === "openai"
         ? ["openai", "anthropic"]
         : ["anthropic", "openai"];

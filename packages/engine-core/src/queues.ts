@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import { db, queueJobs } from "@growengine/db";
+import { getDevFlags } from "./dev-flags.js";
 
 /**
  * MySQL-backed job queue. Replaces Redis/BullMQ: every job is a durable row
@@ -348,6 +349,13 @@ export function createPollWorker<T = Record<string, unknown>>(
     let consecutiveErrors = 0;
     let lastErrorReportAt = 0;
     while (!stopped) {
+      // Developer console: "Pause background workers" leaves the loop alive
+      // but claiming nothing, so queued work simply waits for the flip back.
+      const flags = await getDevFlags();
+      if (flags["workers.paused"]) {
+        await sleepOrWake(queueName, 5_000);
+        continue;
+      }
       let job: QueueJob | null = null;
       try {
         job = await claimNextJob([queueName], workerId);
@@ -375,12 +383,15 @@ export function createPollWorker<T = Record<string, unknown>>(
       }
       idleWait = pollInterval;
       const startedAt = job.processedOn ?? Date.now();
+      if (flags["debug.logging"]) console.log(`[worker:${queueName}] claimed ${job.name} (${job.id}, attempt ${job.attemptsMade})`);
       try {
         await processor(job as QueueJob<T>);
         await completeJob(job.id, startedAt);
+        if (flags["debug.logging"]) console.log(`[worker:${queueName}] completed ${job.name} (${job.id}) in ${Date.now() - startedAt} ms`);
         emit("completed", job);
       } catch (err) {
         await failJob(job, startedAt, err).catch(() => {});
+        if (flags["debug.logging"]) console.log(`[worker:${queueName}] failed ${job.name} (${job.id}): ${describeDbError(err)}`);
         emit("failed", job, err);
       }
     }

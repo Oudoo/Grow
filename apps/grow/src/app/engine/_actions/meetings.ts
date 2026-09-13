@@ -14,6 +14,7 @@ import {
   sendMayaToMeeting,
   stopMayaBot,
   syncMayaMeetingById,
+  getDevFlags,
 } from "@growengine/core";
 import { requirePermission } from "@/lib/engine/session";
 import { createAiJob } from "@/lib/engine/jobs";
@@ -236,6 +237,9 @@ export async function inviteMaya(meetingId: string, formData: FormData) {
   const user = await requirePermission("meetings:manage");
   if (!isMayaConfigured()) {
     return { error: "Maya is not configured yet — VEXA_API_KEY is missing from .grow.env (see DEPLOYMENT.md, \"Maya\")." };
+  }
+  if (!(await getDevFlags())["maya.enabled"]) {
+    return { error: "Maya is switched off in the Developer console." };
   }
   const [meeting] = await db
     .select()

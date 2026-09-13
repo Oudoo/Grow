@@ -134,6 +134,11 @@ export async function fetchVexaTranscript(platform: MeetingPlatform, nativeMeeti
   return vexaRequest(`/transcripts/${platform}/${encodeURIComponent(nativeMeetingId)}`);
 }
 
+/** GET /bots/status — proves the key works and lists Maya's running bots. */
+export async function vexaStatus(): Promise<Record<string, unknown>> {
+  return vexaRequest("/bots/status");
+}
+
 /** DELETE /bots/{platform}/{id} — Maya leaves; Vexa finalises the transcript. */
 export async function stopMayaBot(platform: MeetingPlatform, nativeMeetingId: string): Promise<Record<string, unknown>> {
   return vexaRequest(`/bots/${platform}/${encodeURIComponent(nativeMeetingId)}`, { method: "DELETE" });

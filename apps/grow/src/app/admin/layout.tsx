@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
-import type { AccessMap, UserRole } from "@/lib/access";
+import { isDeveloper, type AccessMap, type UserRole } from "@/lib/access";
 import { unreadCount } from "@/lib/notify";
+import { getDevFlags } from "@growengine/core";
 import AdminShell from "./AdminShell";
 
 /**
@@ -16,9 +17,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Rendered as a badge on the sidebar bell. unreadCount() returns 0 rather
   // than throwing on a database error, so the shell always renders.
   const unread = session ? await unreadCount(session.uid) : 0;
+  // Owner-only Developer console link, and the banner it can set for everyone.
+  // getDevFlags never throws (defaults on any error), so the shell always renders.
+  const developer = isDeveloper(session);
+  const banner = session ? (await getDevFlags())["maintenance.banner"] : "";
 
   return (
-    <AdminShell role={role} access={access} unread={unread}>
+    <AdminShell role={role} access={access} unread={unread} developer={developer} banner={banner}>
       {children}
     </AdminShell>
   );

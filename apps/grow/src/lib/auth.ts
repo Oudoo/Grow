@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 import type { AccessLevel, AccessMap, ModuleKey, UserRole } from './access';
-import { can } from './access';
+import { can, isDeveloper } from './access';
 
 /**
  * Edge-safe session + crypto layer for the unified Grow IAM.
@@ -214,6 +214,13 @@ export async function isAuthenticatedMiddleware(request: NextRequest): Promise<b
 export async function assertAuthenticated(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
+  return session;
+}
+
+/** Throws unless the current user is the owner (see isDeveloper in lib/access). */
+export async function assertDeveloper(): Promise<SessionPayload> {
+  const session = await assertAuthenticated();
+  if (!isDeveloper(session)) throw new Error('Forbidden');
   return session;
 }
 

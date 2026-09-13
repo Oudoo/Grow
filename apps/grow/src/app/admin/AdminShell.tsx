@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X, SlidersHorizontal, MessagesSquare } from "lucide-react";
+import { Inbox, Package, LogOut, Moon, Sun, Briefcase, CreditCard, LifeBuoy, BarChart2, Shield, Paintbrush, Gauge, Users, Palette, BookOpen, Building2, Bell, UserRound, Menu, X, SlidersHorizontal, MessagesSquare, TerminalSquare } from "lucide-react";
 import { logoutAction } from "./actions";
 import { ChatDock } from "./chat/ChatDock";
 import { useTheme } from "next-themes";
@@ -46,12 +46,18 @@ export default function AdminShell({
   role,
   access,
   unread = 0,
+  developer = false,
+  banner = "",
 }: {
   children: React.ReactNode;
   role: UserRole;
   access: AccessMap;
   /** Unread notification count, for the sidebar bell badge. */
   unread?: number;
+  /** Owner only: shows the Developer console link (the route is gated too). */
+  developer?: boolean;
+  /** Text the Developer console asked to show everyone; empty = none. */
+  banner?: string;
 }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -161,6 +167,19 @@ export default function AdminShell({
         </nav>
 
         <div className="p-4 border-t border-fg/5 space-y-2">
+          {developer && (
+            <Link
+              href="/admin/developer"
+              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors ${
+                pathname.startsWith("/admin/developer")
+                  ? "bg-cyan/10 text-cyan font-bold"
+                  : "text-slate hover:bg-fg/5 hover:text-platinum"
+              }`}
+            >
+              <TerminalSquare className="w-5 h-5" />
+              <span>Developer</span>
+            </Link>
+          )}
           {/* Notifications — every account has an inbox, so this is not gated
               on a module: a mention can reach anyone with a Grow account. */}
           <Link
@@ -230,6 +249,11 @@ export default function AdminShell({
           </Link>
         </header>
 
+        {banner && (
+          <div className="shrink-0 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-center text-sm font-medium text-platinum">
+            {banner}
+          </div>
+        )}
         <main className="flex-1 overflow-y-auto bg-void">
           {children}
         </main>

@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "./db";
 import { listDirectory } from "./directory";
 import { appUrl, isMailConfigured, sendMail } from "./mail";
+import { getDevFlags } from "@growengine/core";
 
 /**
  * Notifications: in-app rows first, email second.
@@ -170,6 +171,8 @@ function renderText(n: { title: string; body: string | null; url: string | null 
 const MAX_EMAIL_ATTEMPTS = 3;
 
 export interface DispatchResult {
+  /** True when the Developer console has outbound email switched off. */
+  paused?: boolean;
   sent: number;
   failed: number;
   skipped: number;
@@ -188,6 +191,9 @@ export async function dispatchPendingEmails(limit = 25): Promise<DispatchResult>
   // Nothing to do without SMTP — leave the rows queued so they go out
   // as soon as credentials are configured, rather than burning attempts.
   if (!result.configured) return result;
+  // Same treatment when the Developer console has outbound email paused:
+  // rows wait, attempts are not spent, nothing is lost.
+  if (!(await getDevFlags())["mail.enabled"]) return { ...result, paused: true };
 
   let pending;
   try {

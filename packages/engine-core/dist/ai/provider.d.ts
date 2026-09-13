@@ -1,6 +1,18 @@
 import type { z } from "zod/v4";
 import OpenAI from "openai";
 /**
+ * Thrown when the Developer console has AI switched off. Callers that run
+ * jobs treat it as "skip, do not retry" (see the AI worker), not as a failure.
+ */
+export declare class AiDisabledError extends Error {
+    readonly code = "AI_DISABLED";
+    constructor();
+}
+/** Whether any provider key exists at all — the scheduler asks before queuing AI work. */
+export declare function isAiConfigured(): boolean;
+/** The Claude model to use right now: the console's override, else the env default. */
+export declare function resolveClaudeModel(): Promise<string>;
+/**
  * AI provider abstraction. Primary provider is env-configured
  * (AI_PRIMARY_PROVIDER); the other acts as automatic failover. Every call
  * records token usage + USD cost into cost_tracking and usage_records so

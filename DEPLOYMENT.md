@@ -407,6 +407,13 @@ that a person approves into the project board. The bot itself is
 [Vexa](https://github.com/vexa-ai/vexa) (Apache-2.0); the hosted service and a
 self-hosted one speak the same API, so the app only needs a URL and a key.
 
+### 0. Who can see the Developer console
+
+`/admin/developer` shows for SUPER_ADMIN accounts whose email is on
+`DEVELOPER_EMAILS` in `.grow.env` (comma-separated). Unset, it is the owner's
+login only. Its switches (AI on/off, model, Maya, email, workers, scheduler,
+banner) act within 15 seconds with no restart.
+
 ### 1. Keys — three lines in `.grow.env`, then restart
 
 ```

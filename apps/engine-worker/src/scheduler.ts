@@ -9,6 +9,8 @@ import {
   redis,
   isMayaConfigured,
   pollMayaMeetings,
+  getDevFlags,
+  isAiConfigured,
 } from "@growengine/core";
 
 /**
@@ -21,6 +23,17 @@ async function withLock(key: string, ttlSeconds: number, fn: () => Promise<void>
   const acquired = await redis.set(`scheduler:lock:${key}`, "1", "EX", ttlSeconds, "NX");
   if (!acquired) return;
   await fn();
+}
+
+/**
+ * Same, but honouring the Developer console's "Scheduled jobs" switch. Maya's
+ * meeting poll deliberately does NOT go through this: a meeting in progress
+ * must keep syncing whatever the owner pauses.
+ */
+async function withScheduledLock(key: string, ttlSeconds: number, fn: () => Promise<void>) {
+  const flags = await getDevFlags();
+  if (!flags["scheduler.enabled"]) return;
+  await withLock(key, ttlSeconds, fn);
 }
 
 /** Every 5 minutes: queue syncs for integrations whose frequency elapsed. */
@@ -79,6 +92,15 @@ async function scheduleTokenRefresh() {
 
 /** Daily jobs: retention enforcement, process intelligence, weekly digests on Mondays, monthly on the 1st, scorecards on the 1st. */
 async function scheduleDaily() {
+  // Without a provider key (or with AI switched off) every AI job would fail
+  // three times and park itself — 32 such rows accumulated in the two days
+  // before this guard existed. Digests are AI too; nothing daily survives
+  // without AI, so the whole tick is skipped and says so once.
+  const flags = await getDevFlags();
+  if (!isAiConfigured() || !flags["ai.enabled"]) {
+    console.log("[scheduler] daily AI jobs skipped — AI is not configured or is switched off.");
+    return;
+  }
   const allTenants = await db.select().from(tenants).where(eq(tenants.status, "active"));
   const now = new Date();
   const isMonday = now.getUTCDay() === 1;
@@ -142,15 +164,15 @@ export function startScheduler() {
     ? setInterval(() => withLock("maya_poll", 15, async () => { await pollMayaMeetings(); }).catch(console.error), 20_000)
     : null;
   const fiveMin = setInterval(
-    () => withLock("due_syncs", 240, scheduleDueSyncs).catch(console.error),
+    () => withScheduledLock("due_syncs", 240, scheduleDueSyncs).catch(console.error),
     5 * 60_000
   );
   const hourly = setInterval(
-    () => withLock("token_refresh", 3500, scheduleTokenRefresh).catch(console.error),
+    () => withScheduledLock("token_refresh", 3500, scheduleTokenRefresh).catch(console.error),
     60 * 60_000
   );
   const daily = setInterval(
-    () => withLock(`daily:${new Date().toISOString().slice(0, 10)}`, 86_400, scheduleDaily).catch(console.error),
+    () => withScheduledLock(`daily:${new Date().toISOString().slice(0, 10)}`, 86_400, scheduleDaily).catch(console.error),
     15 * 60_000
   );
   return () => {

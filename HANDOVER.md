@@ -562,6 +562,29 @@ Two such things existed when Basem was renamed, and both had to move with him:
 
 ---
 
+### 9.x The Developer console (owner only)
+
+`/admin/developer` is not a module and cannot be granted: `isDeveloper()` in
+`src/lib/access.ts` requires SUPER_ADMIN **and** an email on `DEVELOPER_EMAILS`
+(`.grow.env`, comma-separated; unset = the owner's login). Gated three times —
+middleware, the page (`notFound()`), every action (`assertDeveloper()`) — and the
+sidebar link appears only for that account.
+
+What it holds: runtime facts (build, uptime, env presence, DB latency, engine
+migrations), the **switches** (one JSON row `developer.flags` in SystemSetting,
+read everywhere through `getDevFlags()` in engine-core with a 15 s cache:
+`ai.enabled`, `ai.model`, `maya.enabled`, `mail.enabled`, `workers.paused`,
+`scheduler.enabled`, `maintenance.banner`, `debug.logging`), **probes** (real
+calls to Claude, Vexa, SMTP, the notification outbox), **operations** (run the
+dispatcher, re-queue failed AI jobs, purge finished queue rows, run either
+migration script and show its output, reload caches), queue/worker health,
+the last AI jobs and domain events, and a **raw editor for every SystemSetting
+row** (JSON in, JSON out; a bad value makes the owning page fall back to its
+defaults). Flags obeyed by code: AI calls throw `AiDisabledError` (jobs are
+marked *skipped*, not failed), poll loops idle while paused, the scheduler
+skips its ticks, `dispatchPendingEmails()` returns `paused`, `inviteMaya`
+refuses, the shell shows the banner.
+
 ## 10. Feature inventory, with file pointers
 
 **Admin OS** (`src/app/admin/`): `/admin` CRM · `analytics` · `finance` ·
