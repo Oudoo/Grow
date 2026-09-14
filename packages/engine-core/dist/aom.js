@@ -1,7 +1,6 @@
 import { and, desc, eq, sql as dsql } from "drizzle-orm";
 import { db, aomEmbeddings, aomLinks, recommendations, decisions, } from "@growengine/db";
-import { chunkText, embedTexts } from "./ai/embeddings.js";
-import { env } from "./env.js";
+import { activeEmbeddingModel, chunkText, embedTexts } from "./ai/embeddings.js";
 export async function indexEntity(input, ctx) {
     const chunks = chunkText(input.text);
     if (chunks.length === 0)
@@ -19,7 +18,7 @@ export async function indexEntity(input, ctx) {
         chunkIndex: i,
         chunkText: chunk,
         embedding: vectors[i],
-        embeddingModel: env.embeddingModel,
+        embeddingModel: activeEmbeddingModel().model,
     })));
     return chunks.length;
 }

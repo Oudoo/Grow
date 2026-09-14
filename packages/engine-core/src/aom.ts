@@ -6,7 +6,7 @@ import {
   recommendations,
   decisions,
 } from "@growengine/db";
-import { chunkText, embedTexts } from "./ai/embeddings.js";
+import { activeEmbeddingModel, chunkText, embedTexts } from "./ai/embeddings.js";
 import { env } from "./env.js";
 import type { AiCallContext } from "./ai/provider.js";
 
@@ -51,7 +51,7 @@ export async function indexEntity(input: IndexEntityInput, ctx: AiCallContext) {
       chunkIndex: i,
       chunkText: chunk,
       embedding: vectors[i],
-      embeddingModel: env.embeddingModel,
+      embeddingModel: activeEmbeddingModel().model,
     }))
   );
   return chunks.length;

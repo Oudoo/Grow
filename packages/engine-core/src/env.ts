@@ -33,11 +33,17 @@ export const env = {
     "0000000000000000000000000000000000000000000000000000000000000000"
   ),
 
-  // AI providers
+  // AI providers — any one key is enough; see ai/select.ts for the routing rule.
   anthropicApiKey: optional("ANTHROPIC_API_KEY"),
   openaiApiKey: optional("OPENAI_API_KEY"),
-  /** anthropic | openai */
+  /** Gemini API key from AI Studio (paid tier — the Developer Program credit funds it). */
+  geminiApiKey: optional("GEMINI_API_KEY") || optional("GOOGLE_API_KEY"),
+  /** anthropic | gemini | openai */
   aiPrimaryProvider: optional("AI_PRIMARY_PROVIDER", "anthropic"),
+  /** gemini-2.5-pro by default; gemini-3.8-flash / gemini-2.5-flash are the cheaper choices. */
+  geminiModel: optional("GEMINI_MODEL", "gemini-2.5-pro"),
+  /** 1536-dimensional, to match the vectors the AOM already stores. */
+  geminiEmbeddingModel: optional("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001"),
   /** claude-opus-5 by default; ANTHROPIC_MODEL=claude-sonnet-5 is the cheaper choice. */
   anthropicModel: optional("ANTHROPIC_MODEL", "claude-opus-5"),
   openaiModel: optional("OPENAI_MODEL", "gpt-4o"),

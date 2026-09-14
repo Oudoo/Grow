@@ -9,8 +9,14 @@ export declare const env: {
     readonly credentialEncryptionKey: string;
     readonly anthropicApiKey: string;
     readonly openaiApiKey: string;
-    /** anthropic | openai */
+    /** Gemini API key from AI Studio (paid tier — the Developer Program credit funds it). */
+    readonly geminiApiKey: string;
+    /** anthropic | gemini | openai */
     readonly aiPrimaryProvider: string;
+    /** gemini-2.5-pro by default; gemini-3.8-flash / gemini-2.5-flash are the cheaper choices. */
+    readonly geminiModel: string;
+    /** 1536-dimensional, to match the vectors the AOM already stores. */
+    readonly geminiEmbeddingModel: string;
     /** claude-opus-5 by default; ANTHROPIC_MODEL=claude-sonnet-5 is the cheaper choice. */
     readonly anthropicModel: string;
     readonly openaiModel: string;

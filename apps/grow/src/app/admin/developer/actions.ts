@@ -13,9 +13,10 @@ import {
   getDevFlags,
   invalidateDevFlags,
   isMayaConfigured,
-  resolveClaudeModel,
+  resolveAi,
   vexaStatus,
   type AiJobData,
+  type AiProvider,
 } from "@growengine/core";
 import { assertDeveloper } from "@/lib/auth";
 import { requireTeamUser } from "@/lib/engine/session";
@@ -68,21 +69,28 @@ export async function saveFlagsAction(formData: FormData): Promise<DevResult> {
 
 // ── Probes ────────────────────────────────────────────────────────────────
 
-export async function testClaudeAction(): Promise<DevResult> {
+/**
+ * One tiny real call. With no `provider` it uses whatever the routing rule
+ * picks right now (console override → AI_PRIMARY_PROVIDER → first key); with
+ * one it tests exactly that provider and refuses to answer from another.
+ */
+export async function testAiAction(formData: FormData): Promise<DevResult> {
   try {
     await assertDeveloper();
     const user = await requireTeamUser();
-    const model = await resolveClaudeModel();
+    const raw = String(formData.get("provider") ?? "");
+    const provider = (["anthropic", "gemini", "openai"].includes(raw) ? raw : undefined) as AiProvider | undefined;
+    const choice = await resolveAi(provider);
     const started = Date.now();
     const text = await aiComplete(
       "Reply with the single word OK.",
       { tenantId: user.tenantId, feature: "developer_test" },
-      { maxTokens: 20 }
+      { maxTokens: 64, provider }
     );
     return {
       ok: true,
-      message: `Claude answered in ${Date.now() - started} ms.`,
-      output: pretty({ model, reply: text.trim(), note: "Cost recorded in cost_tracking under feature developer_test." }),
+      message: `${choice.provider} / ${choice.model} answered in ${Date.now() - started} ms.`,
+      output: pretty({ ...choice, reply: text.trim(), note: "Cost recorded in cost_tracking under feature developer_test." }),
     };
   } catch (err) {
     return failed(err);

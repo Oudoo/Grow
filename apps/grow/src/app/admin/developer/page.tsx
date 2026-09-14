@@ -19,7 +19,7 @@ import {
   runMigrationAction,
   saveFlagsAction,
   saveRawSettingAction,
-  testClaudeAction,
+  testAiAction,
   testMailAction,
   testNotificationAction,
   testVexaAction,
@@ -107,6 +107,7 @@ export default async function DeveloperPage() {
     SMTP: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
     CRON_SECRET: Boolean(process.env.CRON_SECRET),
     ANTHROPIC_API_KEY: Boolean(process.env.ANTHROPIC_API_KEY),
+    GEMINI_API_KEY: Boolean(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
     OPENAI_API_KEY: Boolean(process.env.OPENAI_API_KEY),
     VEXA_API_KEY: isMayaConfigured(),
     VEXA_WEBHOOK_SECRET: Boolean(process.env.VEXA_WEBHOOK_SECRET),
@@ -195,7 +196,13 @@ export default async function DeveloperPage() {
           <h2 className={h2}>Probes</h2>
           <p className="mb-3 text-xs text-slate">Each one makes a real call and shows the raw answer.</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <DevForm action={testClaudeAction} submitLabel="Test Claude key" />
+            <DevForm action={testAiAction} submitLabel="Test AI (active provider)" />
+            <DevForm action={testAiAction} submitLabel="Test Gemini key">
+              <input type="hidden" name="provider" value="gemini" />
+            </DevForm>
+            <DevForm action={testAiAction} submitLabel="Test Claude key">
+              <input type="hidden" name="provider" value="anthropic" />
+            </DevForm>
             <DevForm action={testVexaAction} submitLabel="Test Vexa (Maya) key" />
             <DevForm action={testMailAction} submitLabel="Send me a test email" />
             <DevForm action={testNotificationAction} submitLabel="Send me a test notification" />

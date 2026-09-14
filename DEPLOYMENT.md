@@ -414,20 +414,46 @@ self-hosted one speak the same API, so the app only needs a URL and a key.
 login only. Its switches (AI on/off, model, Maya, email, workers, scheduler,
 banner) act within 15 seconds with no restart.
 
-### 1. Keys — three lines in `.grow.env`, then restart
+### 1. Keys — a few lines in `.grow.env`, then restart
+
+The AI provider is Gemini by decision of 2026-09-14 (funded by the Google
+Developer Program cloud credit that comes with Google AI Pro); Claude stays
+wired as the alternative. Any one key is enough — the routing rule is
+Developer-console override → `AI_PRIMARY_PROVIDER` → first key present.
 
 ```
-ANTHROPIC_API_KEY=sk-ant-…            # Console key (platform.claude.com), pay-as-you-go
+GEMINI_API_KEY=AIza…                  # see "Getting the Gemini key" below — PAID tier
+AI_PRIMARY_PROVIDER=gemini
+GEMINI_MODEL=gemini-2.5-pro           # or gemini-3.8-flash / gemini-2.5-flash (cheaper)
 VEXA_API_KEY=…                        # vexa.ai → sign in → API key ($5 free bot credit, ~16 h)
 VEXA_WEBHOOK_SECRET=<openssl rand -hex 24>
 ```
 
-Optional: `ANTHROPIC_MODEL=claude-sonnet-5` (about 60% cheaper than the default
-`claude-opus-5`), `MAYA_BOT_NAME` (default Maya), `MAYA_LANGUAGE=ar` or `en`
-(default: auto-detected per window), `VEXA_API_URL` for a self-hosted Vexa.
+Optional: `ANTHROPIC_API_KEY` + `ANTHROPIC_MODEL` (Claude as fallback or via
+the console's model switch), `MAYA_BOT_NAME` (default Maya), `MAYA_LANGUAGE=ar`
+or `en` (default: auto-detected per window), `VEXA_API_URL` for a self-hosted
+Vexa, `GEMINI_EMBEDDING_MODEL` (default `gemini-embedding-001`, 1536 dims).
 
-`/api/health` reports `anthropicKey` and `maya` presence flags once the process
-has restarted; the meeting page says "Maya is not configured" until then.
+`/api/health` reports `geminiKey`, `anthropicKey` and `maya` presence flags once
+the process has restarted; the Developer console's "Test Gemini key" makes one
+real call and shows the answer.
+
+**Getting the Gemini key — the paid tier, not the free one.** Google's terms
+say content sent to *unpaid* Gemini API quota is used to improve its products
+and may be read by human reviewers; client meeting transcripts must not go
+there. Paid tier content is not used. Steps:
+
+1. In your Google AI Pro account, activate the **Google Developer Program
+   Premium** benefit (developers.google.com/program). It carries a monthly
+   Google Cloud credit ($10 with AI Pro on the Program page; the AI Pro plan
+   page says $40 — check which your account shows).
+2. Create a Google Cloud project, attach the billing account the credit lands
+   on, and enable the Gemini API for it.
+3. In AI Studio (aistudio.google.com) create an API key **on that project** —
+   the key is then paid-tier and the credit pays for it.
+
+A one-hour meeting costs about $0.09 on gemini-2.5-pro and $0.02 on
+gemini-2.5-flash, so the credit covers far more than the demo phase.
 
 ### 2. Register the webhook — once per Vexa account
 
@@ -458,11 +484,16 @@ mis-signed, or older than five minutes.
 Drafts land in the knowledge base (Engine → AOM) tagged `maya`/`draft` and are
 never sent anywhere by themselves.
 
-### Cost (Opus 5 rates, one hour-long call)
+### Cost (one hour-long call ≈ 25k input / 6k output tokens)
 
-Transcript analysis + minutes ≈ 25k input / 6k output tokens ≈ $0.28; each
-drafted document ≈ $0.10; Vexa bot time $0.30/h on the hosted plan. Sonnet 5
-cuts the Claude part by about 60%.
+| Model | Analysis + minutes | Each drafted document |
+| --- | --- | --- |
+| gemini-2.5-flash | $0.02 | $0.01 |
+| gemini-2.5-pro | $0.09 | $0.03 |
+| claude-sonnet-5 | $0.11 | $0.04 |
+| claude-opus-5 | $0.28 | $0.10 |
+
+Plus Vexa bot time, $0.30/h on the hosted plan.
 
 ### Self-hosting Vexa instead
 

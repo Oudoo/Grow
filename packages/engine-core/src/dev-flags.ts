@@ -30,9 +30,18 @@ export const DEV_FLAG_DEFS = {
   "ai.model": {
     kind: "select",
     default: "",
-    options: ["", "claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5"],
-    label: "Claude model override",
-    help: "Empty = ANTHROPIC_MODEL from .grow.env (claude-opus-5 unless set). Sonnet 5 costs about 60% less.",
+    options: [
+      "",
+      "gemini-2.5-pro",
+      "gemini-3.1-pro-preview",
+      "gemini-3.8-flash",
+      "gemini-2.5-flash",
+      "claude-opus-5",
+      "claude-sonnet-5",
+      "claude-haiku-4-5",
+    ],
+    label: "AI model override",
+    help: "The provider follows the model (gemini-* → Gemini, claude-* → Claude) and needs its key. Empty = AI_PRIMARY_PROVIDER and that provider's default model from .grow.env.",
   },
   "maya.enabled": {
     kind: "boolean",
