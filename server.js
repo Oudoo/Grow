@@ -284,9 +284,17 @@ selectDatabaseHost()
   });
 
 // ── 3. Database bootstrap — background, time-boxed, never fatal ───────────
-function step(label, cmd, args, timeoutMs = 120_000) {
+// Retry a spawn that the host refused. On this shared host `spawn … EAGAIN`
+// means the account's process limit was hit for a moment — seen on
+// 2026-09-12 19:04 and 2026-09-13 23:37, both times while another copy of
+// the app was booting alongside. Every step then "could not run" and a
+// pending migration would have waited for the next boot. Five tries, a few
+// seconds apart, is enough for the other copy's children to finish.
+const SPAWN_RETRY_CODES = new Set(["EAGAIN", "EMFILE", "ENOMEM"]);
+
+function step(label, cmd, args, timeoutMs = 120_000, attempt = 1) {
   return new Promise((resolve) => {
-    console.log(`[bootstrap] ${label}…`);
+    if (attempt === 1) console.log(`[bootstrap] ${label}…`);
     let child;
     try {
       child = spawn(cmd, args, { cwd: APP_DIR, stdio: "inherit", timeout: timeoutMs, killSignal: "SIGKILL" });
@@ -303,6 +311,12 @@ function step(label, cmd, args, timeoutMs = 120_000) {
     // applied. A bootstrap step's result is exactly the thing you need to read
     // after a deploy; it belongs in the log you can actually open.
     child.on("error", (err) => {
+      if (SPAWN_RETRY_CODES.has(err.code) && attempt < 5) {
+        const delay = attempt * 3_000;
+        console.log(`[bootstrap] ${label} could not run (${err.code}) — retrying in ${delay / 1000}s (attempt ${attempt + 1}/5).`);
+        setTimeout(() => step(label, cmd, args, timeoutMs, attempt + 1).then(resolve), delay);
+        return;
+      }
       console.log(`[bootstrap] ${label} could not run: ${err.message}`);
       resolve(false);
     });
@@ -323,10 +337,51 @@ function resolveBin(name) {
   return null;
 }
 
+// Passenger runs more than one copy of this app, and each copy reaches this
+// point a few seconds apart. Only one needs to run the (idempotent) steps —
+// the others running them too is what pushed the host past its process limit.
+// The lock is a row in scheduler_locks, the same table the scheduler uses;
+// created here if migration 0004 has not run yet (the migrator then finds it
+// "already in place", which it treats as done).
+async function claimBootstrapLock() {
+  let mysql;
+  try {
+    mysql = require(require.resolve("mysql2/promise", { paths: [APP_DIR, __dirname] }));
+  } catch {
+    return true; // cannot check — better to bootstrap than to skip
+  }
+  let conn;
+  try {
+    conn = await mysql.createConnection({ uri: process.env.DATABASE_URL, connectTimeout: 4000 });
+    await conn.query(
+      "CREATE TABLE IF NOT EXISTS `scheduler_locks` (" +
+        "`lock_key` varchar(191) NOT NULL, `owner` varchar(191) NOT NULL, " +
+        "`expires_at` timestamp NOT NULL, `created_at` timestamp NOT NULL DEFAULT (now()), " +
+        "CONSTRAINT `scheduler_locks_lock_key` PRIMARY KEY(`lock_key`))"
+    );
+    await conn.query("DELETE FROM `scheduler_locks` WHERE `expires_at` < NOW()");
+    await conn.query("INSERT INTO `scheduler_locks` (`lock_key`, `owner`, `expires_at`) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))", [
+      "bootstrap",
+      `${require("node:os").hostname()}:${process.pid}`,
+    ]);
+    return true;
+  } catch (err) {
+    if (err && err.errno === 1062) return false; // another copy holds it
+    console.log(`[bootstrap] lock check failed (${err.code || err.message}) — bootstrapping anyway.`);
+    return true;
+  } finally {
+    if (conn) { try { await conn.end(); } catch {} }
+  }
+}
+
 async function bootstrapDatabase() {
   if (!process.env.DATABASE_URL) {
     console.warn("[bootstrap] DATABASE_URL is not set — skipping. Front end unaffected;");
     console.warn("[bootstrap] admin/engine/producer modules need it. Add it to .grow.env.");
+    return;
+  }
+  if (!(await claimBootstrapLock())) {
+    console.log(`[bootstrap] another copy of the app is bootstrapping (pid ${process.pid} skips).`);
     return;
   }
   try {

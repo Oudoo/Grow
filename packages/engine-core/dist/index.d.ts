@@ -15,6 +15,7 @@ export * from "./crawler.js";
 export * from "./health.js";
 export * from "./jobs.js";
 export * from "./dev-flags.js";
+export * from "./locks.js";
 export * from "./meetings/vexa.js";
 export * from "./meetings/maya-sync.js";
 export * from "./meetings/maya-ai.js";

@@ -38,6 +38,10 @@ export function GET() {
       status: "ok",
       service: "grow-hub",
       time: new Date().toISOString(),
+      // Passenger runs several copies of the app; a few calls in a row show
+      // how many by their pids. Harmless to expose, useful when a log line
+      // seems to come from "the wrong" process.
+      pid: process.pid,
       // Presence-only configuration flags — never the values. Reading process.env
       // keeps this probe dependency-free. These exist because a missing
       // AUTH_SECRET makes every login fail (auth.ts refuses an insecure

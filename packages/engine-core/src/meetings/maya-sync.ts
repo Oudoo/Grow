@@ -87,17 +87,27 @@ export async function syncMayaMeeting(meeting: MeetingRow): Promise<void> {
 
   const ended = status === "completed" || status === "failed";
   if (ended && !meeting.botEndedAt) {
-    patch.botEndedAt = new Date();
+    // The hand-off must happen exactly once, and several app copies poll the
+    // same meeting (plus the webhook). So the transition is a conditional
+    // UPDATE — `where bot_ended_at is null` — and only the caller whose
+    // update changed a row queues the analysis. A read-then-write here let
+    // two copies both see "not ended yet".
+    const endedAt = new Date();
+    const nextStatus = segments.length > 0 ? "recorded" : "scheduled";
+    const result = await db
+      .update(meetings)
+      .set({ ...patch, botEndedAt: endedAt, status: nextStatus })
+      .where(and(eq(meetings.id, meeting.id), isNull(meetings.botEndedAt)));
+    const changed = (result as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0;
+    if (changed === 0) return; // another copy already handed it off
+
     if (segments.length > 0) {
       // Same hand-off an uploaded recording gets: the analysis job finds the
       // transcript row already there and skips transcription.
-      patch.status = "recorded";
       await createTrackedAiJob(meeting.tenantId, meeting.clientId, "meeting_analysis", { meetingId: meeting.id });
-    } else {
-      // Maya never got in (not admitted, wrong link…): back to scheduled so
-      // the team can send her again; the failure reason stays in botStatus.
-      patch.status = "scheduled";
     }
+    // Otherwise Maya never got in (not admitted, wrong link…): status is back
+    // to scheduled so the team can send her again; the reason stays in botStatus.
     await publishEvent({
       tenantId: meeting.tenantId,
       eventType: EVENT_TYPES.mayaLeft,
@@ -105,6 +115,7 @@ export async function syncMayaMeeting(meeting: MeetingRow): Promise<void> {
       entityId: meeting.id,
       payload: { clientId: meeting.clientId, status, segments: segments.length },
     });
+    return;
   }
 
   await db.update(meetings).set(patch).where(eq(meetings.id, meeting.id));

@@ -1,16 +1,15 @@
 import { and, eq, lt, sql as dsql } from "drizzle-orm";
 import { db, integrations, tenants, clients } from "@growengine/db";
-import { enqueueIntegrationJob, enqueueAiJob, enqueueNotificationJob, publishEvent, EVENT_TYPES, redis, isMayaConfigured, pollMayaMeetings, getDevFlags, isAiConfigured, } from "@growengine/core";
+import { enqueueIntegrationJob, enqueueAiJob, enqueueNotificationJob, publishEvent, EVENT_TYPES, isMayaConfigured, pollMayaMeetings, getDevFlags, isAiConfigured, withDbLock, } from "@growengine/core";
 /**
- * Scheduler — periodic orchestration. Runs inside the worker process on
- * setInterval ticks guarded by Redis locks so multiple worker instances
- * never double-schedule.
+ * Scheduler — periodic orchestration on setInterval ticks. Every app copy
+ * runs these timers (Passenger runs several), so each tick takes a
+ * DATABASE lock before doing anything: the copy that wins does the work, the
+ * others skip. The lock used to be in the in-memory store, which is per
+ * process — three copies each ran the daily tick on 2026-09-13.
  */
 async function withLock(key, ttlSeconds, fn) {
-    const acquired = await redis.set(`scheduler:lock:${key}`, "1", "EX", ttlSeconds, "NX");
-    if (!acquired)
-        return;
-    await fn();
+    await withDbLock(`scheduler:${key}`, ttlSeconds, fn);
 }
 /**
  * Same, but honouring the Developer console's "Scheduled jobs" switch. Maya's

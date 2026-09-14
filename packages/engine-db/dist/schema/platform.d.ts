@@ -1583,6 +1583,89 @@ export declare const queueJobs: import("drizzle-orm/mysql-core").MySqlTableWithC
     dialect: "mysql";
 }>;
 /**
+ * Cross-process locks. Passenger runs SEVERAL copies of the app (two boots
+ * interleave in every deploy's log, a third spawned under load on
+ * 2026-09-13), and the in-memory "redis" store is per process — so an
+ * in-memory scheduler lock let every copy run the daily tick. A row here is
+ * the lock: INSERT wins, a duplicate key loses, expiry is the TTL. See
+ * engine-core/src/locks.ts.
+ */
+export declare const schedulerLocks: import("drizzle-orm/mysql-core").MySqlTableWithColumns<{
+    name: "scheduler_locks";
+    schema: undefined;
+    columns: {
+        lockKey: import("drizzle-orm/mysql-core").MySqlColumn<{
+            name: "lock_key";
+            tableName: "scheduler_locks";
+            dataType: "string";
+            columnType: "MySqlVarChar";
+            data: string;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: true;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        owner: import("drizzle-orm/mysql-core").MySqlColumn<{
+            name: "owner";
+            tableName: "scheduler_locks";
+            dataType: "string";
+            columnType: "MySqlVarChar";
+            data: string;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        expiresAt: import("drizzle-orm/mysql-core").MySqlColumn<{
+            name: "expires_at";
+            tableName: "scheduler_locks";
+            dataType: "date";
+            columnType: "MySqlTimestamp";
+            data: Date;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        createdAt: import("drizzle-orm/mysql-core").MySqlColumn<{
+            name: "created_at";
+            tableName: "scheduler_locks";
+            dataType: "date";
+            columnType: "MySqlTimestamp";
+            data: Date;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+    };
+    dialect: "mysql";
+}>;
+/**
  * Domain Event Layer — every published event is persisted here before
  * fan-out, decoupling producers from consumers.
  */
