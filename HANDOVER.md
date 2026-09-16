@@ -13,6 +13,11 @@ the surprising decisions in this repo were paid for with a production outage.
 
 ---
 
+> **12–16 September 2026 changed a lot.** [HANDOVER-AI.md](HANDOVER-AI.md) covers that
+> phase in depth: the worker outage's real cause, Maya the meeting agent, the owner-only
+> Developer console, Gemini as the AI provider, and the discovery that Passenger runs
+> several copies of this app. Where this file and that one disagree, that one is newer.
+
 ## Table of contents
 
 1. [What this system is](#1-what-this-system-is)
@@ -730,11 +735,14 @@ because a second `bg-` class followed `bg-card`.
 
 **Ranked, highest value first.**
 
-1. **§3.1 finish SMTP** — one block in the domain-level `.grow.env`, one restart.
+1. **Keys for the AI phase** — `GEMINI_API_KEY` (+ `AI_PRIMARY_PROVIDER=gemini`),
+   `VEXA_API_KEY`, `VEXA_WEBHOOK_SECRET` in the domain-level `.grow.env`, then the Vexa
+   webhook registration. HANDOVER-AI.md §9–§10.6. Everything AI-shaped is dormant until then.
+2. **§3.1 finish SMTP** — one block in the same file, one restart.
    (§3.2, the worker error loop, was resolved on 2026-09-12.)
-2. **§3.3 off-host uptime monitor** — 2 minutes, needs your account.
-3. **Reclaim `nodejs/stderr.log`** if it is still 6.7 GB — §7.4 / §7.5.
-4. **Rotate the shared passwords.** `STAFF_PASSWORD` and the demo/admin passwords
+3. **§3.3 off-host uptime monitor** — 2 minutes, needs your account.
+4. **Reclaim `nodejs/stderr.log`** if it is still 6.7 GB — §7.4 / §7.5.
+5. **Rotate the shared passwords.** `STAFF_PASSWORD` and the demo/admin passwords
    are shared and have been in use for months. Values are in the gitignored
    `.env`/`.env.local` and in `.grow.env`.
 5. **No AI key and no `VEXA_API_KEY` yet** — every AI feature, and Maya the
@@ -878,9 +886,9 @@ curl -fsS https://growcdx.com/api/health/db
 | Production DB | `u454713534_grow_os` (MariaDB 11.8), user `u454713534_grow_admin`, over `127.0.0.1` |
 | Local DB | `grow_local` on `127.0.0.1:3306` |
 | Runtime config | `/home/u454713534/domains/growcdx.com/.grow.env` |
-| Deployments so far | 66 |
-| Tests | 10 files, 112 tests, run from `apps/grow` |
-| Hub models / engine tables | 26 Prisma / 63 Drizzle (3 engine migrations recorded) |
+| Deployments so far | 70 archive deployments (hPanel counts 76 incl. failed git builds) |
+| Tests | 114 in `apps/grow` (11 files) + 42 in `packages/engine-core` (6 files) |
+| Hub models / engine tables | 26 Prisma / 64 Drizzle (5 engine migrations recorded) |
 | System sender | `internal@growcdx.com` |
 | Dispatcher cron | uid `gInR3iY0TW`, `*/15 * * * *` |
 | Working week | Sunday start, Friday–Saturday weekend |

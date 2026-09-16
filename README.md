@@ -5,7 +5,7 @@
 A single monorepo housing the entire GROW product family under one "Institutional Tech" brand
 (see [BRAND.md](BRAND.md)). One repository, clear modules, one set of commands.
 
-> **New to this codebase? Read [HANDOVER.md](HANDOVER.md) first.** It covers the
+> **New to this codebase? Read [HANDOVER.md](HANDOVER.md) first.** Then [HANDOVER-AI.md](HANDOVER-AI.md) for the September 2026 AI phase (Maya, the Developer console, Gemini). It covers the
 > production topology, the only deploy procedure that works, how to run this
 > locally with a real login, every landmine that has already broken production,
 > and what is unfinished right now. [DEPLOYMENT.md](DEPLOYMENT.md) is the
